@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RetroStash Admin</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --blue:#2563eb;--blue-d:#1d4ed8;--blue-l:#eff6ff;--blue-m:#bfdbfe;
+  --text:#111827;--text2:#374151;--text3:#6b7280;
+  --border:#e5e7eb;--bg:#f9fafb;--white:#fff;
+  --red:#dc2626;--red-l:#fef2f2;--green:#16a34a;--green-l:#f0fdf4;
+  --shadow:0 1px 3px rgba(0,0,0,.08);
+}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;-webkit-font-smoothing:antialiased}
+
+/* ── AUTH ── */
+#auth{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
+.auth-box{background:var(--white);border:1px solid var(--border);border-radius:16px;padding:44px 36px;width:100%;max-width:380px;text-align:center;box-shadow:0 4px 24px rgba(0,0,0,.07)}
+.auth-logo{font-family:'Space Grotesk',sans-serif;font-size:1.6rem;font-weight:700;color:var(--text);margin-bottom:6px}
+.auth-logo span{color:var(--blue)}
+.auth-sub{font-size:.85rem;color:var(--text3);margin-bottom:28px}
+.auth-label{display:block;text-align:left;font-size:.8rem;font-weight:600;color:var(--text2);margin-bottom:6px}
+.auth-input{width:100%;padding:11px 14px;border:1.5px solid var(--border);border-radius:8px;font-size:.95rem;color:var(--text);outline:none;text-align:center;letter-spacing:1.5px;margin-bottom:14px;transition:.15s;font-family:'Inter',sans-serif}
+.auth-input:focus{border-color:var(--blue);box-shadow:0 0 0 3px #dbeafe}
+.auth-btn{width:100%;padding:11px;background:var(--blue);color:#fff;border:none;border-radius:8px;font-family:'Space Grotesk',sans-serif;font-size:.95rem;font-weight:700;cursor:pointer;transition:.15s}
+.auth-btn:hover{background:var(--blue-d)}
+.auth-err{display:none;color:var(--red);font-size:.82rem;margin-top:10px}
+.auth-err.show{display:block}
+
+/* ── PANEL ── */
+#panel{display:none}
+#panel.show{display:block}
+.top{background:var(--white);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:50;box-shadow:var(--shadow)}
+.top-inner{max-width:1080px;margin:0 auto;padding:0 24px;height:58px;display:flex;align-items:center;justify-content:space-between}
+.top-logo{font-family:'Space Grotesk',sans-serif;font-size:1.15rem;font-weight:700;color:var(--text)}
+.top-logo span{color:var(--blue)}
+.top-logo-tag{font-size:.72rem;color:var(--text3);font-weight:500;margin-left:6px}
+.top-nav{display:flex;gap:8px}
+.tbtn{padding:7px 14px;border:1.5px solid var(--border);border-radius:7px;background:var(--white);color:var(--text2);font-size:.8rem;font-weight:500;cursor:pointer;text-decoration:none;transition:.15s;font-family:'Inter',sans-serif}
+.tbtn:hover{background:var(--blue-l);border-color:var(--blue-m);color:var(--blue)}
+.tbtn.danger:hover{background:var(--red-l);border-color:#fca5a5;color:var(--red)}
+
+.wrap{max-width:1080px;margin:0 auto;padding:28px 24px 64px}
+.card{background:var(--white);border:1px solid var(--border);border-radius:12px;margin-bottom:24px;overflow:hidden}
+.card-head{padding:18px 22px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.card-title{font-family:'Space Grotesk',sans-serif;font-size:.98rem;font-weight:700;color:var(--text)}
+.card-sub{font-size:.78rem;color:var(--text3);margin-top:2px}
+.card-body{padding:22px}
+
+/* ── FORM ── */
+.fg{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.full{grid-column:1/-1}
+.lbl{display:block;font-size:.78rem;font-weight:600;color:var(--text2);margin-bottom:5px}
+.inp,.sel{width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:7px;font-size:.875rem;color:var(--text);background:var(--white);outline:none;transition:.15s;font-family:'Inter',sans-serif}
+.inp:focus,.sel:focus{border-color:var(--blue);box-shadow:0 0 0 3px #dbeafe}
+.hint{font-size:.72rem;color:var(--text3);margin-top:3px}
+.fa{display:flex;gap:8px;justify-content:flex-end;margin-top:18px}
+.btn-p{padding:9px 20px;background:var(--blue);color:#fff;border:none;border-radius:7px;font-family:'Space Grotesk',sans-serif;font-size:.875rem;font-weight:700;cursor:pointer;transition:.15s}
+.btn-p:hover{background:var(--blue-d)}
+.btn-s{padding:9px 18px;background:var(--white);color:var(--text2);border:1.5px solid var(--border);border-radius:7px;font-size:.875rem;font-weight:500;cursor:pointer;transition:.15s;font-family:'Inter',sans-serif}
+.btn-s:hover{background:var(--bg)}
+
+/* ── TABLE ── */
+.tbl{width:100%;border-collapse:collapse}
+.tbl th{text-align:left;padding:9px 14px;font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:var(--text3);border-bottom:1px solid var(--border);background:var(--bg)}
+.tbl td{padding:11px 14px;border-bottom:1px solid var(--border);font-size:.875rem;vertical-align:middle}
+.tbl tr:last-child td{border-bottom:none}
+.tbl tr:hover td{background:#fafafa}
+.tbl-cover{width:32px;height:44px;object-fit:cover;border-radius:4px;background:var(--blue-l);border:1px solid var(--border)}
+.tbl-title{font-weight:600;color:var(--text)}
+.tbl-id{font-size:.72rem;color:var(--text3);font-family:monospace;margin-top:1px}
+.tbl-actions{display:flex;gap:5px;flex-wrap:wrap}
+.tbla{padding:4px 10px;border-radius:6px;border:1.5px solid var(--border);background:var(--white);font-size:.78rem;font-weight:500;cursor:pointer;transition:.15s;color:var(--text2);font-family:'Inter',sans-serif}
+.tbla:hover{background:var(--blue-l);border-color:var(--blue-m);color:var(--blue)}
+.tbla.red{color:#b91c1c}
+.tbla.red:hover{background:var(--red-l);border-color:#fca5a5;color:var(--red)}
+.tbla.dim{opacity:.6}
+.src-base{background:var(--blue-l);color:var(--blue);font-size:.7rem;font-weight:700;padding:2px 8px;border-radius:99px}
+.src-added{background:var(--green-l);color:var(--green);font-size:.7rem;font-weight:700;padding:2px 8px;border-radius:99px}
+
+/* ── MODAL ── */
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:500;display:none;align-items:center;justify-content:center;padding:20px}
+.modal-bg.open{display:flex}
+.modal{background:var(--white);border-radius:14px;padding:28px;width:100%;max-width:480px;box-shadow:0 20px 60px rgba(0,0,0,.18)}
+.modal-title{font-family:'Space Grotesk',sans-serif;font-size:1rem;font-weight:700;margin-bottom:20px;color:var(--text)}
+
+/* ── TOAST ── */
+.toast{position:fixed;bottom:24px;right:24px;background:var(--text);color:#fff;padding:12px 18px;border-radius:9px;font-size:.83rem;font-weight:500;z-index:9999;transform:translateY(60px);opacity:0;transition:all .25s cubic-bezier(.4,0,.2,1);box-shadow:0 8px 24px rgba(0,0,0,.2)}
+.toast.show{transform:translateY(0);opacity:1}
+
+@media(max-width:600px){.fg{grid-template-columns:1fr}.top-inner,.wrap{padding-left:14px;padding-right:14px}}
+</style>
+</head>
+<body>
+
+<div id="auth">
+  <div class="auth-box">
+    <div class="auth-logo">Retro<span>Stash</span></div>
+    <div class="auth-sub">Admin panel — enter your password</div>
+    <label class="auth-label" for="pw">Password</label>
+    <input class="auth-input" type="password" id="pw" placeholder="••••••••">
+    <button class="auth-btn" id="authBtn">Unlock</button>
+    <div class="auth-err" id="authErr">Incorrect password. Try again.</div>
+  </div>
+</div>
+
+<div id="panel">
+  <header class="top">
+    <div class="top-inner">
+      <div><span class="top-logo">Retro<span>Stash</span></span><span class="top-logo-tag">Admin</span></div>
+      <nav class="top-nav">
+        <a class="tbtn" href="index.html">← Library</a>
+        <button class="tbtn danger" id="lockBtn">Lock</button>
+      </nav>
+    </div>
+  </header>
+
+  <div class="wrap">
+
+    <!-- ADD GAME -->
+    <div class="card">
+      <div class="card-head">
+        <div>
+          <div class="card-title">Add Game</div>
+          <div class="card-sub">Games you add are stored in the browser and show up immediately.</div>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="fg">
+          <div>
+            <label class="lbl">Title *</label>
+            <input class="inp" id="nTitle" placeholder="e.g. Crash Bandicoot">
+          </div>
+          <div>
+            <label class="lbl">Platform *</label>
+            <select class="sel" id="nPlatform">
+              <option value="">Select…</option>
+              <option value="N64">N64</option>
+              <option value="PS1">PS1</option>
+              <option value="NDS">Nintendo DS</option>
+              <option value="SNES">SNES</option>
+              <option value="NES">NES</option>
+              <option value="SEGA">Sega Genesis</option>
+              <option value="GBA">GBA</option>
+              <option value="OTHER">Other</option>
+            </select>
+          </div>
+          <div>
+            <label class="lbl">Cover Image URL *</label>
+            <input class="inp" type="url" id="nCover" placeholder="https://…">
+            <div class="hint">Direct image URL (jpg/png). Wikipedia images work well.</div>
+          </div>
+          <div>
+            <label class="lbl">Game File Path *</label>
+            <input class="inp" id="nFile" placeholder="games/my-game.html">
+            <div class="hint">Path to game HTML file relative to index.html</div>
+          </div>
+        </div>
+        <div class="fa">
+          <button class="btn-s" id="clearBtn">Clear</button>
+          <button class="btn-p" id="addBtn">Add Game</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- GAMES TABLE -->
+    <div class="card">
+      <div class="card-head">
+        <div>
+          <div class="card-title">All Games</div>
+          <div class="card-sub" id="tblSub">—</div>
+        </div>
+      </div>
+      <div style="overflow-x:auto">
+        <table class="tbl">
+          <thead>
+            <tr>
+              <th>Cover</th><th>Game</th><th>Platform</th><th>Source</th><th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="tblBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- EDIT MODAL -->
+<div class="modal-bg" id="editModal">
+  <div class="modal">
+    <div class="modal-title" id="editTitle">Edit Game</div>
+    <div class="fg">
+      <div class="full">
+        <label class="lbl">Title</label>
+        <input class="inp" id="eTitle">
+      </div>
+      <div>
+        <label class="lbl">Platform</label>
+        <select class="sel" id="ePlatform">
+          <option value="N64">N64</option><option value="PS1">PS1</option>
+          <option value="NDS">Nintendo DS</option><option value="SNES">SNES</option>
+          <option value="NES">NES</option><option value="SEGA">Sega Genesis</option>
+          <option value="GBA">GBA</option><option value="OTHER">Other</option>
+        </select>
+      </div>
+      <div>
+        <label class="lbl">Game File Path</label>
+        <input class="inp" id="eFile">
+      </div>
+      <div class="full">
+        <label class="lbl">Cover Image URL</label>
+        <input class="inp" type="url" id="eCover">
+      </div>
+    </div>
+    <div class="fa">
+      <button class="btn-s" id="editCancel">Cancel</button>
+      <button class="btn-p" id="editSave">Save</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const PASS = "Furman04!";
+let editId = null, editIsAdmin = false;
+
+// ── BASE GAMES (mirrors index.html for display) ──────────────────────────────
+const BASE_GAMES = [
+  {id:"gran-turismo-2",   title:"Gran Turismo 2",                    platform:"PS1",  cover:"https://upload.wikimedia.org/wikipedia/en/1/19/Gran_Turismo_2.jpg",                                     file:"games/gran-turismo-2.html"},
+  {id:"super-mario-64",  title:"Super Mario 64",                    platform:"N64",  cover:"https://upload.wikimedia.org/wikipedia/en/6/6a/Super_Mario_64_box_cover.jpg",                           file:"games/super-mario-64.html"},
+  {id:"zelda-oot",       title:"Zelda: Ocarina of Time",            platform:"N64",  cover:"https://upload.wikimedia.org/wikipedia/en/5/57/The_Legend_of_Zelda_Ocarina_of_Time.jpg",               file:"games/zelda-oot.html"},
+  {id:"paper-mario",     title:"Paper Mario",                       platform:"N64",  cover:"https://upload.wikimedia.org/wikipedia/en/8/8d/PaperMario.jpg",                                        file:"games/paper-mario.html"},
+  {id:"nba-live-2003",   title:"NBA Live 2003",                     platform:"PS1",  cover:"https://upload.wikimedia.org/wikipedia/en/b/b4/NBA_Live_2003_Coverart.jpg",                            file:"games/nba-live-2003.html"},
+  {id:"lego-batman-2",   title:"LEGO Batman 2: DC Super Heroes",    platform:"NDS",  cover:"https://upload.wikimedia.org/wikipedia/en/a/a5/Lego_Batman_2_-_DC_Super_Heroes_box_art.jpg",          file:"games/lego-batman-2.html"},
+  {id:"lego-batman-1",   title:"LEGO Batman: The Videogame",        platform:"NDS",  cover:"https://upload.wikimedia.org/wikipedia/en/5/5c/LEGObatman_boxart.jpg",                                file:"games/lego-batman-1.html"},
+  {id:"lego-star-wars",  title:"LEGO Star Wars: Complete Saga",     platform:"NDS",  cover:"https://upload.wikimedia.org/wikipedia/en/e/ed/Lego_Star_Wars-_The_Complete_Saga.jpg",                file:"games/lego-star-wars.html"},
+  {id:"super-mario-world",title:"Super Mario World",                platform:"SNES", cover:"https://upload.wikimedia.org/wikipedia/en/3/32/Super_Mario_World_Coverart.png",                        file:"games/super-mario-world.html"},
+  {id:"sonic-2",         title:"Sonic the Hedgehog 2",              platform:"SEGA", cover:"https://upload.wikimedia.org/wikipedia/en/f/f1/Sonic2_us_cover.jpg",                                  file:"games/sonic-2.html"},
+  {id:"punch-out",       title:"Mike Tyson's Punch-Out!!",          platform:"NES",  cover:"https://upload.wikimedia.org/wikipedia/en/8/82/Mike_Tyson%27s_Punch-Out%21%21_box_art.png",           file:"games/punch-out.html"},
+  {id:"super-mario-3",   title:"Super Mario Bros. 3",               platform:"NES",  cover:"https://upload.wikimedia.org/wikipedia/en/a/a4/Super_Mario_Bros._3_coverart.svg",                     file:"games/super-mario-3.html"},
+  {id:"madden-2002",     title:"Madden NFL 2002",                   platform:"N64",  cover:"https://upload.wikimedia.org/wikipedia/en/a/ae/Madden_NFL_2002.jpg",                                  file:"games/madden-2002.html"},
+];
+
+// ── STORAGE ──────────────────────────────────────────────────────────────────
+const LS = {
+  get: k => JSON.parse(localStorage.getItem(k)||'[]'),
+  getObj: k => JSON.parse(localStorage.getItem(k)||'{}'),
+  set: (k,v) => localStorage.setItem(k, JSON.stringify(v))
+};
+const getAdminGames = ()=>LS.get('pv_admin_games');
+const saveAdminGames = v=>LS.set('pv_admin_games',v);
+const getHidden = ()=>LS.get('pv_hidden');
+const saveHidden = v=>LS.set('pv_hidden',v);
+const getEdits = ()=>LS.getObj('pv_edits');
+const saveEdits = v=>LS.set('pv_edits',v);
+const getDeleted = ()=>LS.get('pv_deleted');
+const saveDeleted = v=>LS.set('pv_deleted',v);
+
+function getAllGames(){
+  const del=getDeleted(), hid=getHidden(), edits=getEdits();
+  const base = BASE_GAMES.map(g=>{
+    const e=edits[g.id]; return {...g,...(e||{}),isBase:true,hidden:hid.includes(g.id)};
+  }).filter(g=>!del.includes(g.id));
+  const admin = getAdminGames().map(g=>({...g,isBase:false,hidden:hid.includes(g.id)}));
+  return [...base,...admin];
+}
+
+// ── AUTH ─────────────────────────────────────────────────────────────────────
+function unlock(){
+  if(document.getElementById('pw').value===PASS){
+    sessionStorage.setItem('pv_ok','1');
+    document.getElementById('auth').style.display='none';
+    document.getElementById('panel').classList.add('show');
+    renderTable();
+  } else {
+    const e=document.getElementById('authErr');
+    e.classList.add('show');
+    document.getElementById('pw').value='';
+    document.getElementById('pw').focus();
+    setTimeout(()=>e.classList.remove('show'),3000);
+  }
+}
+document.getElementById('authBtn').addEventListener('click',unlock);
+document.getElementById('pw').addEventListener('keydown',e=>{if(e.key==='Enter')unlock();});
+document.getElementById('lockBtn').addEventListener('click',()=>{sessionStorage.removeItem('pv_ok');location.reload();});
+if(sessionStorage.getItem('pv_ok')==='1'){
+  document.getElementById('auth').style.display='none';
+  document.getElementById('panel').classList.add('show');
+  renderTable();
+}
+
+// ── TABLE ─────────────────────────────────────────────────────────────────────
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+
+function renderTable(){
+  const games = getAllGames();
+  const body  = document.getElementById('tblBody');
+  const sub   = document.getElementById('tblSub');
+  const vis   = games.filter(g=>!g.hidden).length;
+  sub.textContent = games.length+' total — '+vis+' visible';
+  body.innerHTML = '';
+  games.forEach(g=>{
+    const tr=document.createElement('tr');
+    tr.style.opacity=g.hidden?'0.45':'1';
+    tr.innerHTML=`
+      <td><img class="tbl-cover" src="${esc(g.cover)}" alt="" referrerpolicy="no-referrer" onerror="this.src=''"></td>
+      <td><div class="tbl-title">${esc(g.title)}</div><div class="tbl-id">${esc(g.file||'games/'+g.id+'.html')}</div></td>
+      <td>${esc(g.platform)}</td>
+      <td><span class="${g.isBase?'src-base':'src-added'}">${g.isBase?'Built-in':'Added'}</span></td>
+      <td>
+        <div class="tbl-actions">
+          <button class="tbla" onclick="editGame('${esc(g.id)}',${!g.isBase})">Edit</button>
+          <button class="tbla dim" onclick="toggleHide('${esc(g.id)}')">${g.hidden?'Unhide':'Hide'}</button>
+          <button class="tbla red" onclick="deleteGame('${esc(g.id)}',${!!g.isBase})">Delete</button>
+        </div>
+      </td>`;
+    body.appendChild(tr);
+  });
+}
+
+// ── ADD ──────────────────────────────────────────────────────────────────────
+document.getElementById('addBtn').addEventListener('click',()=>{
+  const t=document.getElementById('nTitle').value.trim();
+  const p=document.getElementById('nPlatform').value;
+  const c=document.getElementById('nCover').value.trim();
+  const f=document.getElementById('nFile').value.trim();
+  if(!t||!p||!c||!f){toast('Fill in all fields.','red');return;}
+  const games=getAdminGames();
+  games.push({id:'admin-'+Date.now(),title:t,platform:p,cover:c,file:f});
+  saveAdminGames(games);
+  clearForm();
+  renderTable();
+  toast('"'+t+'" added.');
+});
+document.getElementById('clearBtn').addEventListener('click',clearForm);
+function clearForm(){['nTitle','nCover','nFile'].forEach(i=>document.getElementById(i).value='');document.getElementById('nPlatform').value='';}
+
+// ── HIDE ─────────────────────────────────────────────────────────────────────
+function toggleHide(id){
+  const h=getHidden(), i=h.indexOf(id);
+  if(i===-1)h.push(id); else h.splice(i,1);
+  saveHidden(h); renderTable();
+  toast(i===-1?'Game hidden.':'Game restored.');
+}
+
+// ── DELETE ───────────────────────────────────────────────────────────────────
+function deleteGame(id, isBase){
+  if(!confirm('Delete this game permanently? This cannot be undone.'))return;
+  if(isBase){
+    const d=getDeleted(); if(!d.includes(id))d.push(id); saveDeleted(d);
+    const h=getHidden().filter(x=>x!==id); saveHidden(h);
+    const e=getEdits(); delete e[id]; saveEdits(e);
+  } else {
+    saveAdminGames(getAdminGames().filter(g=>g.id!==id));
+    saveHidden(getHidden().filter(x=>x!==id));
+  }
+  renderTable(); toast('Game deleted.');
+}
+
+// ── EDIT ─────────────────────────────────────────────────────────────────────
+function editGame(id, isAdmin){
+  const g=getAllGames().find(x=>x.id===id); if(!g)return;
+  editId=id; editIsAdmin=isAdmin;
+  document.getElementById('editTitle').textContent='Edit: '+g.title;
+  document.getElementById('eTitle').value=g.title;
+  document.getElementById('ePlatform').value=g.platform;
+  document.getElementById('eCover').value=g.cover||'';
+  document.getElementById('eFile').value=g.file||'games/'+g.id+'.html';
+  document.getElementById('editModal').classList.add('open');
+}
+document.getElementById('editCancel').addEventListener('click',closeEdit);
+document.getElementById('editModal').addEventListener('click',e=>{if(e.target===document.getElementById('editModal'))closeEdit();});
+function closeEdit(){document.getElementById('editModal').classList.remove('open');editId=null;}
+document.getElementById('editSave').addEventListener('click',()=>{
+  if(!editId)return;
+  const u={title:document.getElementById('eTitle').value.trim(),platform:document.getElementById('ePlatform').value,cover:document.getElementById('eCover').value.trim(),file:document.getElementById('eFile').value.trim()};
+  if(!u.title||!u.platform){toast('Title and platform required.','red');return;}
+  if(editIsAdmin){saveAdminGames(getAdminGames().map(g=>g.id===editId?{...g,...u}:g));}
+  else{const e=getEdits();e[editId]=u;saveEdits(e);}
+  closeEdit(); renderTable(); toast('Saved!');
+});
+
+// ── TOAST ─────────────────────────────────────────────────────────────────────
+let tTimer;
+function toast(msg,type){
+  const t=document.getElementById('toast');
+  t.textContent=msg;
+  t.style.background=type==='red'?'#dc2626':'#111827';
+  t.classList.add('show');
+  clearTimeout(tTimer);
+  tTimer=setTimeout(()=>t.classList.remove('show'),3000);
+}
+</script>
+</body>
+</html>
