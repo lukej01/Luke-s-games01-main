@@ -244,8 +244,8 @@ footer{border-top:1px solid var(--border);background:var(--white);padding:14px 2
 var CTRL_DISPLAY = {
   NES: [
     ["D-Pad","W A S D"],
-    ["A","Space"],
-    ["B","B"],
+    ["A","B"],
+    ["B","Space"],
     ["Start","Enter"],
     ["Select","Enter"],
     ["Save State","1"],
@@ -253,12 +253,12 @@ var CTRL_DISPLAY = {
   ],
   SNES: [
     ["D-Pad","W A S D"],
-    ["A","Space"],
-    ["B","B"],
-    ["X","V"],
-    ["Y","N"],
+    ["A","B"],
+    ["B","Space"],
+    ["X","N"],
+    ["Y","V"],
     ["L","X"],
-    ["R",","],
+    ["R","M"],
     ["Start","Enter"],
     ["Select","Enter"],
     ["Save State","1"],
@@ -266,11 +266,11 @@ var CTRL_DISPLAY = {
   ],
   N64: [
     ["L-Stick / D-Pad","W A S D"],
-    ["A","Space"],
-    ["B","B"],
+    ["A","B"],
+    ["B","Space"],
     ["Z Trigger","C"],
     ["L","X"],
-    ["R",","],
+    ["R","M"],
     ["C-Buttons","Arrow Keys"],
     ["Start","Enter"],
     ["Save State","1"],
@@ -279,14 +279,14 @@ var CTRL_DISPLAY = {
   PS1: [
     ["L-Stick / D-Pad","W A S D"],
     ["R-Stick","Arrow Keys"],
-    ["Cross ✕","B"],
-    ["Circle ○","Space"],
-    ["Square □","N"],
-    ["Triangle △","V"],
+    ["Cross ✕","Space"],
+    ["Circle ○","B"],
+    ["Square □","V"],
+    ["Triangle △","N"],
     ["L1","X"],
     ["L2","C"],
-    ["R1",","],
-    ["R2","M"],
+    ["R1","M"],
+    ["R2",","],
     ["Start","Enter"],
     ["Select","Enter"],
     ["Save State","1"],
@@ -294,21 +294,21 @@ var CTRL_DISPLAY = {
   ],
   SEGA: [
     ["D-Pad","W A S D"],
-    ["A","Space"],
-    ["B","B"],
-    ["C",","],
+    ["A","B"],
+    ["B","Space"],
+    ["C","M"],
     ["Start","Enter"],
     ["Save State","1"],
     ["Load State","2"]
   ],
   NDS: [
     ["D-Pad","W A S D"],
-    ["A","Space"],
-    ["B","B"],
-    ["X","V"],
-    ["Y","N"],
+    ["A","B"],
+    ["B","Space"],
+    ["X","N"],
+    ["Y","V"],
     ["L","X"],
-    ["R",","],
+    ["R","M"],
     ["Start","Enter"],
     ["Select","Enter"],
     ["Save State","1"],
@@ -316,10 +316,10 @@ var CTRL_DISPLAY = {
   ],
   GBA: [
     ["D-Pad","W A S D"],
-    ["A","Space"],
-    ["B","B"],
+    ["A","B"],
+    ["B","Space"],
     ["L","X"],
-    ["R",","],
+    ["R","M"],
     ["Start","Enter"],
     ["Select","Enter"],
     ["Save State","1"],
@@ -346,22 +346,22 @@ var CTRL_BASE_LS = {
 // Per-platform extra bindings
 var CTRL_EXTRA_LS = {
   NES: {
-    'p1b8keyboard':' ',  // A -> Space
-    'p1b0keyboard':'b'   // B -> B
+    'p1b0keyboard':' ',  // B -> Space
+    'p1b8keyboard':'b'   // A -> B
   },
   SNES: {
-    'p1b8keyboard':' ',  // A -> Space
-    'p1b0keyboard':'b',  // B -> B
-    'p1b9keyboard':'v',  // X -> V
-    'p1b1keyboard':'n',  // Y -> N
-    'p1b10keyboard':'x', // L1 -> X
-    'p1b11keyboard':','  // R1 -> ,
+    'p1b0keyboard':' ',  // B -> Space
+    'p1b8keyboard':'b',  // A -> B
+    'p1b1keyboard':'v',  // Y -> V
+    'p1b9keyboard':'n',  // X -> N
+    'p1b10keyboard':'x', // L -> X
+    'p1b11keyboard':'m'  // R -> M
   },
   N64: {
-    'p1b8keyboard':' ',      // A -> Space
-    'p1b0keyboard':'b',      // B -> B
+    'p1b0keyboard':' ',      // B -> Space
+    'p1b8keyboard':'b',      // A -> B
     'p1b10keyboard':'x',     // L -> X
-    'p1b11keyboard':',',     // R -> ,
+    'p1b11keyboard':'m',     // R -> M
     'p1b12keyboard':'c',     // Z trigger -> C
     'p1a2-keyboard':'arrowleft',  // C-Left (R-stick)
     'p1a2+keyboard':'arrowright', // C-Right
@@ -369,31 +369,37 @@ var CTRL_EXTRA_LS = {
     'p1a3+keyboard':'arrowdown'   // C-Down
   },
   PS1: {
-    'p1b0keyboard':'b',      // Cross -> B
-    'p1b8keyboard':' ',      // Circle -> Space
-    'p1b1keyboard':'n',      // Square -> N
-    'p1b9keyboard':'v',      // Triangle -> V
+    'p1b0keyboard':' ',      // Cross -> Space
+    'p1b8keyboard':'b',      // Circle -> B
+    'p1b1keyboard':'v',      // Square -> V
+    'p1b9keyboard':'n',      // Triangle -> N
     'p1b10keyboard':'x',     // L1 -> X
-    'p1b11keyboard':',',     // R1 -> ,
+    'p1b11keyboard':'m',     // R1 -> M
     'p1b12keyboard':'c',     // L2 -> C
-    'p1b13keyboard':'m',     // R2 -> M
+    'p1b13keyboard':',',     // R2 -> ,
     'p1a2-keyboard':'arrowleft',
     'p1a2+keyboard':'arrowright',
     'p1a3-keyboard':'arrowup',
     'p1a3+keyboard':'arrowdown'
   },
   SEGA: {
-    'p1b8keyboard':' ',  // A -> Space
-    'p1b0keyboard':'b',  // B -> B
-    'p1b11keyboard':','  // C -> ,
+    'p1b0keyboard':' ',  // B -> Space
+    'p1b8keyboard':'b',  // A -> B
+    'p1b11keyboard':'m'  // C -> M
   },
   NDS: {
-    'p1b8keyboard':' ',  // A -> Space
-    'p1b0keyboard':'b',  // B -> B
-    'p1b9keyboard':'v',  // X -> V
-    'p1b1keyboard':'n',  // Y -> N
+    'p1b0keyboard':' ',  // B -> Space
+    'p1b8keyboard':'b',  // A -> B
+    'p1b1keyboard':'v',  // Y -> V
+    'p1b9keyboard':'n',  // X -> N
     'p1b10keyboard':'x', // L -> X
-    'p1b11keyboard':','  // R -> ,
+    'p1b11keyboard':'m'  // R -> M
+  },
+  GBA: {
+    'p1b0keyboard':' ',  // B -> Space
+    'p1b8keyboard':'b',  // A -> B
+    'p1b10keyboard':'x', // L -> X
+    'p1b11keyboard':'m'  // R -> M
   }
 };
 
