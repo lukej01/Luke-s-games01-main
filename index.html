@@ -112,6 +112,14 @@ main{max-width:1200px;margin:0 auto;padding:28px 24px 64px}
 .ctrl-action{font-size:.75rem;color:var(--text3)}
 .ctrl-key{font-size:.72rem;font-weight:600;color:var(--text);background:var(--bg);border:1.5px solid var(--border);border-radius:4px;padding:1px 7px;font-family:monospace;white-space:nowrap}
 
+/* Controls dropdown button */
+.ctrl-dropdown{position:relative}
+.btn-ctrl{padding:5px 12px;border:1.5px solid var(--border);border-radius:7px;background:var(--white);color:var(--text2);font-family:'Inter',sans-serif;font-size:.78rem;font-weight:500;cursor:pointer;transition:.15s;display:flex;align-items:center;gap:5px}
+.btn-ctrl:hover,.btn-ctrl.open{background:var(--blue-l);border-color:var(--blue-m);color:var(--blue)}
+.ctrl-panel{position:absolute;top:calc(100% + 6px);right:0;background:var(--white);border:1px solid var(--border);border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,.14);z-index:600;min-width:230px;padding:14px 16px;display:none}
+.ctrl-panel.open{display:block}
+.ctrl-panel-title{font-family:'Space Grotesk',sans-serif;font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--text3);margin-bottom:10px}
+
 /* FOOTER */
 footer{border-top:1px solid var(--border);background:var(--white);padding:14px 24px;display:flex;align-items:center;justify-content:space-between;font-size:.8rem;color:var(--text3)}
 .footer-brand{font-family:'Space Grotesk',sans-serif;font-weight:700;color:var(--text);font-size:.85rem}
@@ -192,6 +200,13 @@ footer{border-top:1px solid var(--border);background:var(--white);padding:14px 2
         <span id="modalBadge"></span>
       </div>
       <div class="modal-actions">
+        <div class="ctrl-dropdown" id="ctrlDropdown">
+          <button class="btn-ctrl" id="btnCtrl">🎮 Controls</button>
+          <div class="ctrl-panel" id="ctrlPanel">
+            <div class="ctrl-panel-title" id="ctrlPanelTitle">Controls</div>
+            <div class="ctrl-list" id="ctrlPanelList"></div>
+          </div>
+        </div>
         <button class="btn-x" id="btnClose" title="Close (Esc)">✕</button>
       </div>
     </div>
@@ -206,14 +221,10 @@ footer{border-top:1px solid var(--border);background:var(--white);padding:14px 2
       </iframe>
     </div>
     <div class="modal-below">
-      <div class="modal-info">
+      <div class="modal-info" style="grid-template-columns:1fr">
         <div class="info-col">
           <div class="info-label">About</div>
           <div class="game-desc" id="gameDesc">—</div>
-        </div>
-        <div class="info-col">
-          <div class="info-label">Controls</div>
-          <div class="ctrl-list" id="ctrlList"></div>
         </div>
       </div>
     </div>
@@ -232,74 +243,85 @@ footer{border-top:1px solid var(--border);background:var(--white);padding:14px 2
 
 var CTRL_DISPLAY = {
   NES: [
-    ["D-Pad","WASD"],
+    ["D-Pad","W A S D"],
     ["A","Space"],
-    ["B","B key"],
+    ["B","B"],
     ["Start","Enter"],
     ["Select","Enter"],
     ["Save State","1"],
     ["Load State","2"]
   ],
   SNES: [
-    ["D-Pad","WASD"],
+    ["D-Pad","W A S D"],
     ["A","Space"],
-    ["B","B key"],
-    ["X","V key"],
-    ["Y","N key"],
+    ["B","B"],
+    ["X","V"],
+    ["Y","N"],
+    ["L","X"],
+    ["R",","],
     ["Start","Enter"],
     ["Select","Enter"],
-    ["L (upper-left)","X key"],
-    ["R (upper-right)","[ , ] key"],
     ["Save State","1"],
     ["Load State","2"]
   ],
   N64: [
-    ["L-Stick / D-Pad","WASD"],
+    ["L-Stick / D-Pad","W A S D"],
     ["A","Space"],
-    ["B","B key"],
-    ["Start","Enter"],
-    ["Z Trigger","C key"],
-    ["L (upper-left)","X key"],
-    ["R (upper-right)","[ , ] key"],
+    ["B","B"],
+    ["Z Trigger","C"],
+    ["L","X"],
+    ["R",","],
     ["C-Buttons","Arrow Keys"],
+    ["Start","Enter"],
     ["Save State","1"],
     ["Load State","2"]
   ],
   PS1: [
-    ["L-Stick / D-Pad","WASD"],
+    ["L-Stick / D-Pad","W A S D"],
     ["R-Stick","Arrow Keys"],
-    ["Cross ✕","B key"],
+    ["Cross ✕","B"],
     ["Circle ○","Space"],
-    ["Square □","N key"],
-    ["Triangle △","V key"],
+    ["Square □","N"],
+    ["Triangle △","V"],
+    ["L1","X"],
+    ["L2","C"],
+    ["R1",","],
+    ["R2","M"],
     ["Start","Enter"],
     ["Select","Enter"],
-    ["L1 (upper-left)","X key"],
-    ["L2 (lower-left)","C key"],
-    ["R2 (lower-right)","M key"],
-    ["R1 (upper-right)","[ , ] key"],
     ["Save State","1"],
     ["Load State","2"]
   ],
   SEGA: [
-    ["D-Pad","WASD"],
+    ["D-Pad","W A S D"],
     ["A","Space"],
-    ["B","B key"],
-    ["C","[ , ] key"],
+    ["B","B"],
+    ["C",","],
     ["Start","Enter"],
     ["Save State","1"],
     ["Load State","2"]
   ],
   NDS: [
-    ["D-Pad","WASD"],
+    ["D-Pad","W A S D"],
     ["A","Space"],
-    ["B","B key"],
-    ["X","V key"],
-    ["Y","N key"],
+    ["B","B"],
+    ["X","V"],
+    ["Y","N"],
+    ["L","X"],
+    ["R",","],
     ["Start","Enter"],
     ["Select","Enter"],
-    ["L (upper-left)","X key"],
-    ["R (upper-right)","[ , ] key"],
+    ["Save State","1"],
+    ["Load State","2"]
+  ],
+  GBA: [
+    ["D-Pad","W A S D"],
+    ["A","Space"],
+    ["B","B"],
+    ["L","X"],
+    ["R",","],
+    ["Start","Enter"],
+    ["Select","Enter"],
     ["Save State","1"],
     ["Load State","2"]
   ]
@@ -693,7 +715,11 @@ function openModal(g) {
   document.getElementById('modalTitle').textContent = g.title;
   document.getElementById('modalBadge').innerHTML = '<span class="badge '+bc+'" style="font-size:.68rem">'+esc(pl)+'</span>';
   document.getElementById('gameDesc').textContent = g.desc || 'A classic game.';
-  document.getElementById('ctrlList').innerHTML = buildCtrlHtml(g.platform);
+  var pl2 = PLAT_LABEL[g.platform] || g.platform;
+  document.getElementById('ctrlPanelTitle').textContent = pl2 + ' Controls';
+  document.getElementById('ctrlPanelList').innerHTML = buildCtrlHtml(g.platform);
+  document.getElementById('ctrlPanel').classList.remove('open');
+  document.getElementById('btnCtrl').classList.remove('open');
 
   var frame  = document.getElementById('gameFrame');
   var loader = document.getElementById('gameLoader');
@@ -735,6 +761,20 @@ function closeModal() {
 document.getElementById('btnClose').addEventListener('click', closeModal);
 document.getElementById('modalBg').addEventListener('click', function(e){ if(e.target===this) closeModal(); });
 document.addEventListener('keydown', function(e){ if(e.key==='Escape') closeModal(); });
+
+document.getElementById('btnCtrl').addEventListener('click', function(e){
+  e.stopPropagation();
+  var panel = document.getElementById('ctrlPanel');
+  var btn   = document.getElementById('btnCtrl');
+  var open  = panel.classList.toggle('open');
+  btn.classList.toggle('open', open);
+});
+document.addEventListener('click', function(e){
+  if(!document.getElementById('ctrlDropdown').contains(e.target)){
+    document.getElementById('ctrlPanel').classList.remove('open');
+    document.getElementById('btnCtrl').classList.remove('open');
+  }
+});
 
 // ── FILTERS / SEARCH ─────────────────────────────────────────────────────────
 document.getElementById('searchInput').addEventListener('input', function(e){ query=e.target.value; render(); });
