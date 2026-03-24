@@ -309,7 +309,7 @@ function renderTable(){
     const tr=document.createElement('tr');
     tr.style.opacity=g.hidden?'0.45':'1';
     tr.innerHTML=`
-      <td><img class="tbl-cover" src="${esc(g.cover)}" alt="" referrerpolicy="no-referrer" onerror="this.src=''"></td>
+      <td><img class="tbl-cover" src="${esc(g.cover)}" alt="" referrerpolicy="no-referrer" onerror="this.onerror=null;this.src=''"></td>
       <td><div class="tbl-title">${esc(g.title)}</div><div class="tbl-id">${esc(g.file||'games/'+g.id+'.html')}</div></td>
       <td>${esc(g.platform)}</td>
       <td><span class="${g.isBase?'src-base':'src-added'}">${g.isBase?'Built-in':'Added'}</span></td>
