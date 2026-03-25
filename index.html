@@ -659,6 +659,7 @@ function buildGameHtml(g) {
       +   'if(prog)prog.remove();if(sub)sub.remove();'
       +   'EJS_player="#game";'
       +   'EJS_core='+JSON.stringify(g.core)+';'
+      +   'EJS_gameName='+JSON.stringify(g.name||g.title)+';'
       +   'EJS_color="#2563eb";'
       +   'EJS_startOnLoaded=true;'
       +   'EJS_pathtodata='+JSON.stringify(g.pathtodata)+';'
