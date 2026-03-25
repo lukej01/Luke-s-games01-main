@@ -327,87 +327,35 @@ var CTRL_DISPLAY = {
   ]
 };
 
-// localStorage key bindings injected into every game blob
-// p1b[n]keyboard format used by EmulatorJS
-// Base keys common to all platforms
-var CTRL_BASE_LS = {
-  'p1b4keyboard':'w',    // D-Pad Up
-  'p1b5keyboard':'s',    // D-Pad Down
-  'p1b6keyboard':'a',    // D-Pad Left
-  'p1b7keyboard':'d',    // D-Pad Right
-  'p1b2keyboard':'enter',// Select
-  'p1b3keyboard':'enter',// Start
-  'p1a0-keyboard':'a',   // L-Stick Left
-  'p1a0+keyboard':'d',   // L-Stick Right
-  'p1a1-keyboard':'w',   // L-Stick Up
-  'p1a1+keyboard':'s'    // L-Stick Down
+// ── CONTROLS ─────────────────────────────────────────────────────────────────
+// EmulatorJS (genizy fork) button IDs → our desired keyboard keys.
+// Patched via Object.defineProperty(window,'EJS') in each game blob.
+var CTRL_KEYS = {
+  0:'space',          // B / Cross (south button)
+  1:'v',              // Y / Square (west)
+  2:'enter',          // Select
+  3:'enter',          // Start
+  4:'w',              // D-Pad Up
+  5:'s',              // D-Pad Down
+  6:'a',              // D-Pad Left
+  7:'d',              // D-Pad Right
+  8:'b',              // A / Circle (east)
+  9:'n',              // X / Triangle (north)
+  10:'x',             // L / L1
+  11:'m',             // R / R1
+  12:'c',             // Z / L2
+  13:'comma',         // R2
+  16:'d',             // L-Stick Right
+  17:'a',             // L-Stick Left
+  18:'s',             // L-Stick Down
+  19:'w',             // L-Stick Up
+  20:'right arrow',   // R-Stick / C-Pad Right
+  21:'left arrow',    // R-Stick / C-Pad Left
+  22:'down arrow',    // R-Stick / C-Pad Down
+  23:'up arrow',      // R-Stick / C-Pad Up
+  24:'1',             // Save State
+  25:'2'              // Load State
 };
-
-// Per-platform extra bindings
-var CTRL_EXTRA_LS = {
-  NES: {
-    'p1b0keyboard':' ',  // B -> Space
-    'p1b8keyboard':'b'   // A -> B
-  },
-  SNES: {
-    'p1b0keyboard':' ',  // B -> Space
-    'p1b8keyboard':'b',  // A -> B
-    'p1b1keyboard':'v',  // Y -> V
-    'p1b9keyboard':'n',  // X -> N
-    'p1b10keyboard':'x', // L -> X
-    'p1b11keyboard':'m'  // R -> M
-  },
-  N64: {
-    'p1b0keyboard':' ',      // B -> Space
-    'p1b8keyboard':'b',      // A -> B
-    'p1b10keyboard':'x',     // L -> X
-    'p1b11keyboard':'m',     // R -> M
-    'p1b12keyboard':'c',     // Z trigger -> C
-    'p1a2-keyboard':'arrowleft',  // C-Left (R-stick)
-    'p1a2+keyboard':'arrowright', // C-Right
-    'p1a3-keyboard':'arrowup',    // C-Up
-    'p1a3+keyboard':'arrowdown'   // C-Down
-  },
-  PS1: {
-    'p1b0keyboard':' ',      // Cross -> Space
-    'p1b8keyboard':'b',      // Circle -> B
-    'p1b1keyboard':'v',      // Square -> V
-    'p1b9keyboard':'n',      // Triangle -> N
-    'p1b10keyboard':'x',     // L1 -> X
-    'p1b11keyboard':'m',     // R1 -> M
-    'p1b12keyboard':'c',     // L2 -> C
-    'p1b13keyboard':',',     // R2 -> ,
-    'p1a2-keyboard':'arrowleft',
-    'p1a2+keyboard':'arrowright',
-    'p1a3-keyboard':'arrowup',
-    'p1a3+keyboard':'arrowdown'
-  },
-  SEGA: {
-    'p1b0keyboard':' ',  // B -> Space
-    'p1b8keyboard':'b',  // A -> B
-    'p1b11keyboard':'m'  // C -> M
-  },
-  NDS: {
-    'p1b0keyboard':' ',  // B -> Space
-    'p1b8keyboard':'b',  // A -> B
-    'p1b1keyboard':'v',  // Y -> V
-    'p1b9keyboard':'n',  // X -> N
-    'p1b10keyboard':'x', // L -> X
-    'p1b11keyboard':'m'  // R -> M
-  },
-  GBA: {
-    'p1b0keyboard':' ',  // B -> Space
-    'p1b8keyboard':'b',  // A -> B
-    'p1b10keyboard':'x', // L -> X
-    'p1b11keyboard':'m'  // R -> M
-  }
-};
-
-// Build combined localStorage object for a platform
-function buildCtrlLS(platform) {
-  var extra = CTRL_EXTRA_LS[platform] || CTRL_EXTRA_LS['SNES'];
-  return Object.assign({}, CTRL_BASE_LS, extra);
-}
 
 // ── GAME DATA ────────────────────────────────────────────────────────────────
 var GAMES = [
@@ -585,15 +533,36 @@ function render(){
 
 // ── BUILD GAME HTML (blob) ────────────────────────────────────────────────────
 // Builds a complete standalone HTML page for the game.
-// Controls are passed via EJS_defaultOptions before loader.js runs.
+// Controls are applied by patching EJS.prototype.initControlVars before loader.js
+// runs — needed because EJS_defaultControls is broken in genizy/emu (typo in
+// loader.js: config.defaultControlers vs config.defaultControllers).
 function buildGameHtml(g) {
   var loaderUrl = g.loaderPath || (g.pathtodata.replace(/\/+$/,'') + '/loader.js');
   var biosLine  = g.bios  ? 'EJS_biosUrl=' + JSON.stringify(g.bios)  + ';' : '';
 
-  // Build EJS_defaultOptions with control bindings (and vsync if needed)
-  var ctrlObj = buildCtrlLS(g.platform);
-  if (g.vsync) ctrlObj.vsync = 'disabled';
-  var defaultOptsLine = 'EJS_defaultOptions='+JSON.stringify(ctrlObj)+';\n';
+  // EJS_defaultOptions is for emulator settings only (not controls)
+  var vsyncLine = g.vsync ? 'EJS_defaultOptions={"vsync":"disabled"};\n' : '';
+
+  // Intercept window.EJS being set by emulator.min.js, then patch initControlVars
+  // so our keys replace the defaults before the control menu is built.
+  var patchLine = '(function(){'
+    + 'var k='+JSON.stringify(CTRL_KEYS)+';'
+    + 'Object.defineProperty(window,"EJS",{'
+    +   'configurable:true,'
+    +   'set:function(c){'
+    +     'var o=c.prototype.initControlVars;'
+    +     'c.prototype.initControlVars=function(){'
+    +       'o.call(this);'
+    +       'for(var i in k){'
+    +         'if(this.defaultControllers[0][i])this.defaultControllers[0][i].value=k[i];'
+    +         'else this.defaultControllers[0][i]={value:k[i]};'
+    +       '}'
+    +     '};'
+    +     'Object.defineProperty(window,"EJS",{value:c,writable:true,configurable:true,enumerable:true});'
+    +   '}'
+    + '});'
+    + '})();\n';
+  var defaultOptsLine = vsyncLine + patchLine;
 
   var head = '<!DOCTYPE html><html><head><meta charset="UTF-8">'
     + '<style>'
