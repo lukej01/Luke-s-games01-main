@@ -92,6 +92,13 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 .toast{position:fixed;bottom:24px;right:24px;background:var(--text);color:#fff;padding:12px 18px;border-radius:9px;font-size:.83rem;font-weight:500;z-index:9999;transform:translateY(60px);opacity:0;transition:all .25s cubic-bezier(.4,0,.2,1);box-shadow:0 8px 24px rgba(0,0,0,.2)}
 .toast.show{transform:translateY(0);opacity:1}
 
+/* ── SYNC ── */
+.sync-row{display:flex;align-items:flex-start;gap:16px;flex-wrap:wrap}
+.sync-info{flex:1;min-width:0}
+.sync-status{margin-top:8px;font-size:.78rem;min-height:1.2em}
+.sync-status.ok{color:var(--green)}.sync-status.err{color:var(--red)}.sync-status.busy{color:var(--text3)}
+.inp-mono{font-family:monospace;font-size:.82rem;letter-spacing:.3px}
+
 @media(max-width:600px){.fg{grid-template-columns:1fr}.top-inner,.wrap{padding-left:14px;padding-right:14px}}
 </style>
 </head>
@@ -164,6 +171,27 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
           <button class="btn-s" id="clearBtn">Clear</button>
           <button class="btn-p" id="addBtn">Add Game</button>
         </div>
+      </div>
+    </div>
+
+    <!-- GITHUB SYNC -->
+    <div class="card">
+      <div class="card-head">
+        <div>
+          <div class="card-title">GitHub Sync</div>
+          <div class="card-sub">Push your changes to the live site. Needs a GitHub token with <strong>repo</strong> write access.</div>
+        </div>
+        <button class="btn-p" id="syncBtn">↑ Push to GitHub</button>
+      </div>
+      <div class="card-body">
+        <div class="sync-row">
+          <div class="sync-info">
+            <label class="lbl">Personal Access Token</label>
+            <input class="inp inp-mono" type="password" id="ghToken" placeholder="ghp_…" autocomplete="off">
+            <div class="hint">Saved in your browser only — never sent anywhere except GitHub's API.</div>
+          </div>
+        </div>
+        <div class="sync-status" id="syncStatus"></div>
       </div>
     </div>
 
@@ -384,6 +412,134 @@ document.getElementById('editSave').addEventListener('click',()=>{
   if(editIsAdmin){saveAdminGames(getAdminGames().map(g=>g.id===editId?{...g,...u}:g));}
   else{const e=getEdits();e[editId]=u;saveEdits(e);}
   closeEdit(); renderTable(); toast('Saved!');
+});
+
+// ── GITHUB SYNC ──────────────────────────────────────────────────────────────
+const REPO = 'lukej01/luke-s-games01-main';
+const SYNC_BRANCH = 'main';
+
+(function(){
+  const saved = localStorage.getItem('pv_gh_tok');
+  if (saved) document.getElementById('ghToken').value = saved;
+})();
+document.getElementById('ghToken').addEventListener('change', function(){
+  localStorage.setItem('pv_gh_tok', this.value.trim());
+});
+
+function setSyncStatus(msg, type) {
+  const el = document.getElementById('syncStatus');
+  el.textContent = msg;
+  el.className = 'sync-status' + (type ? ' ' + type : '');
+}
+
+function b64enc(str) {
+  const bytes = new TextEncoder().encode(str);
+  let bin = ''; for (const b of bytes) bin += String.fromCharCode(b);
+  return btoa(bin);
+}
+function b64dec(b64) {
+  const bin = atob(b64.replace(/\s/g,''));
+  const arr = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) arr[i] = bin.charCodeAt(i);
+  return new TextDecoder().decode(arr);
+}
+
+function escRe(s){ return s.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'); }
+function escVal(s){ return s.replace(/\\/g,'\\\\').replace(/"/g,'\\"'); }
+
+function applyEditsToContent(content, gameId, edits) {
+  const eid = escRe(gameId);
+  return content.replace(new RegExp('\\{[^{}]*?id:"'+eid+'"[^{}]*?\\}'), function(entry) {
+    if (edits.cover    != null) entry = entry.replace(/cover:"[^"]*"/,    'cover:"'    +escVal(edits.cover)+'"');
+    if (edits.title    != null) entry = entry.replace(/title:"[^"]*"/,    'title:"'    +escVal(edits.title)+'"');
+    if (edits.platform != null) entry = entry.replace(/platform:"[^"]*"/, 'platform:"' +escVal(edits.platform)+'"');
+    return entry;
+  });
+}
+
+function removeEntryFromContent(content, gameId) {
+  const eid = escRe(gameId);
+  let r = content.replace(new RegExp('\\n[ \\t]*\\{[^{}]*?id:"'+eid+'"[^{}]*?\\},?'), '');
+  r = r.replace(/,(\s*\n\s*\];)/, '$1'); // trailing comma cleanup
+  return r;
+}
+
+function addEntryToIndex(content, g) {
+  const e = '  {id:'+JSON.stringify(g.id)+',title:'+JSON.stringify(g.title)+
+    ',platform:'+JSON.stringify(g.platform)+',cover:'+JSON.stringify(g.cover)+
+    ',file:'+JSON.stringify(g.file||'games/'+g.id+'.html')+'}';
+  return content.replace('\n];\n\nvar BADGE_CLASS', ',\n'+e+'\n];\n\nvar BADGE_CLASS');
+}
+
+function addEntryToAdmin(content, g) {
+  const e = '  {id:'+JSON.stringify(g.id)+',title:'+JSON.stringify(g.title)+
+    ',platform:'+JSON.stringify(g.platform)+',cover:'+JSON.stringify(g.cover)+
+    ',file:'+JSON.stringify(g.file||'games/'+g.id+'.html')+'}';
+  return content.replace('\n];\n\n// ── STORAGE', ',\n'+e+'\n];\n\n// ── STORAGE');
+}
+
+document.getElementById('syncBtn').addEventListener('click', async function() {
+  const token = document.getElementById('ghToken').value.trim();
+  if (!token) { setSyncStatus('Enter a GitHub token first.', 'err'); return; }
+  localStorage.setItem('pv_gh_tok', token);
+
+  const edits = getEdits();
+  const adminGames = getAdminGames();
+  const deleted = getDeleted();
+  const hasChanges = Object.keys(edits).length || adminGames.length || deleted.length;
+  if (!hasChanges) { setSyncStatus('Nothing to sync — no pending changes.', ''); return; }
+
+  setSyncStatus('Syncing…', 'busy');
+  this.disabled = true;
+
+  const hdrs = {'Authorization':'token '+token,'Accept':'application/vnd.github.v3+json'};
+  const base = 'https://api.github.com/repos/'+REPO+'/contents/';
+
+  try {
+    const [idxRes, admRes] = await Promise.all([
+      fetch(base+'index.html?ref='+SYNC_BRANCH, {headers:hdrs}),
+      fetch(base+'admin.html?ref='+SYNC_BRANCH, {headers:hdrs})
+    ]);
+    if (!idxRes.ok) throw new Error('Fetch index.html: '+idxRes.status);
+    if (!admRes.ok) throw new Error('Fetch admin.html: '+admRes.status);
+    const [idxData, admData] = await Promise.all([idxRes.json(), admRes.json()]);
+    let idx = b64dec(idxData.content);
+    let adm = b64dec(admData.content);
+
+    for (const id of deleted) {
+      idx = removeEntryFromContent(idx, id);
+      adm = removeEntryFromContent(adm, id);
+    }
+    for (const [id, e] of Object.entries(edits)) {
+      idx = applyEditsToContent(idx, id, e);
+      adm = applyEditsToContent(adm, id, e);
+    }
+    for (const g of adminGames) {
+      if (!idx.includes('"'+g.id+'"')) idx = addEntryToIndex(idx, g);
+      if (!adm.includes('"'+g.id+'"')) adm = addEntryToAdmin(adm, g);
+    }
+
+    const put = async (file, sha, content, msg) => {
+      const r = await fetch(base+file, {
+        method:'PUT', headers:{...hdrs,'Content-Type':'application/json'},
+        body: JSON.stringify({message:msg, content:b64enc(content), sha, branch:SYNC_BRANCH})
+      });
+      if (!r.ok) throw new Error('Update '+file+': '+r.status+' '+(await r.text()));
+    };
+
+    await put('index.html', idxData.sha, idx, 'Update games via admin panel');
+    await put('admin.html', admData.sha, adm, 'Sync admin changes to base games');
+
+    saveEdits({}); saveAdminGames([]); saveDeleted([]);
+    setSyncStatus('✓ Pushed at ' + new Date().toLocaleTimeString(), 'ok');
+    renderTable();
+    toast('Pushed to GitHub!');
+  } catch(err) {
+    console.error(err);
+    setSyncStatus('Error: ' + err.message, 'err');
+  } finally {
+    this.disabled = false;
+  }
 });
 
 // ── TOAST ─────────────────────────────────────────────────────────────────────
