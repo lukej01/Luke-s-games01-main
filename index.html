@@ -518,17 +518,30 @@ var BADGE_CLASS = {PS1:"b-ps1",N64:"b-n64",NDS:"b-nds",SNES:"b-snes",NES:"b-nes"
 var PLAT_LABEL  = {NDS:"DS"};
 
 // ── STORAGE ──────────────────────────────────────────────────────────────────
-function getDeleted(){return JSON.parse(localStorage.getItem('pv_deleted')||'[]');}
-function getHidden() {return JSON.parse(localStorage.getItem('pv_hidden') ||'[]');}
-function getEdits()  {return JSON.parse(localStorage.getItem('pv_edits')  ||'{}');}
-function getAdminGames(){return JSON.parse(localStorage.getItem('pv_admin_games')||'[]');}
+// _synced = customizations persisted to GitHub (loaded async on init)
+// localStorage holds pending changes not yet synced (admin preview only)
+var _synced = {edits:{},adminGames:[],deleted:[]};
+function getHidden(){return JSON.parse(localStorage.getItem('pv_hidden')||'[]');}
 
 function getAllGames(){
-  var del=getDeleted(),hid=getHidden(),edits=getEdits();
-  var base=GAMES.filter(function(g){return !del.includes(g.id);}).map(function(g){
+  var lp={
+    del:JSON.parse(localStorage.getItem('pv_deleted')||'[]'),
+    edits:JSON.parse(localStorage.getItem('pv_edits')||'{}'),
+    adminGames:JSON.parse(localStorage.getItem('pv_admin_games')||'[]')
+  };
+  var hid=getHidden();
+  var del=_synced.deleted.concat(lp.del.filter(function(id){return _synced.deleted.indexOf(id)===-1;}));
+  var edits=Object.assign({},_synced.edits,lp.edits);
+  var syncedAdmin=_synced.adminGames.filter(function(g){return del.indexOf(g.id)===-1;});
+  var pendingAdmin=lp.adminGames.filter(function(g){
+    return del.indexOf(g.id)===-1&&!_synced.adminGames.some(function(sg){return sg.id===g.id;});
+  });
+  var base=GAMES.filter(function(g){return del.indexOf(g.id)===-1;}).map(function(g){
     var e=edits[g.id];return e?Object.assign({},g,e):g;
-  }).filter(function(g){return !hid.includes(g.id);});
-  var admin=getAdminGames().filter(function(g){return !hid.includes(g.id);});
+  }).filter(function(g){return hid.indexOf(g.id)===-1;});
+  var admin=syncedAdmin.concat(pendingAdmin).filter(function(g){return hid.indexOf(g.id)===-1;}).map(function(g){
+    var e=edits[g.id];return e?Object.assign({},g,e):g;
+  });
   return base.concat(admin);
 }
 
@@ -787,7 +800,12 @@ document.querySelectorAll('.chip').forEach(function(c){
   });
 });
 
-render();
+// Load synced customizations then render
+fetch('customizations.json?_='+Date.now())
+  .then(function(r){return r.ok?r.json():null;})
+  .then(function(c){if(c)_synced=c;})
+  .catch(function(){})
+  .then(function(){render();});
 </script>
 </body>
 </html>
