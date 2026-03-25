@@ -101,9 +101,9 @@ main{max-width:1200px;margin:0 auto;padding:28px 24px 64px}
 @keyframes spin{to{transform:rotate(360deg)}}
 
 /* Save bar */
-.save-bar{display:flex;gap:12px;padding:14px 16px;background:#0f172a;flex-shrink:0}
-.save-btn{flex:1;padding:13px 0;border:none;border-radius:10px;font-size:.95rem;font-weight:700;cursor:pointer;background:var(--blue);color:#fff;transition:.15s;letter-spacing:.1px;box-shadow:0 2px 8px rgba(37,99,235,.35)}
-.save-btn:hover{background:#1d4ed8;box-shadow:0 4px 12px rgba(37,99,235,.45)}
+.save-bar{display:flex;gap:8px;padding:10px 14px;background:#0f172a;flex-shrink:0}
+.save-btn{flex:1;padding:8px 0;border:none;border-radius:8px;font-size:.82rem;font-weight:600;cursor:pointer;background:var(--blue);color:#fff;transition:.15s;letter-spacing:.1px}
+.save-btn:hover{background:#1d4ed8}
 .save-btn:active{background:#1e40af;transform:scale(.98)}
 
 /* Info area */
@@ -413,7 +413,7 @@ var GAMES = [
    pathtodata:"https://cdn.jsdelivr.net/gh/genizy/emu@master/"},
 
   {id:"gta2",title:"Grand Theft Auto 2",platform:"PS1",
-   cover:"https://upload.wikimedia.org/wikipedia/en/thumb/4/40/GTA2box.jpg/250px-GTA2box.jpg",
+   cover:"https://upload.wikimedia.org/wikipedia/en/thumb/5/55/GTA2box.jpg/250px-GTA2box.jpg",
    desc:"Top-down crime chaos across three cities. Steal cars, complete gang missions, and cause mayhem to rack up your score.",
    type:"direct",core:"psx",
    gameUrl:"https://bbcdn.githack.com/helloitadmin/smart/raw/main/Grand%20Theft%20Auto%202%20(USA).zip",
@@ -421,7 +421,7 @@ var GAMES = [
    bios:"https://cdn.jsdelivr.net/gh/Abdess/retroarch_system@5f96368f6dbad5851cdb16a5041fefec4bdcd305/Sony%20-%20PlayStation/scph5501.bin"},
 
   {id:"spiderman-ps1",title:"Spider-Man",platform:"PS1",
-   cover:"https://upload.wikimedia.org/wikipedia/en/thumb/4/45/Spider-Man_%282000_video_game%29.png/220px-Spider-Man_%282000_video_game%29.png",
+   cover:"https://upload.wikimedia.org/wikipedia/en/thumb/f/f7/Spider-Man_%282000_video_game%29.png/220px-Spider-Man_%282000_video_game%29.png",
    desc:"Swing through Manhattan, battle Venom and Carnage, and unravel a mystery that threatens the city. The definitive PS1 superhero game.",
    type:"merge",core:"psx",name:"Spider-Man (USA)",
    url:"https://cdn.jsdelivr.net/gh/schoolstuff1337/supplies@main/ps1/spiderman1/Spider-Man%20(USA).iso",
@@ -430,7 +430,7 @@ var GAMES = [
    bios:"https://cdn.jsdelivr.net/gh/Abdess/retroarch_system@5f96368f6dbad5851cdb16a5041fefec4bdcd305/Sony%20-%20PlayStation/scph5501.bin"},
 
   {id:"nsmb-ds",title:"New Super Mario Bros.",platform:"NDS",
-   cover:"https://upload.wikimedia.org/wikipedia/en/thumb/d/d9/New_Super_Mario_Bros_cover.png/250px-New_Super_Mario_Bros_cover.png",
+   cover:"https://upload.wikimedia.org/wikipedia/en/thumb/7/73/New_Super_Mario_Bros_cover.png/250px-New_Super_Mario_Bros_cover.png",
    desc:"Mario's classic side-scrolling action returns on DS. Eight worlds of new levels, power-ups, and secrets including the giant and mini mushrooms.",
    type:"direct",core:"nds",
    gameUrl:"https://cdn.jsdelivr.net/gh/schoolstuff1337/supplies@main/ds/NSMBUDS.7z",
@@ -501,10 +501,9 @@ var GAMES = [
   {id:"madden-2002",title:"Madden NFL 2002",platform:"N64",
    cover:"https://upload.wikimedia.org/wikipedia/en/thumb/a/a0/Madden_NFL_2002_Coverart.png/250px-Madden_NFL_2002_Coverart.png",
    desc:"All 31 NFL teams from the 2001 season. Exhibition, Season, or Franchise mode.",
-   type:"direct",core:"n64",vsync:true,
+   type:"direct",core:"parallel_n64",vsync:true,
    gameUrl:"https://cdn.jsdelivr.net/gh/bubbls/UGS-file-encryption@30884886205950003acc451da53cbb940cbda522/Madden%20NFL%202002%20(USA).zip",
-   pathtodata:"https://cdn.jsdelivr.net/gh/EmulatorJS/EmulatorJS@main/data",
-   loaderPath:"https://cdn.jsdelivr.net/gh/EmulatorJS/EmulatorJS@main/data/loader.js"}
+   pathtodata:"https://cdn.jsdelivr.net/gh/genizy/emu@master/"}
 ];
 
 var BADGE_CLASS = {PS1:"b-ps1",N64:"b-n64",NDS:"b-nds",SNES:"b-snes",NES:"b-nes",SEGA:"b-sega"};
