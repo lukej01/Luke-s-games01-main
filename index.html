@@ -554,7 +554,7 @@ function render(){
 function buildGameHtml(g) {
   var loaderUrl = g.loaderPath || (g.pathtodata.replace(/\/+$/,'') + '/loader.js');
   var biosLine  = g.bios  ? 'EJS_biosUrl=' + JSON.stringify(g.bios)  + ';' : '';
-  var vsyncLine = g.vsync ? 'EJS_defaultOptions={"vsync":"disabled"};\n' : '';
+var vsyncLine = 'EJS_defaultOptions={"vsync":"disabled"};\n';
   // EJS_defaultControls is read by loader.js → config.defaultControllers.
   // The EmulatorJS constructor overwrites this.defaultControllers with it after
   // calling initControlVars(), so this fully replaces the default key bindings.
