@@ -101,10 +101,9 @@ main{max-width:1200px;margin:0 auto;padding:28px 24px 64px}
 @keyframes spin{to{transform:rotate(360deg)}}
 
 /* Save bar */
-.save-bar{display:flex;gap:8px;padding:10px 14px;background:#0f172a;flex-shrink:0}
-.save-btn{flex:1;padding:8px 0;border:none;border-radius:8px;font-size:.82rem;font-weight:600;cursor:pointer;background:var(--blue);color:#fff;transition:.15s;letter-spacing:.1px}
-.save-btn:hover{background:#1d4ed8}
-.save-btn:active{background:#1e40af;transform:scale(.98)}
+.save-bar{display:flex;gap:8px;padding:8px 14px;background:var(--bg);border-top:1px solid var(--border);flex-shrink:0}
+.save-btn{flex:1;padding:7px 0;border:1.5px solid var(--border);border-radius:7px;font-size:.8rem;font-weight:500;cursor:pointer;background:var(--white);color:var(--text2);transition:.15s;font-family:'Inter',sans-serif}
+.save-btn:hover{border-color:var(--blue);color:var(--blue);background:var(--blue-l)}
 
 /* Info area */
 .modal-below{flex-shrink:0}
@@ -413,7 +412,7 @@ var GAMES = [
    pathtodata:"https://cdn.jsdelivr.net/gh/genizy/emu@master/"},
 
   {id:"gta2",title:"Grand Theft Auto 2",platform:"PS1",
-   cover:"https://upload.wikimedia.org/wikipedia/en/thumb/5/55/GTA2box.jpg/250px-GTA2box.jpg",
+   cover:"https://upload.wikimedia.org/wikipedia/en/thumb/9/9e/Grand_Theft_Auto_2.jpg/220px-Grand_Theft_Auto_2.jpg",
    desc:"Top-down crime chaos across three cities. Steal cars, complete gang missions, and cause mayhem to rack up your score.",
    type:"direct",core:"psx",
    gameUrl:"https://bbcdn.githack.com/helloitadmin/smart/raw/main/Grand%20Theft%20Auto%202%20(USA).zip",
