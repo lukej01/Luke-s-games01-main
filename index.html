@@ -572,17 +572,15 @@ function render(){
 
 // ── BUILD GAME HTML (blob) ────────────────────────────────────────────────────
 // Builds a complete standalone HTML page for the game.
-// Controls are set in localStorage before loader.js runs so EJS picks them up.
+// Controls are passed via EJS_defaultOptions before loader.js runs.
 function buildGameHtml(g) {
   var loaderUrl = g.loaderPath || (g.pathtodata.replace(/\/+$/,'') + '/loader.js');
   var biosLine  = g.bios  ? 'EJS_biosUrl=' + JSON.stringify(g.bios)  + ';' : '';
-  var vsyncLine = g.vsync ? 'EJS_defaultOptions={vsync:"disabled"};'       : '';
 
-  // Build the localStorage control keys as a JSON string — injected cleanly
+  // Build EJS_defaultOptions with control bindings (and vsync if needed)
   var ctrlObj = buildCtrlLS(g.platform);
-  var ctrlJSON = JSON.stringify(ctrlObj);
-  // The ctrl-inject snippet: sets keys in localStorage then removes itself
-  var ctrlSnip = 'var _ck='+ctrlJSON+';try{Object.keys(_ck).forEach(function(k){localStorage.setItem(k,_ck[k]);});}catch(_e){}';
+  if (g.vsync) ctrlObj.vsync = 'disabled';
+  var defaultOptsLine = 'EJS_defaultOptions='+JSON.stringify(ctrlObj)+';\n';
 
   var head = '<!DOCTYPE html><html><head><meta charset="UTF-8">'
     + '<style>'
@@ -607,7 +605,6 @@ function buildGameHtml(g) {
   if (g.type === 'merge') {
     // Multi-part ROM: fetch all parts, merge, pass blob URL to emulator
     body = ''
-      + ctrlSnip
       + 'function mf(parts,cb){'
       +   'return new Promise(function(res,rej){'
       +     'var bufs=[];'
@@ -641,7 +638,7 @@ function buildGameHtml(g) {
       +   'EJS_pathtodata='+JSON.stringify(g.pathtodata)+';'
       +   'EJS_gameUrl=gameUrl;'
       +   biosLine
-      +   vsyncLine
+      +   defaultOptsLine
       +   'var s=document.createElement("script");'
       +   's.src='+JSON.stringify(loaderUrl)+';'
       +   'document.body.appendChild(s);'
@@ -655,7 +652,6 @@ function buildGameHtml(g) {
   } else {
     // Direct ROM: fetch single file, pass blob URL to emulator
     body = ''
-      + ctrlSnip
       + 'var prog=document.getElementById("prog");'
       + 'var sub=document.getElementById("sub");'
       + 'var errDiv=document.getElementById("err");'
@@ -686,7 +682,7 @@ function buildGameHtml(g) {
       +   'EJS_pathtodata='+JSON.stringify(g.pathtodata)+';'
       +   'EJS_gameUrl=gameUrl;'
       +   biosLine
-      +   vsyncLine
+      +   defaultOptsLine
       +   'var s=document.createElement("script");'
       +   's.onerror=function(){showErr("Failed to load emulator. Check your connection.");};'
       +   's.src='+JSON.stringify(loaderUrl)+';'
