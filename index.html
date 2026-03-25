@@ -99,6 +99,12 @@ main{max-width:1200px;margin:0 auto;padding:28px 24px 64px}
 .spin{width:32px;height:32px;border:2.5px solid rgba(255,255,255,.1);border-top-color:var(--blue);border-radius:50%;animation:spin .7s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
 
+/* Save bar */
+.save-bar{display:flex;gap:10px;padding:10px 14px;background:#0f172a;border-top:1px solid var(--border);flex-shrink:0}
+.save-btn{flex:1;padding:9px 0;border:none;border-radius:8px;font-size:.9rem;font-weight:600;cursor:pointer;background:var(--blue);color:#fff;transition:background .15s}
+.save-btn:hover{background:#1d4ed8}
+.save-btn:active{background:#1e40af}
+
 /* Info scroll area */
 .modal-below{flex:1;min-height:0;overflow-y:scroll;-webkit-overflow-scrolling:touch}
 .modal-info{display:grid;grid-template-columns:1fr 1fr;gap:0;border-top:1px solid var(--border)}
@@ -220,6 +226,10 @@ footer{border-top:1px solid var(--border);background:var(--white);padding:14px 2
         sandbox="allow-scripts allow-same-origin allow-forms allow-pointer-lock allow-popups allow-modals">
       </iframe>
     </div>
+    <div class="save-bar">
+      <button class="save-btn" id="btnSave" title="Save game (key: 1)">💾 Save</button>
+      <button class="save-btn" id="btnLoad" title="Load save (key: 2)">📂 Load Save</button>
+    </div>
     <div class="modal-below">
       <div class="modal-info" style="grid-template-columns:1fr">
         <div class="info-col">
@@ -328,33 +338,42 @@ var CTRL_DISPLAY = {
 };
 
 // ── CONTROLS ─────────────────────────────────────────────────────────────────
-// EmulatorJS (genizy fork) button IDs → our desired keyboard keys.
-// Patched via Object.defineProperty(window,'EJS') in each game blob.
-var CTRL_KEYS = {
-  0:'space',          // B / Cross (south button)
-  1:'v',              // Y / Square (west)
-  2:'enter',          // Select
-  3:'enter',          // Start
-  4:'w',              // D-Pad Up
-  5:'s',              // D-Pad Down
-  6:'a',              // D-Pad Left
-  7:'d',              // D-Pad Right
-  8:'b',              // A / Circle (east)
-  9:'n',              // X / Triangle (north)
-  10:'x',             // L / L1
-  11:'m',             // R / R1
-  12:'c',             // Z / L2
-  13:'comma',         // R2
-  16:'d',             // L-Stick Right
-  17:'a',             // L-Stick Left
-  18:'s',             // L-Stick Down
-  19:'w',             // L-Stick Up
-  20:'right arrow',   // R-Stick / C-Pad Right
-  21:'left arrow',    // R-Stick / C-Pad Left
-  22:'down arrow',    // R-Stick / C-Pad Down
-  23:'up arrow',      // R-Stick / C-Pad Up
-  24:'1',             // Save State
-  25:'2'              // Load State
+// Full EJS_defaultControls object passed to loader.js → config.defaultControllers.
+// The EmulatorJS constructor calls initControlVars() first (sets defaults like
+// t/f/g/h for sticks) then overwrites this.defaultControllers from config if provided.
+// value2 = gamepad label shown in the controls UI (kept from defaults).
+var EJS_DEFAULT_CONTROLS = {
+  0: {
+     0: {value:'space',      value2:'BUTTON_2'},
+     1: {value:'v',          value2:'BUTTON_4'},
+     2: {value:'enter',      value2:'SELECT'},
+     3: {value:'enter',      value2:'START'},
+     4: {value:'w',          value2:'DPAD_UP'},
+     5: {value:'s',          value2:'DPAD_DOWN'},
+     6: {value:'a',          value2:'DPAD_LEFT'},
+     7: {value:'d',          value2:'DPAD_RIGHT'},
+     8: {value:'b',          value2:'BUTTON_1'},
+     9: {value:'n',          value2:'BUTTON_3'},
+    10: {value:'x',          value2:'LEFT_TOP_SHOULDER'},
+    11: {value:'m',          value2:'RIGHT_TOP_SHOULDER'},
+    12: {value:'c',          value2:'LEFT_BOTTOM_SHOULDER'},
+    13: {value:'comma',      value2:'RIGHT_BOTTOM_SHOULDER'},
+    14: {value:'',           value2:'LEFT_STICK'},
+    15: {value:'',           value2:'RIGHT_STICK'},
+    16: {value:'d',          value2:'LEFT_STICK_X:+1'},
+    17: {value:'a',          value2:'LEFT_STICK_X:-1'},
+    18: {value:'s',          value2:'LEFT_STICK_Y:+1'},
+    19: {value:'w',          value2:'LEFT_STICK_Y:-1'},
+    20: {value:'right arrow',value2:'RIGHT_STICK_X:+1'},
+    21: {value:'left arrow', value2:'RIGHT_STICK_X:-1'},
+    22: {value:'down arrow', value2:'RIGHT_STICK_Y:+1'},
+    23: {value:'up arrow',   value2:'RIGHT_STICK_Y:-1'},
+    24: {value:'1'},
+    25: {value:'2'},
+    26: {value:'3'},
+    27: {}, 28: {}, 29: {}
+  },
+  1: {}, 2: {}, 3: {}
 };
 
 // ── GAME DATA ────────────────────────────────────────────────────────────────
@@ -532,37 +551,15 @@ function render(){
 }
 
 // ── BUILD GAME HTML (blob) ────────────────────────────────────────────────────
-// Builds a complete standalone HTML page for the game.
-// Controls are applied by patching EJS.prototype.initControlVars before loader.js
-// runs — needed because EJS_defaultControls is broken in genizy/emu (typo in
-// loader.js: config.defaultControlers vs config.defaultControllers).
 function buildGameHtml(g) {
   var loaderUrl = g.loaderPath || (g.pathtodata.replace(/\/+$/,'') + '/loader.js');
   var biosLine  = g.bios  ? 'EJS_biosUrl=' + JSON.stringify(g.bios)  + ';' : '';
-
-  // EJS_defaultOptions is for emulator settings only (not controls)
   var vsyncLine = g.vsync ? 'EJS_defaultOptions={"vsync":"disabled"};\n' : '';
-
-  // Intercept window.EJS being set by emulator.min.js, then patch initControlVars
-  // so our keys replace the defaults before the control menu is built.
-  var patchLine = '(function(){'
-    + 'var k='+JSON.stringify(CTRL_KEYS)+';'
-    + 'Object.defineProperty(window,"EJS",{'
-    +   'configurable:true,'
-    +   'set:function(c){'
-    +     'var o=c.prototype.initControlVars;'
-    +     'c.prototype.initControlVars=function(){'
-    +       'o.call(this);'
-    +       'for(var i in k){'
-    +         'if(this.defaultControllers[0][i])this.defaultControllers[0][i].value=k[i];'
-    +         'else this.defaultControllers[0][i]={value:k[i]};'
-    +       '}'
-    +     '};'
-    +     'Object.defineProperty(window,"EJS",{value:c,writable:true,configurable:true,enumerable:true});'
-    +   '}'
-    + '});'
-    + '})();\n';
-  var defaultOptsLine = vsyncLine + patchLine;
+  // EJS_defaultControls is read by loader.js → config.defaultControllers.
+  // The EmulatorJS constructor overwrites this.defaultControllers with it after
+  // calling initControlVars(), so this fully replaces the default key bindings.
+  var ctrlLine  = 'EJS_defaultControls='+JSON.stringify(EJS_DEFAULT_CONTROLS)+';\n';
+  var defaultOptsLine = vsyncLine + ctrlLine;
 
   var head = '<!DOCTYPE html><html><head><meta charset="UTF-8">'
     + '<style>'
@@ -659,6 +656,7 @@ function buildGameHtml(g) {
       +   'if(prog)prog.remove();if(sub)sub.remove();'
       +   'EJS_player="#game";'
       +   'EJS_core='+JSON.stringify(g.core)+';'
+      +   'EJS_gameName='+JSON.stringify(g.name||g.title)+';'
       +   'EJS_color="#2563eb";'
       +   'EJS_startOnLoaded=true;'
       +   'EJS_pathtodata='+JSON.stringify(g.pathtodata)+';'
@@ -745,6 +743,16 @@ function closeModal() {
 document.getElementById('btnClose').addEventListener('click', closeModal);
 document.getElementById('modalBg').addEventListener('click', function(e){ if(e.target===this) closeModal(); });
 document.addEventListener('keydown', function(e){ if(e.key==='Escape') closeModal(); });
+
+function sendKeyToGame(keyCode) {
+  var frame = document.getElementById('gameFrame');
+  if (!frame || !frame.contentWindow) return;
+  var win = frame.contentWindow;
+  win.dispatchEvent(new KeyboardEvent('keydown', {keyCode:keyCode, which:keyCode, bubbles:true}));
+  setTimeout(function(){ win.dispatchEvent(new KeyboardEvent('keyup', {keyCode:keyCode, which:keyCode, bubbles:true})); }, 80);
+}
+document.getElementById('btnSave').addEventListener('click', function(){ sendKeyToGame(49); }); // key "1"
+document.getElementById('btnLoad').addEventListener('click', function(){ sendKeyToGame(50); }); // key "2"
 
 document.getElementById('btnCtrl').addEventListener('click', function(e){
   e.stopPropagation();
