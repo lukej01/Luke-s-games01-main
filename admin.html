@@ -260,19 +260,19 @@ let editId = null, editIsAdmin = false;
 
 // ── BASE GAMES (mirrors index.html for display) ──────────────────────────────
 const BASE_GAMES = [
-  {id:"gran-turismo-2",   title:"Gran Turismo 2",                    platform:"PS1",  cover:"https://upload.wikimedia.org/wikipedia/en/1/19/Gran_Turismo_2.jpg",                                     file:"games/gran-turismo-2.html"},
-  {id:"super-mario-64",  title:"Super Mario 64",                    platform:"N64",  cover:"https://upload.wikimedia.org/wikipedia/en/6/6a/Super_Mario_64_box_cover.jpg",                           file:"games/super-mario-64.html"},
+  {id:"gran-turismo-2",   title:"Gran Turismo 2",                    platform:"PS1",  cover:"https://m.media-amazon.com/images/I/51egYoaJo-L._SX342_SY445_QL70_FMwebp_.jpg",                                     file:"games/gran-turismo-2.html"},
+  {id:"super-mario-64",  title:"Super Mario 64",                    platform:"N64",  cover:"https://upload.wikimedia.org/wikipedia/en/thumb/e/e9/Super_Mario_64.png/250px-Super_Mario_64.png",                           file:"games/super-mario-64.html"},
   {id:"zelda-oot",       title:"Zelda: Ocarina of Time",            platform:"N64",  cover:"https://upload.wikimedia.org/wikipedia/en/5/57/The_Legend_of_Zelda_Ocarina_of_Time.jpg",               file:"games/zelda-oot.html"},
-  {id:"paper-mario",     title:"Paper Mario",                       platform:"N64",  cover:"https://upload.wikimedia.org/wikipedia/en/8/8d/PaperMario.jpg",                                        file:"games/paper-mario.html"},
-  {id:"nba-live-2003",   title:"NBA Live 2003",                     platform:"PS1",  cover:"https://upload.wikimedia.org/wikipedia/en/b/b4/NBA_Live_2003_Coverart.jpg",                            file:"games/nba-live-2003.html"},
-  {id:"lego-batman-2",   title:"LEGO Batman 2: DC Super Heroes",    platform:"NDS",  cover:"https://upload.wikimedia.org/wikipedia/en/a/a5/Lego_Batman_2_-_DC_Super_Heroes_box_art.jpg",          file:"games/lego-batman-2.html"},
-  {id:"lego-batman-1",   title:"LEGO Batman: The Videogame",        platform:"NDS",  cover:"https://upload.wikimedia.org/wikipedia/en/5/5c/LEGObatman_boxart.jpg",                                file:"games/lego-batman-1.html"},
-  {id:"lego-star-wars",  title:"LEGO Star Wars: Complete Saga",     platform:"NDS",  cover:"https://upload.wikimedia.org/wikipedia/en/e/ed/Lego_Star_Wars-_The_Complete_Saga.jpg",                file:"games/lego-star-wars.html"},
+  {id:"paper-mario",     title:"Paper Mario",                       platform:"N64",  cover:"https://upload.wikimedia.org/wikipedia/en/thumb/6/61/Papermario.jpg/250px-Papermario.jpg",                                        file:"games/paper-mario.html"},
+  {id:"nba-live-2003",   title:"NBA Live 2003",                     platform:"PS1",  cover:"https://upload.wikimedia.org/wikipedia/en/thumb/b/bc/NBA_Live_2003_cover.jpg/250px-NBA_Live_2003_cover.jpg",                            file:"games/nba-live-2003.html"},
+  {id:"lego-batman-2",   title:"LEGO Batman 2: DC Super Heroes",    platform:"NDS",  cover:"https://upload.wikimedia.org/wikipedia/en/thumb/4/43/Legobatman2.jpg/250px-Legobatman2.jpg",          file:"games/lego-batman-2.html"},
+  {id:"lego-batman-1",   title:"LEGO Batman: The Videogame",        platform:"NDS",  cover:"https://m.media-amazon.com/images/I/517zan+v3eL._SY445_SX342_QL70_FMwebp_.jpg",                                file:"games/lego-batman-1.html"},
+  {id:"lego-star-wars",  title:"LEGO Star Wars: Complete Saga",     platform:"NDS",  cover:"https://upload.wikimedia.org/wikipedia/en/thumb/5/56/Lego_Star_Wars-The_Complete_Saga.jpg/250px-Lego_Star_Wars-The_Complete_Saga.jpg",                file:"games/lego-star-wars.html"},
   {id:"super-mario-world",title:"Super Mario World",                platform:"SNES", cover:"https://upload.wikimedia.org/wikipedia/en/3/32/Super_Mario_World_Coverart.png",                        file:"games/super-mario-world.html"},
-  {id:"sonic-2",         title:"Sonic the Hedgehog 2",              platform:"SEGA", cover:"https://upload.wikimedia.org/wikipedia/en/f/f1/Sonic2_us_cover.jpg",                                  file:"games/sonic-2.html"},
-  {id:"punch-out",       title:"Mike Tyson's Punch-Out!!",          platform:"NES",  cover:"https://upload.wikimedia.org/wikipedia/en/8/82/Mike_Tyson%27s_Punch-Out%21%21_box_art.png",           file:"games/punch-out.html"},
+  {id:"sonic-2",         title:"Sonic the Hedgehog 2",              platform:"SEGA", cover:"https://upload.wikimedia.org/wikipedia/en/thumb/0/0c/Sonic_2_US_Cover.jpg/250px-Sonic_2_US_Cover.jpg",                                  file:"games/sonic-2.html"},
+  {id:"punch-out",       title:"Mike Tyson's Punch-Out!!",          platform:"NES",  cover:"https://upload.wikimedia.org/wikipedia/en/thumb/c/c8/Mike_Tyson%27s_Punch-Out%21%21_NES_Box.jpg/250px-Mike_Tyson%27s_Punch-Out%21%21_NES_Box.jpg",           file:"games/punch-out.html"},
   {id:"super-mario-3",   title:"Super Mario Bros. 3",               platform:"NES",  cover:"https://upload.wikimedia.org/wikipedia/en/a/a5/Super_Mario_Bros._3_coverart.png",                     file:"games/super-mario-3.html"},
-  {id:"madden-2002",     title:"Madden NFL 2002",                   platform:"N64",  cover:"https://upload.wikimedia.org/wikipedia/en/a/ae/Madden_NFL_2002.jpg",                                  file:"games/madden-2002.html"},
+  {id:"madden-2002",     title:"Madden NFL 2002",                   platform:"N64",  cover:"https://upload.wikimedia.org/wikipedia/en/thumb/a/a0/Madden_NFL_2002_Coverart.png/250px-Madden_NFL_2002_Coverart.png",                                  file:"games/madden-2002.html"},
 ];
 
 // ── STORAGE ──────────────────────────────────────────────────────────────────
