@@ -327,92 +327,40 @@ var CTRL_DISPLAY = {
   ]
 };
 
-// localStorage key bindings injected into every game blob
-// p1b[n]keyboard format used by EmulatorJS
-// Base keys common to all platforms
-var CTRL_BASE_LS = {
-  'p1b4keyboard':'w',    // D-Pad Up
-  'p1b5keyboard':'s',    // D-Pad Down
-  'p1b6keyboard':'a',    // D-Pad Left
-  'p1b7keyboard':'d',    // D-Pad Right
-  'p1b2keyboard':'enter',// Select
-  'p1b3keyboard':'enter',// Start
-  'p1a0-keyboard':'a',   // L-Stick Left
-  'p1a0+keyboard':'d',   // L-Stick Right
-  'p1a1-keyboard':'w',   // L-Stick Up
-  'p1a1+keyboard':'s'    // L-Stick Down
+// ── CONTROLS ─────────────────────────────────────────────────────────────────
+// EmulatorJS (genizy fork) button IDs → our desired keyboard keys.
+// Patched via Object.defineProperty(window,'EJS') in each game blob.
+var CTRL_KEYS = {
+  0:'space',          // B / Cross (south button)
+  1:'v',              // Y / Square (west)
+  2:'enter',          // Select
+  3:'enter',          // Start
+  4:'w',              // D-Pad Up
+  5:'s',              // D-Pad Down
+  6:'a',              // D-Pad Left
+  7:'d',              // D-Pad Right
+  8:'b',              // A / Circle (east)
+  9:'n',              // X / Triangle (north)
+  10:'x',             // L / L1
+  11:'m',             // R / R1
+  12:'c',             // Z / L2
+  13:'comma',         // R2
+  16:'d',             // L-Stick Right
+  17:'a',             // L-Stick Left
+  18:'s',             // L-Stick Down
+  19:'w',             // L-Stick Up
+  20:'right arrow',   // R-Stick / C-Pad Right
+  21:'left arrow',    // R-Stick / C-Pad Left
+  22:'down arrow',    // R-Stick / C-Pad Down
+  23:'up arrow',      // R-Stick / C-Pad Up
+  24:'1',             // Save State
+  25:'2'              // Load State
 };
-
-// Per-platform extra bindings
-var CTRL_EXTRA_LS = {
-  NES: {
-    'p1b0keyboard':' ',  // B -> Space
-    'p1b8keyboard':'b'   // A -> B
-  },
-  SNES: {
-    'p1b0keyboard':' ',  // B -> Space
-    'p1b8keyboard':'b',  // A -> B
-    'p1b1keyboard':'v',  // Y -> V
-    'p1b9keyboard':'n',  // X -> N
-    'p1b10keyboard':'x', // L -> X
-    'p1b11keyboard':'m'  // R -> M
-  },
-  N64: {
-    'p1b0keyboard':' ',      // B -> Space
-    'p1b8keyboard':'b',      // A -> B
-    'p1b10keyboard':'x',     // L -> X
-    'p1b11keyboard':'m',     // R -> M
-    'p1b12keyboard':'c',     // Z trigger -> C
-    'p1a2-keyboard':'arrowleft',  // C-Left (R-stick)
-    'p1a2+keyboard':'arrowright', // C-Right
-    'p1a3-keyboard':'arrowup',    // C-Up
-    'p1a3+keyboard':'arrowdown'   // C-Down
-  },
-  PS1: {
-    'p1b0keyboard':' ',      // Cross -> Space
-    'p1b8keyboard':'b',      // Circle -> B
-    'p1b1keyboard':'v',      // Square -> V
-    'p1b9keyboard':'n',      // Triangle -> N
-    'p1b10keyboard':'x',     // L1 -> X
-    'p1b11keyboard':'m',     // R1 -> M
-    'p1b12keyboard':'c',     // L2 -> C
-    'p1b13keyboard':',',     // R2 -> ,
-    'p1a2-keyboard':'arrowleft',
-    'p1a2+keyboard':'arrowright',
-    'p1a3-keyboard':'arrowup',
-    'p1a3+keyboard':'arrowdown'
-  },
-  SEGA: {
-    'p1b0keyboard':' ',  // B -> Space
-    'p1b8keyboard':'b',  // A -> B
-    'p1b11keyboard':'m'  // C -> M
-  },
-  NDS: {
-    'p1b0keyboard':' ',  // B -> Space
-    'p1b8keyboard':'b',  // A -> B
-    'p1b1keyboard':'v',  // Y -> V
-    'p1b9keyboard':'n',  // X -> N
-    'p1b10keyboard':'x', // L -> X
-    'p1b11keyboard':'m'  // R -> M
-  },
-  GBA: {
-    'p1b0keyboard':' ',  // B -> Space
-    'p1b8keyboard':'b',  // A -> B
-    'p1b10keyboard':'x', // L -> X
-    'p1b11keyboard':'m'  // R -> M
-  }
-};
-
-// Build combined localStorage object for a platform
-function buildCtrlLS(platform) {
-  var extra = CTRL_EXTRA_LS[platform] || CTRL_EXTRA_LS['SNES'];
-  return Object.assign({}, CTRL_BASE_LS, extra);
-}
 
 // ── GAME DATA ────────────────────────────────────────────────────────────────
 var GAMES = [
   {id:"gran-turismo-2",title:"Gran Turismo 2",platform:"PS1",
-   cover:"https://upload.wikimedia.org/wikipedia/en/1/19/Gran_Turismo_2.jpg",
+   cover:"https://m.media-amazon.com/images/I/51egYoaJo-L._SX342_SY445_QL70_FMwebp_.jpg",
    desc:"The definitive PS1 racing sim — 650 cars, 27 tracks, Arcade and Simulation modes.",
    type:"merge",core:"psx",name:"Gran Turismo 2 (USA) (Arcade Mode)",
    url:"https://cdn.jsdelivr.net/gh/bubbls/ugss@943907cd0e3f7f47ade82d0b0032eba262a89c93/gran%20turismo%202/Gran%20Turismo%202%20(USA)%20(Arcade%20Mode).chd",
@@ -421,7 +369,7 @@ var GAMES = [
    bios:"https://cdn.jsdelivr.net/gh/Abdess/retroarch_system@5f96368f6dbad5851cdb16a5041fefec4bdcd305/Sony%20-%20PlayStation/scph5501.bin"},
 
   {id:"super-mario-64",title:"Super Mario 64",platform:"N64",
-   cover:"https://upload.wikimedia.org/wikipedia/en/6/6a/Super_Mario_64_box_cover.jpg",
+   cover:"https://upload.wikimedia.org/wikipedia/en/thumb/e/e9/Super_Mario_64.png/250px-Super_Mario_64.png",
    desc:"The game that invented 3D platforming. Collect 120 Power Stars across 15 open worlds.",
    type:"direct",core:"parallel_n64",vsync:true,
    gameUrl:"https://cdn.jsdelivr.net/gh/bubbls/clsm64@139e09e38eb3e7783095eee30fdf75b18ee59e02/Super%20Mario%2064%20(USA).zip",
@@ -436,7 +384,7 @@ var GAMES = [
    pathtodata:"https://cdn.jsdelivr.net/gh/genizy/emu@master/"},
 
   {id:"paper-mario",title:"Paper Mario",platform:"N64",
-   cover:"https://upload.wikimedia.org/wikipedia/en/8/8d/PaperMario.jpg",
+   cover:"https://upload.wikimedia.org/wikipedia/en/thumb/6/61/Papermario.jpg/250px-Papermario.jpg",
    desc:"Mario in a storybook RPG world. Team up with partners and rescue the Star Spirits.",
    type:"merge",core:"parallel_n64",vsync:true,name:"Paper Mario (USA)",
    url:"https://cdn.jsdelivr.net/gh/bubbls/ugss@69e5df0bdfad91580779ec98ca18841e753145fd/Paper%20Mario%20(USA)%20(2)/Paper%20Mario%20(USA).z64",
@@ -444,7 +392,7 @@ var GAMES = [
    pathtodata:"https://cdn.jsdelivr.net/gh/genizy/emu@master/"},
 
   {id:"nba-live-2003",title:"NBA Live 2003",platform:"PS1",
-   cover:"https://upload.wikimedia.org/wikipedia/en/b/b4/NBA_Live_2003_Coverart.jpg",
+   cover:"https://upload.wikimedia.org/wikipedia/en/thumb/b/bc/NBA_Live_2003_cover.jpg/250px-NBA_Live_2003_cover.jpg",
    desc:"Classic basketball with all 29 NBA teams and the legendary 2002-03 rosters.",
    type:"merge",core:"psx",name:"NBA Live 2003 (USA)",
    url:"https://cdn.jsdelivr.net/gh/bubbls/ugss@main/2003/NBA%20Live%202003%20(USA).chd",
@@ -454,7 +402,7 @@ var GAMES = [
    bios:"https://cdn.jsdelivr.net/gh/Abdess/retroarch_system@5f96368f6dbad5851cdb16a5041fefec4bdcd305/Sony%20-%20PlayStation/scph5501.bin"},
 
   {id:"lego-batman-2",title:"LEGO Batman 2: DC Super Heroes",platform:"NDS",
-   cover:"https://upload.wikimedia.org/wikipedia/en/a/a5/Lego_Batman_2_-_DC_Super_Heroes_box_art.jpg",
+   cover:"https://upload.wikimedia.org/wikipedia/en/thumb/4/43/Legobatman2.jpg/250px-Legobatman2.jpg",
    desc:"Batman and the Justice League stop Lex Luthor and Joker. 50+ DC characters to unlock.",
    type:"merge",core:"nds",name:"LEGO Batman 2 - DC Super Heroes (USA)",
    url:"https://cdn.jsdelivr.net/gh/bubbls/ugss@4183685fe631b2e1735347d60fcf24a7d194bf6a/LEGO%20Batman%202%20-%20DC%20Super%20Heroes%20(USA)%20(En%2CFr%2CEs%2CPt)/LEGO%20Batman%202%20-%20DC%20Super%20Heroes%20(USA)%20(En%2CFr%2CEs%2CPt).nds",
@@ -462,7 +410,7 @@ var GAMES = [
    pathtodata:"https://cdn.jsdelivr.net/gh/genizy/emu@master/"},
 
   {id:"lego-batman-1",title:"LEGO Batman: The Videogame",platform:"NDS",
-   cover:"https://upload.wikimedia.org/wikipedia/en/5/5c/LEGObatman_boxart.jpg",
+   cover:"https://m.media-amazon.com/images/I/517zan+v3eL._SY445_SX342_QL70_FMwebp_.jpg",
    desc:"Gotham in bricks. Play as Batman and the villains across 30 levels of puzzles.",
    type:"merge",core:"nds",name:"LEGO Batman - The Videogame (USA)",
    url:"https://cdn.jsdelivr.net/gh/bubbls/ugss@a401bcb0fdfe66333c583eaba5ff219c106054a6/LEGO%20Batman%20-%20The%20Videogame%20(USA)%20(En%2CFr%2CEs)/LEGO%20Batman%20-%20The%20Videogame%20(USA)%20(En%2CFr%2CEs).nds",
@@ -470,7 +418,7 @@ var GAMES = [
    pathtodata:"https://cdn.jsdelivr.net/gh/genizy/emu@master/"},
 
   {id:"lego-star-wars",title:"LEGO Star Wars: Complete Saga",platform:"NDS",
-   cover:"https://upload.wikimedia.org/wikipedia/en/e/ed/Lego_Star_Wars-_The_Complete_Saga.jpg",
+   cover:"https://upload.wikimedia.org/wikipedia/en/thumb/5/56/Lego_Star_Wars-The_Complete_Saga.jpg/250px-Lego_Star_Wars-The_Complete_Saga.jpg",
    desc:"All six Star Wars episodes in LEGO. 160 levels and 120 unlockable characters.",
    type:"merge",core:"nds",name:"LEGO Star Wars - The Complete Saga (USA)",
    url:"https://cdn.jsdelivr.net/gh/bubbls/ugss@be3eda6572fba26d9575c87fd864392c7e19261c/LEGO%20Star%20Wars%20-%20The%20Complete%20Saga%20(USA)/LEGO%20Star%20Wars%20-%20The%20Complete%20Saga%20(USA).nds",
@@ -485,14 +433,14 @@ var GAMES = [
    pathtodata:"https://cdn.jsdelivr.net/gh/genizy/emu@master/"},
 
   {id:"sonic-2",title:"Sonic the Hedgehog 2",platform:"SEGA",
-   cover:"https://upload.wikimedia.org/wikipedia/en/f/f1/Sonic2_us_cover.jpg",
+   cover:"https://upload.wikimedia.org/wikipedia/en/thumb/0/0c/Sonic_2_US_Cover.jpg/250px-Sonic_2_US_Cover.jpg",
    desc:"Sonic and Tails race through 11 zones to stop Dr. Robotnik. Introduces the Spin Dash.",
    type:"direct",core:"segaMD",
    gameUrl:"https://cdn.jsdelivr.net/gh/a456pur/seraph@ae2fcc6d6a9cd051654fcc0519080db1f79cf2a7/games/sonicthehedgehog2/Sonic%20The%20Hedgehog%202%20(World).md",
    pathtodata:"https://cdn.jsdelivr.net/gh/genizy/emu@master/"},
 
   {id:"punch-out",title:"Mike Tyson's Punch-Out!!",platform:"NES",
-   cover:"https://upload.wikimedia.org/wikipedia/en/8/82/Mike_Tyson%27s_Punch-Out%21%21_box_art.png",
+   cover:"https://upload.wikimedia.org/wikipedia/en/thumb/c/c8/Mike_Tyson%27s_Punch-Out%21%21_NES_Box.jpg/250px-Mike_Tyson%27s_Punch-Out%21%21_NES_Box.jpg",
    desc:"Little Mac fights through the WVBA. Learn each boxer's patterns and claim the belt.",
    type:"direct",core:"nes",
    gameUrl:"https://cdn.jsdelivr.net/gh/bubbls/UGS-file-encryption@7f176dd47e40f0e0b68e704654d83d8fb69eabdc/Mike%20Tyson's%20Punch-Out!!%20(Japan%2C%20USA)%20(En).zip",
@@ -506,7 +454,7 @@ var GAMES = [
    pathtodata:"https://cdn.jsdelivr.net/gh/genizy/emu@master/"},
 
   {id:"madden-2002",title:"Madden NFL 2002",platform:"N64",
-   cover:"https://upload.wikimedia.org/wikipedia/en/a/ae/Madden_NFL_2002.jpg",
+   cover:"https://upload.wikimedia.org/wikipedia/en/thumb/a/a0/Madden_NFL_2002_Coverart.png/250px-Madden_NFL_2002_Coverart.png",
    desc:"All 31 NFL teams from the 2001 season. Exhibition, Season, or Franchise mode.",
    type:"direct",core:"n64",vsync:true,
    gameUrl:"https://cdn.jsdelivr.net/gh/bubbls/UGS-file-encryption@30884886205950003acc451da53cbb940cbda522/Madden%20NFL%202002%20(USA).zip",
@@ -518,17 +466,30 @@ var BADGE_CLASS = {PS1:"b-ps1",N64:"b-n64",NDS:"b-nds",SNES:"b-snes",NES:"b-nes"
 var PLAT_LABEL  = {NDS:"DS"};
 
 // ── STORAGE ──────────────────────────────────────────────────────────────────
-function getDeleted(){return JSON.parse(localStorage.getItem('pv_deleted')||'[]');}
-function getHidden() {return JSON.parse(localStorage.getItem('pv_hidden') ||'[]');}
-function getEdits()  {return JSON.parse(localStorage.getItem('pv_edits')  ||'{}');}
-function getAdminGames(){return JSON.parse(localStorage.getItem('pv_admin_games')||'[]');}
+// _synced = customizations persisted to GitHub (loaded async on init)
+// localStorage holds pending changes not yet synced (admin preview only)
+var _synced = {edits:{},adminGames:[],deleted:[]};
+function getHidden(){return JSON.parse(localStorage.getItem('pv_hidden')||'[]');}
 
 function getAllGames(){
-  var del=getDeleted(),hid=getHidden(),edits=getEdits();
-  var base=GAMES.filter(function(g){return !del.includes(g.id);}).map(function(g){
+  var lp={
+    del:JSON.parse(localStorage.getItem('pv_deleted')||'[]'),
+    edits:JSON.parse(localStorage.getItem('pv_edits')||'{}'),
+    adminGames:JSON.parse(localStorage.getItem('pv_admin_games')||'[]')
+  };
+  var hid=getHidden();
+  var del=_synced.deleted.concat(lp.del.filter(function(id){return _synced.deleted.indexOf(id)===-1;}));
+  var edits=Object.assign({},_synced.edits,lp.edits);
+  var syncedAdmin=_synced.adminGames.filter(function(g){return del.indexOf(g.id)===-1;});
+  var pendingAdmin=lp.adminGames.filter(function(g){
+    return del.indexOf(g.id)===-1&&!_synced.adminGames.some(function(sg){return sg.id===g.id;});
+  });
+  var base=GAMES.filter(function(g){return del.indexOf(g.id)===-1;}).map(function(g){
     var e=edits[g.id];return e?Object.assign({},g,e):g;
-  }).filter(function(g){return !hid.includes(g.id);});
-  var admin=getAdminGames().filter(function(g){return !hid.includes(g.id);});
+  }).filter(function(g){return hid.indexOf(g.id)===-1;});
+  var admin=syncedAdmin.concat(pendingAdmin).filter(function(g){return hid.indexOf(g.id)===-1;}).map(function(g){
+    var e=edits[g.id];return e?Object.assign({},g,e):g;
+  });
   return base.concat(admin);
 }
 
@@ -572,15 +533,36 @@ function render(){
 
 // ── BUILD GAME HTML (blob) ────────────────────────────────────────────────────
 // Builds a complete standalone HTML page for the game.
-// Controls are passed via EJS_defaultOptions before loader.js runs.
+// Controls are applied by patching EJS.prototype.initControlVars before loader.js
+// runs — needed because EJS_defaultControls is broken in genizy/emu (typo in
+// loader.js: config.defaultControlers vs config.defaultControllers).
 function buildGameHtml(g) {
   var loaderUrl = g.loaderPath || (g.pathtodata.replace(/\/+$/,'') + '/loader.js');
   var biosLine  = g.bios  ? 'EJS_biosUrl=' + JSON.stringify(g.bios)  + ';' : '';
 
-  // Build EJS_defaultOptions with control bindings (and vsync if needed)
-  var ctrlObj = buildCtrlLS(g.platform);
-  if (g.vsync) ctrlObj.vsync = 'disabled';
-  var defaultOptsLine = 'EJS_defaultOptions='+JSON.stringify(ctrlObj)+';\n';
+  // EJS_defaultOptions is for emulator settings only (not controls)
+  var vsyncLine = g.vsync ? 'EJS_defaultOptions={"vsync":"disabled"};\n' : '';
+
+  // Intercept window.EJS being set by emulator.min.js, then patch initControlVars
+  // so our keys replace the defaults before the control menu is built.
+  var patchLine = '(function(){'
+    + 'var k='+JSON.stringify(CTRL_KEYS)+';'
+    + 'Object.defineProperty(window,"EJS",{'
+    +   'configurable:true,'
+    +   'set:function(c){'
+    +     'var o=c.prototype.initControlVars;'
+    +     'c.prototype.initControlVars=function(){'
+    +       'o.call(this);'
+    +       'for(var i in k){'
+    +         'if(this.defaultControllers[0][i])this.defaultControllers[0][i].value=k[i];'
+    +         'else this.defaultControllers[0][i]={value:k[i]};'
+    +       '}'
+    +     '};'
+    +     'Object.defineProperty(window,"EJS",{value:c,writable:true,configurable:true,enumerable:true});'
+    +   '}'
+    + '});'
+    + '})();\n';
+  var defaultOptsLine = vsyncLine + patchLine;
 
   var head = '<!DOCTYPE html><html><head><meta charset="UTF-8">'
     + '<style>'
@@ -787,7 +769,12 @@ document.querySelectorAll('.chip').forEach(function(c){
   });
 });
 
-render();
+// Load synced customizations then render
+fetch('customizations.json?_='+Date.now())
+  .then(function(r){return r.ok?r.json():null;})
+  .then(function(c){if(c)_synced=c;})
+  .catch(function(){})
+  .then(function(){render();});
 </script>
 </body>
 </html>
