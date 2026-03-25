@@ -256,7 +256,8 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 
 <script>
 const PASS = "Furman04!";
-let editId = null, editIsAdmin = false;
+let editId = null;
+let _synced = {edits:{},adminGames:[],deleted:[]};
 
 // ── BASE GAMES (mirrors index.html for display) ──────────────────────────────
 const BASE_GAMES = [
@@ -291,21 +292,34 @@ const getDeleted = ()=>LS.get('pv_deleted');
 const saveDeleted = v=>LS.set('pv_deleted',v);
 
 function getAllGames(){
-  const del=getDeleted(), hid=getHidden(), edits=getEdits();
+  const lp = {edits:getEdits(), adminGames:getAdminGames(), deleted:getDeleted()};
+  const hid = getHidden();
+  const del = [...new Set([..._synced.deleted, ...lp.deleted])];
+  const edits = {..._synced.edits, ...lp.edits};
+  const syncedAdmin = _synced.adminGames.filter(g=>!del.includes(g.id));
+  const pendingAdmin = lp.adminGames.filter(g=>!del.includes(g.id)&&!_synced.adminGames.some(sg=>sg.id===g.id));
   const base = BASE_GAMES.map(g=>{
     const e=edits[g.id]; return {...g,...(e||{}),isBase:true,hidden:hid.includes(g.id)};
   }).filter(g=>!del.includes(g.id));
-  const admin = getAdminGames().map(g=>({...g,isBase:false,hidden:hid.includes(g.id)}));
+  const admin = [...syncedAdmin,...pendingAdmin].map(g=>{
+    const e=edits[g.id]; return {...g,...(e||{}),isBase:false,hidden:hid.includes(g.id)};
+  });
   return [...base,...admin];
 }
 
 // ── AUTH ─────────────────────────────────────────────────────────────────────
+function showPanel(){
+  document.getElementById('auth').style.display='none';
+  document.getElementById('panel').classList.add('show');
+  fetch('customizations.json?_='+Date.now())
+    .then(r=>r.ok?r.json():null)
+    .then(c=>{if(c)_synced=c;renderTable();})
+    .catch(()=>renderTable());
+}
 function unlock(){
   if(document.getElementById('pw').value===PASS){
     sessionStorage.setItem('pv_ok','1');
-    document.getElementById('auth').style.display='none';
-    document.getElementById('panel').classList.add('show');
-    renderTable();
+    showPanel();
   } else {
     const e=document.getElementById('authErr');
     e.classList.add('show');
@@ -317,11 +331,7 @@ function unlock(){
 document.getElementById('authBtn').addEventListener('click',unlock);
 document.getElementById('pw').addEventListener('keydown',e=>{if(e.key==='Enter')unlock();});
 document.getElementById('lockBtn').addEventListener('click',()=>{sessionStorage.removeItem('pv_ok');location.reload();});
-if(sessionStorage.getItem('pv_ok')==='1'){
-  document.getElementById('auth').style.display='none';
-  document.getElementById('panel').classList.add('show');
-  renderTable();
-}
+if(sessionStorage.getItem('pv_ok')==='1') showPanel();
 
 // ── TABLE ─────────────────────────────────────────────────────────────────────
 function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
@@ -343,9 +353,9 @@ function renderTable(){
       <td><span class="${g.isBase?'src-base':'src-added'}">${g.isBase?'Built-in':'Added'}</span></td>
       <td>
         <div class="tbl-actions">
-          <button class="tbla" onclick="editGame('${esc(g.id)}',${!g.isBase})">Edit</button>
+          <button class="tbla" onclick="editGame('${esc(g.id)}')">Edit</button>
           <button class="tbla dim" onclick="toggleHide('${esc(g.id)}')">${g.hidden?'Unhide':'Hide'}</button>
-          <button class="tbla red" onclick="deleteGame('${esc(g.id)}',${!!g.isBase})">Delete</button>
+          <button class="tbla red" onclick="deleteGame('${esc(g.id)}')">Delete</button>
         </div>
       </td>`;
     body.appendChild(tr);
@@ -378,23 +388,25 @@ function toggleHide(id){
 }
 
 // ── DELETE ───────────────────────────────────────────────────────────────────
-function deleteGame(id, isBase){
+function deleteGame(id){
   if(!confirm('Delete this game permanently? This cannot be undone.'))return;
-  if(isBase){
+  // If it's a pending (not-yet-synced) admin game, just remove from localStorage
+  const pending=getAdminGames();
+  if(pending.some(g=>g.id===id)){
+    saveAdminGames(pending.filter(g=>g.id!==id));
+  } else {
+    // Base game or synced admin game — mark deleted so sync removes it
     const d=getDeleted(); if(!d.includes(id))d.push(id); saveDeleted(d);
     const h=getHidden().filter(x=>x!==id); saveHidden(h);
     const e=getEdits(); delete e[id]; saveEdits(e);
-  } else {
-    saveAdminGames(getAdminGames().filter(g=>g.id!==id));
-    saveHidden(getHidden().filter(x=>x!==id));
   }
   renderTable(); toast('Game deleted.');
 }
 
 // ── EDIT ─────────────────────────────────────────────────────────────────────
-function editGame(id, isAdmin){
+function editGame(id){
   const g=getAllGames().find(x=>x.id===id); if(!g)return;
-  editId=id; editIsAdmin=isAdmin;
+  editId=id;
   document.getElementById('editTitle').textContent='Edit: '+g.title;
   document.getElementById('eTitle').value=g.title;
   document.getElementById('ePlatform').value=g.platform;
@@ -409,8 +421,7 @@ document.getElementById('editSave').addEventListener('click',()=>{
   if(!editId)return;
   const u={title:document.getElementById('eTitle').value.trim(),platform:document.getElementById('ePlatform').value,cover:document.getElementById('eCover').value.trim(),file:document.getElementById('eFile').value.trim()};
   if(!u.title||!u.platform){toast('Title and platform required.','red');return;}
-  if(editIsAdmin){saveAdminGames(getAdminGames().map(g=>g.id===editId?{...g,...u}:g));}
-  else{const e=getEdits();e[editId]=u;saveEdits(e);}
+  const e=getEdits();e[editId]=u;saveEdits(e);
   closeEdit(); renderTable(); toast('Saved!');
 });
 
@@ -444,93 +455,59 @@ function b64dec(b64) {
   return new TextDecoder().decode(arr);
 }
 
-function escRe(s){ return s.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'); }
-function escVal(s){ return s.replace(/\\/g,'\\\\').replace(/"/g,'\\"'); }
-
-function applyEditsToContent(content, gameId, edits) {
-  const eid = escRe(gameId);
-  return content.replace(new RegExp('\\{[^{}]*?id:"'+eid+'"[^{}]*?\\}'), function(entry) {
-    if (edits.cover    != null) entry = entry.replace(/cover:"[^"]*"/,    'cover:"'    +escVal(edits.cover)+'"');
-    if (edits.title    != null) entry = entry.replace(/title:"[^"]*"/,    'title:"'    +escVal(edits.title)+'"');
-    if (edits.platform != null) entry = entry.replace(/platform:"[^"]*"/, 'platform:"' +escVal(edits.platform)+'"');
-    return entry;
-  });
-}
-
-function removeEntryFromContent(content, gameId) {
-  const eid = escRe(gameId);
-  let r = content.replace(new RegExp('\\n[ \\t]*\\{[^{}]*?id:"'+eid+'"[^{}]*?\\},?'), '');
-  r = r.replace(/,(\s*\n\s*\];)/, '$1'); // trailing comma cleanup
-  return r;
-}
-
-function addEntryToIndex(content, g) {
-  const e = '  {id:'+JSON.stringify(g.id)+',title:'+JSON.stringify(g.title)+
-    ',platform:'+JSON.stringify(g.platform)+',cover:'+JSON.stringify(g.cover)+
-    ',file:'+JSON.stringify(g.file||'games/'+g.id+'.html')+'}';
-  return content.replace('\n];\n\nvar BADGE_CLASS', ',\n'+e+'\n];\n\nvar BADGE_CLASS');
-}
-
-function addEntryToAdmin(content, g) {
-  const e = '  {id:'+JSON.stringify(g.id)+',title:'+JSON.stringify(g.title)+
-    ',platform:'+JSON.stringify(g.platform)+',cover:'+JSON.stringify(g.cover)+
-    ',file:'+JSON.stringify(g.file||'games/'+g.id+'.html')+'}';
-  return content.replace('\n];\n\n// ── STORAGE', ',\n'+e+'\n];\n\n// ── STORAGE');
-}
-
 document.getElementById('syncBtn').addEventListener('click', async function() {
   const token = document.getElementById('ghToken').value.trim();
   if (!token) { setSyncStatus('Enter a GitHub token first.', 'err'); return; }
   localStorage.setItem('pv_gh_tok', token);
 
-  const edits = getEdits();
-  const adminGames = getAdminGames();
-  const deleted = getDeleted();
-  const hasChanges = Object.keys(edits).length || adminGames.length || deleted.length;
+  const lp = {edits:getEdits(), adminGames:getAdminGames(), deleted:getDeleted()};
+  const hasChanges = Object.keys(lp.edits).length || lp.adminGames.length || lp.deleted.length;
   if (!hasChanges) { setSyncStatus('Nothing to sync — no pending changes.', ''); return; }
 
   setSyncStatus('Syncing…', 'busy');
   this.disabled = true;
 
   const hdrs = {'Authorization':'token '+token,'Accept':'application/vnd.github.v3+json'};
-  const base = 'https://api.github.com/repos/'+REPO+'/contents/';
+  const apiBase = 'https://api.github.com/repos/'+REPO+'/contents/';
 
   try {
-    const [idxRes, admRes] = await Promise.all([
-      fetch(base+'index.html?ref='+SYNC_BRANCH, {headers:hdrs}),
-      fetch(base+'admin.html?ref='+SYNC_BRANCH, {headers:hdrs})
-    ]);
-    if (!idxRes.ok) throw new Error('Fetch index.html: '+idxRes.status);
-    if (!admRes.ok) throw new Error('Fetch admin.html: '+admRes.status);
-    const [idxData, admData] = await Promise.all([idxRes.json(), admRes.json()]);
-    let idx = b64dec(idxData.content);
-    let adm = b64dec(admData.content);
-
-    for (const id of deleted) {
-      idx = removeEntryFromContent(idx, id);
-      adm = removeEntryFromContent(adm, id);
-    }
-    for (const [id, e] of Object.entries(edits)) {
-      idx = applyEditsToContent(idx, id, e);
-      adm = applyEditsToContent(adm, id, e);
-    }
-    for (const g of adminGames) {
-      if (!idx.includes('"'+g.id+'"')) idx = addEntryToIndex(idx, g);
-      if (!adm.includes('"'+g.id+'"')) adm = addEntryToAdmin(adm, g);
+    // Fetch current customizations.json (may not exist yet)
+    const custRes = await fetch(apiBase+'customizations.json?ref='+SYNC_BRANCH, {headers:hdrs});
+    let custSha = null;
+    let existing = {edits:{}, adminGames:[], deleted:[]};
+    if (custRes.ok) {
+      const custData = await custRes.json();
+      custSha = custData.sha;
+      try { existing = JSON.parse(b64dec(custData.content)); } catch(e) {}
     }
 
-    const put = async (file, sha, content, msg) => {
-      const r = await fetch(base+file, {
-        method:'PUT', headers:{...hdrs,'Content-Type':'application/json'},
-        body: JSON.stringify({message:msg, content:b64enc(content), sha, branch:SYNC_BRANCH})
-      });
-      if (!r.ok) throw new Error('Update '+file+': '+r.status+' '+(await r.text()));
+    // Merge pending changes on top of existing
+    const merged = {
+      edits: {...existing.edits, ...lp.edits},
+      adminGames: [
+        ...existing.adminGames.filter(g=>!lp.deleted.includes(g.id)),
+        ...lp.adminGames.filter(g=>!existing.adminGames.some(eg=>eg.id===g.id)&&!lp.deleted.includes(g.id))
+      ],
+      deleted: [...new Set([...existing.deleted, ...lp.deleted])]
     };
+    // Strip edits for deleted entries
+    merged.deleted.forEach(id=>{ delete merged.edits[id]; });
 
-    await put('index.html', idxData.sha, idx, 'Update games via admin panel');
-    await put('admin.html', admData.sha, adm, 'Sync admin changes to base games');
+    const body = {
+      message: 'Update game customizations via admin panel',
+      content: b64enc(JSON.stringify(merged, null, 2)),
+      branch: SYNC_BRANCH
+    };
+    if (custSha) body.sha = custSha;
+
+    const r = await fetch(apiBase+'customizations.json', {
+      method:'PUT', headers:{...hdrs,'Content-Type':'application/json'},
+      body: JSON.stringify(body)
+    });
+    if (!r.ok) throw new Error('Push failed: HTTP '+r.status+' — '+(await r.text()));
 
     saveEdits({}); saveAdminGames([]); saveDeleted([]);
+    _synced = merged;
     setSyncStatus('✓ Pushed at ' + new Date().toLocaleTimeString(), 'ok');
     renderTable();
     toast('Pushed to GitHub!');
