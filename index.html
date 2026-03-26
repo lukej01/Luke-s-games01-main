@@ -83,9 +83,9 @@ main{max-width:1200px;margin:0 auto;padding:28px 24px 64px}
 .empty p{font-size:.875rem;color:var(--text3)}
 
 /* MODAL */
-.modal-bg{position:fixed;inset:0;z-index:500;background:rgba(0,0,0,.65);backdrop-filter:blur(4px);display:none;align-items:center;justify-content:center;padding:16px}
+.modal-bg{position:fixed;inset:0;z-index:500;background:rgba(0,0,0,.65);backdrop-filter:blur(4px);display:none;align-items:stretch;padding:0}
 .modal-bg.open{display:flex}
-.modal{background:var(--white);border-radius:18px;width:100%;max-width:920px;height:auto;max-height:90vh;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 24px 80px rgba(0,0,0,.35)}
+.modal{background:var(--white);border-radius:0;width:100%;height:100%;overflow:hidden;display:flex;flex-direction:column}
 .modal-header{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-bottom:1px solid var(--border);flex-shrink:0}
 .modal-title-wrap{display:flex;align-items:center;gap:10px}
 .modal-title{font-family:'Space Grotesk',sans-serif;font-size:1.05rem;font-weight:700;color:var(--text)}
@@ -94,8 +94,8 @@ main{max-width:1200px;margin:0 auto;padding:28px 24px 64px}
 .btn-x:hover{background:var(--bg)}
 
 /* Game frame */
-.modal-game{position:relative;background:#000;flex-shrink:0}
-.modal-game iframe{width:100%;height:360px;border:none;display:block}
+.modal-game{position:relative;background:#000;flex:1;min-height:0}
+.modal-game iframe{position:absolute;inset:0;width:100%;height:100%;border:none;display:block}
 .game-loader{position:absolute;inset:0;background:#0f172a;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;color:rgba(255,255,255,.65);font-size:.875rem;z-index:2}
 .spin{width:32px;height:32px;border:2.5px solid rgba(255,255,255,.1);border-top-color:var(--blue);border-radius:50%;animation:spin .7s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
@@ -138,8 +138,7 @@ footer{border-top:1px solid var(--border);background:var(--white);padding:14px 2
   main{padding:20px 14px 48px}
   .grid{grid-template-columns:repeat(2,1fr);gap:12px}
   .game-count{display:none}
-  .modal{height:96vh;border-radius:12px}
-  .modal-game iframe{height:240px}
+  .modal{height:100%}
   .modal-info{grid-template-columns:1fr}
   .info-col:first-child{border-right:none;border-bottom:1px solid var(--border)}
 }
@@ -409,6 +408,37 @@ var GAMES = [
    type:"merge",core:"parallel_n64",vsync:true,name:"Paper Mario (USA)",
    url:"https://cdn.jsdelivr.net/gh/bubbls/ugss@69e5df0bdfad91580779ec98ca18841e753145fd/Paper%20Mario%20(USA)%20(2)/Paper%20Mario%20(USA).z64",
    min:1,max:3,pad:false,
+   pathtodata:"https://cdn.jsdelivr.net/gh/genizy/emu@master/"},
+
+  {id:"gta2",title:"Grand Theft Auto 2",platform:"PS1",
+   cover:"https://en.wikipedia.org/wiki/Special:FilePath/GTA2_Box_art.jpg",
+   desc:"Top-down crime chaos across three cities. Steal cars, complete gang missions, and cause mayhem to rack up your score.",
+   type:"direct",core:"psx",
+   gameUrl:"https://bbcdn.githack.com/helloitadmin/smart/raw/main/Grand%20Theft%20Auto%202%20(USA).zip",
+   pathtodata:"https://cdn.jsdelivr.net/gh/genizy/emu@master/",
+   bios:"https://cdn.jsdelivr.net/gh/Abdess/retroarch_system@5f96368f6dbad5851cdb16a5041fefec4bdcd305/Sony%20-%20PlayStation/scph5501.bin"},
+
+  {id:"spiderman-ps1",title:"Spider-Man",platform:"PS1",
+   cover:"https://en.wikipedia.org/wiki/Special:FilePath/Spider-Man_2000_game_cover.jpg",
+   desc:"Swing through Manhattan, battle Venom and Carnage, and unravel a mystery that threatens the city. The definitive PS1 superhero game.",
+   type:"merge",core:"psx",name:"Spider-Man (USA)",
+   url:"https://cdn.jsdelivr.net/gh/schoolstuff1337/supplies@main/ps1/spiderman1/Spider-Man%20(USA).iso",
+   min:1,max:21,pad:true,
+   pathtodata:"https://cdn.jsdelivr.net/gh/genizy/emu@master/",
+   bios:"https://cdn.jsdelivr.net/gh/Abdess/retroarch_system@5f96368f6dbad5851cdb16a5041fefec4bdcd305/Sony%20-%20PlayStation/scph5501.bin"},
+
+  {id:"nsmb-ds",title:"New Super Mario Bros.",platform:"NDS",
+   cover:"https://en.wikipedia.org/wiki/Special:FilePath/New_Super_Mario_Bros._coverart.png",
+   desc:"Mario's classic side-scrolling action returns on DS. Eight worlds of new levels, power-ups, and secrets including the giant and mini mushrooms.",
+   type:"direct",core:"nds",
+   gameUrl:"https://cdn.jsdelivr.net/gh/schoolstuff1337/supplies@main/ds/NSMBWDS.7z",
+   pathtodata:"https://cdn.jsdelivr.net/gh/genizy/emu@master/"},
+
+  {id:"super-mario-u",title:"New Super Mario Bros. U",platform:"NDS",
+   cover:"https://en.wikipedia.org/wiki/Special:FilePath/New_Super_Mario_Bros._U_box_art.png",
+   desc:"Mario, Luigi, and friends battle Bowser across an overworld of interconnected maps. Features the classic side-scrolling action with new power-ups.",
+   type:"direct",core:"nds",
+   gameUrl:"https://cdn.jsdelivr.net/gh/schoolstuff1337/supplies@main/ds/NSMBWDS.7z",
    pathtodata:"https://cdn.jsdelivr.net/gh/genizy/emu@master/"},
 
   {id:"nba-live-2003",title:"NBA Live 2003",platform:"PS1",
