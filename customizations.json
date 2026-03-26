@@ -1,13 +1,5 @@
 {
   "edits": {},
-  "adminGames": [
-    {
-      "id": "admin-1774444737250",
-      "title": "Spiderman",
-      "platform": "PS1",
-      "cover": "https://upload.wikimedia.org/wikipedia/en/thumb/8/8d/Spider-Man_2000_game_cover.jpg/250px-Spider-Man_2000_game_cover.jpg",
-      "file": "games/spider-man.html"
-    }
-  ],
+  "adminGames": [],
   "deleted": []
 }
