@@ -434,13 +434,6 @@ var GAMES = [
    gameUrl:"https://cdn.jsdelivr.net/gh/schoolstuff1337/supplies@main/ds/NSMBWDS.7z",
    pathtodata:"https://cdn.jsdelivr.net/gh/genizy/emu@master/"},
 
-  {id:"super-mario-u",title:"New Super Mario Bros. U",platform:"NDS",
-   cover:"https://en.wikipedia.org/wiki/Special:FilePath/New_Super_Mario_Bros._U_box_art.png",
-   desc:"Mario, Luigi, and friends battle Bowser across an overworld of interconnected maps. Features the classic side-scrolling action with new power-ups.",
-   type:"direct",core:"nds",
-   gameUrl:"https://cdn.jsdelivr.net/gh/schoolstuff1337/supplies@main/ds/NSMBWDS.7z",
-   pathtodata:"https://cdn.jsdelivr.net/gh/genizy/emu@master/"},
-
   {id:"nba-live-2003",title:"NBA Live 2003",platform:"PS1",
    cover:"https://upload.wikimedia.org/wikipedia/en/thumb/b/bc/NBA_Live_2003_cover.jpg/250px-NBA_Live_2003_cover.jpg",
    desc:"Classic basketball with all 29 NBA teams and the legendary 2002-03 rosters.",
@@ -608,7 +601,11 @@ var vsyncLine = 'EJS_defaultOptions={"vsync":"disabled"};\n';
     + '<div id="err"></div></div>'
     + '<script>';
 
-  var tail = '<\/script></body></html>';
+  var tail = 'window.addEventListener("message",function(e){'
+    + 'if(e.data==="ejs-save"&&window.EJS_emulator)window.EJS_emulator.saveState();'
+    + 'if(e.data==="ejs-load"&&window.EJS_emulator)window.EJS_emulator.loadState();'
+    + '});'
+    + '<\/script></body></html>';
 
   var body;
   if (g.type === 'merge') {
@@ -774,15 +771,12 @@ document.getElementById('btnClose').addEventListener('click', closeModal);
 document.getElementById('modalBg').addEventListener('click', function(e){ if(e.target===this) closeModal(); });
 document.addEventListener('keydown', function(e){ if(e.key==='Escape') closeModal(); });
 
-function sendKeyToGame(keyCode) {
+function msgGame(msg) {
   var frame = document.getElementById('gameFrame');
-  if (!frame || !frame.contentWindow) return;
-  var win = frame.contentWindow;
-  win.dispatchEvent(new KeyboardEvent('keydown', {keyCode:keyCode, which:keyCode, bubbles:true}));
-  setTimeout(function(){ win.dispatchEvent(new KeyboardEvent('keyup', {keyCode:keyCode, which:keyCode, bubbles:true})); }, 80);
+  if (frame && frame.contentWindow) frame.contentWindow.postMessage(msg, '*');
 }
-document.getElementById('btnSave').addEventListener('click', function(){ sendKeyToGame(49); }); // key "1"
-document.getElementById('btnLoad').addEventListener('click', function(){ sendKeyToGame(50); }); // key "2"
+document.getElementById('btnSave').addEventListener('click', function(){ msgGame('ejs-save'); });
+document.getElementById('btnLoad').addEventListener('click', function(){ msgGame('ejs-load'); });
 
 document.getElementById('btnCtrl').addEventListener('click', function(e){
   e.stopPropagation();
