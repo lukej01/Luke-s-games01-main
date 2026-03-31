@@ -1,0 +1,787 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GameStash — Play Classic Games Free</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --blue:#2563eb;--blue-d:#1d4ed8;--blue-l:#eff6ff;--blue-m:#bfdbfe;
+  --text:#111827;--text2:#374151;--text3:#6b7280;
+  --border:#e5e7eb;--bg:#f9fafb;--white:#fff;
+  --shadow-sm:0 1px 3px rgba(0,0,0,.08);
+  --shadow-lg:0 12px 40px rgba(0,0,0,.15);
+  --radius:12px;
+}
+html{scroll-behavior:smooth}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;-webkit-font-smoothing:antialiased}
+
+/* HEADER */
+.header{background:var(--white);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:100;box-shadow:var(--shadow-sm)}
+.header-inner{max-width:1200px;margin:0 auto;padding:0 24px;height:60px;display:flex;align-items:center;gap:16px}
+.logo{display:flex;align-items:center;gap:9px;text-decoration:none;flex-shrink:0}
+.logo-mark{width:34px;height:34px;background:var(--blue);border-radius:8px;display:flex;align-items:center;justify-content:center}
+.logo-mark svg{width:18px;height:18px;fill:white}
+.logo-name{font-family:'Space Grotesk',sans-serif;font-size:1.2rem;font-weight:700;color:var(--text);letter-spacing:-.3px}
+.logo-name span{color:var(--blue)}
+.search-wrap{flex:1;max-width:400px;position:relative}
+.search-wrap input{width:100%;padding:9px 14px 9px 38px;border:1.5px solid var(--border);border-radius:8px;font-family:'Inter',sans-serif;font-size:.875rem;color:var(--text);background:var(--bg);outline:none;transition:.15s}
+.search-wrap input:focus{border-color:var(--blue);background:var(--white);box-shadow:0 0 0 3px #dbeafe}
+.search-wrap input::placeholder{color:var(--text3)}
+.search-icon{position:absolute;left:11px;top:50%;transform:translateY(-50%);color:var(--text3);pointer-events:none}
+.header-end{margin-left:auto;display:flex;align-items:center;gap:8px}
+.btn-admin{padding:7px 14px;border:1.5px solid var(--border);border-radius:7px;background:var(--white);color:var(--text2);font-family:'Inter',sans-serif;font-size:.8rem;font-weight:500;cursor:pointer;text-decoration:none;transition:.15s}
+.btn-admin:hover{border-color:var(--blue);color:var(--blue);background:var(--blue-l)}
+.game-count{font-size:.8rem;color:var(--text3);font-weight:500;white-space:nowrap}
+.by-credit{font-size:.8rem;color:var(--text3);font-weight:500;white-space:nowrap}
+
+/* FILTERS */
+.filters-bar{background:var(--white);border-bottom:1px solid var(--border);padding:12px 24px}
+.filters-inner{max-width:1200px;margin:0 auto;display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.filter-label{font-size:.75rem;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;margin-right:4px}
+.chip{padding:5px 13px;border-radius:99px;border:1.5px solid var(--border);background:var(--white);color:var(--text2);font-size:.8rem;font-weight:500;cursor:pointer;transition:.15s;user-select:none}
+.chip:hover{border-color:#93c5fd;color:var(--blue);background:var(--blue-l)}
+.chip.on{background:var(--blue);border-color:var(--blue);color:var(--white)}
+
+/* MAIN */
+main{max-width:1200px;margin:0 auto;padding:28px 24px 64px}
+.section-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px}
+.section-title{font-family:'Space Grotesk',sans-serif;font-size:1rem;font-weight:700;color:var(--text)}
+.results-text{font-size:.8rem;color:var(--text3)}
+
+/* GRID — square cards */
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(148px,1fr));gap:16px}
+.card{background:var(--white);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;cursor:pointer;transition:.18s}
+.card:hover{transform:translateY(-3px);box-shadow:var(--shadow-lg);border-color:var(--blue-m)}
+.card-img-wrap{position:relative;width:100%;aspect-ratio:1/1;overflow:hidden;background:var(--blue-l)}
+.card-img{width:100%;height:100%;object-fit:cover;display:block;transition:.2s}
+.card:hover .card-img{transform:scale(1.05)}
+.card-fallback{position:absolute;inset:0;display:none;flex-direction:column;align-items:center;justify-content:center;gap:8px;color:var(--blue);font-size:.8rem;font-weight:600;text-align:center;padding:12px}
+.card-play{position:absolute;inset:0;background:rgba(17,24,39,.4);display:flex;align-items:center;justify-content:center;opacity:0;transition:.18s}
+.card-play svg{width:44px;height:44px;fill:white;filter:drop-shadow(0 2px 8px rgba(0,0,0,.5))}
+.card:hover .card-play{opacity:1}
+.card-body{padding:10px 11px 10px}
+.card-title{font-family:'Space Grotesk',sans-serif;font-size:.83rem;font-weight:700;color:var(--text);margin-bottom:7px;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.card-footer{display:flex;align-items:center}
+.badge{font-size:.67rem;font-weight:700;padding:2px 8px;border-radius:99px;letter-spacing:.2px;text-transform:uppercase}
+.b-ps1{background:#e0e7ff;color:#4338ca}
+.b-n64{background:#dcfce7;color:#15803d}
+.b-nds{background:#fef3c7;color:#b45309}
+.b-snes{background:#fce7f3;color:#be185d}
+.b-nes{background:#f3e8ff;color:#7c3aed}
+.b-sega{background:#e0f2fe;color:#0369a1}
+.b-other{background:#f3f4f6;color:#374151}
+
+/* EMPTY */
+.empty{text-align:center;padding:80px 20px;display:none}
+.empty.show{display:block}
+.empty-icon{font-size:2.5rem;margin-bottom:12px}
+.empty h3{font-family:'Space Grotesk',sans-serif;font-size:1.1rem;color:var(--text);margin-bottom:6px}
+.empty p{font-size:.875rem;color:var(--text3)}
+
+/* MODAL */
+.modal-bg{position:fixed;inset:0;z-index:500;background:rgba(0,0,0,.65);backdrop-filter:blur(4px);display:none;align-items:stretch;padding:0}
+.modal-bg.open{display:flex}
+.modal{background:var(--white);border-radius:0;width:100%;height:100%;overflow:hidden;display:flex;flex-direction:column}
+.modal-header{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-bottom:1px solid var(--border);flex-shrink:0}
+.modal-title-wrap{display:flex;align-items:center;gap:10px}
+.modal-title{font-family:'Space Grotesk',sans-serif;font-size:1.05rem;font-weight:700;color:var(--text)}
+.modal-actions{display:flex;align-items:center;gap:8px}
+.btn-x{width:32px;height:32px;border-radius:7px;border:1.5px solid var(--border);background:var(--white);color:var(--text2);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:.95rem;transition:.15s}
+.btn-x:hover{background:var(--bg)}
+
+/* Game frame */
+.modal-game{position:relative;background:#000;flex:1;min-height:0}
+.modal-game iframe{position:absolute;inset:0;width:100%;height:100%;border:none;display:block}
+.game-loader{position:absolute;inset:0;background:#0f172a;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;color:rgba(255,255,255,.65);font-size:.875rem;z-index:2}
+.spin{width:32px;height:32px;border:2.5px solid rgba(255,255,255,.1);border-top-color:var(--blue);border-radius:50%;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* Save bar */
+.save-bar{display:flex;gap:8px;padding:8px 14px;background:var(--bg);border-top:1px solid var(--border);flex-shrink:0}
+.save-btn{flex:1;padding:7px 0;border:none;border-radius:7px;font-size:.8rem;font-weight:600;cursor:pointer;background:var(--blue);color:#fff;transition:.15s;font-family:'Inter',sans-serif}
+.save-btn:hover{background:var(--blue-d)}
+
+/* Info area */
+.modal-below{flex-shrink:0}
+.modal-info{display:grid;grid-template-columns:1fr 1fr;gap:0;border-top:1px solid var(--border)}
+.info-col{padding:18px 20px}
+.info-col:first-child{border-right:1px solid var(--border)}
+.info-label{font-family:'Space Grotesk',sans-serif;font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--text3);margin-bottom:10px}
+.game-desc{font-size:.855rem;color:var(--text2);line-height:1.65}
+.ctrl-list{display:flex;flex-direction:column;gap:0}
+.ctrl-row{display:flex;align-items:center;justify-content:space-between;padding:5px 0;border-bottom:1px solid #f3f4f6}
+.ctrl-row:last-child{border-bottom:none}
+.ctrl-action{font-size:.75rem;color:var(--text3)}
+.ctrl-key{font-size:.72rem;font-weight:600;color:var(--text);background:var(--bg);border:1.5px solid var(--border);border-radius:4px;padding:1px 7px;font-family:monospace;white-space:nowrap}
+
+/* Controls dropdown button */
+.ctrl-dropdown{position:relative}
+.btn-ctrl{padding:5px 12px;border:1.5px solid var(--border);border-radius:7px;background:var(--white);color:var(--text2);font-family:'Inter',sans-serif;font-size:.78rem;font-weight:500;cursor:pointer;transition:.15s;display:flex;align-items:center;gap:5px}
+.btn-ctrl:hover,.btn-ctrl.open{background:var(--blue-l);border-color:var(--blue-m);color:var(--blue)}
+.ctrl-panel{position:absolute;top:calc(100% + 6px);right:0;background:var(--white);border:1px solid var(--border);border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,.14);z-index:600;min-width:230px;padding:14px 16px;display:none}
+.ctrl-panel.open{display:block}
+.ctrl-panel-title{font-family:'Space Grotesk',sans-serif;font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--text3);margin-bottom:10px}
+
+/* FOOTER */
+footer{border-top:1px solid var(--border);background:var(--white);padding:14px 24px;display:flex;align-items:center;justify-content:space-between;font-size:.8rem;color:var(--text3)}
+.footer-brand{font-family:'Space Grotesk',sans-serif;font-weight:700;color:var(--text);font-size:.85rem}
+.footer-brand span{color:var(--blue)}
+
+/* RESPONSIVE */
+@media(max-width:680px){
+  .header-inner{padding:0 14px;gap:10px}
+  .filters-bar{padding:10px 14px}
+  main{padding:20px 14px 48px}
+  .grid{grid-template-columns:repeat(2,1fr);gap:12px}
+  .game-count{display:none}
+  .modal{height:100%}
+  .modal-info{grid-template-columns:1fr}
+  .info-col:first-child{border-right:none;border-bottom:1px solid var(--border)}
+}
+</style>
+</head>
+<body>
+
+<header class="header">
+  <div class="header-inner">
+    <a class="logo" href="#">
+      <div class="logo-mark">
+        <svg viewBox="0 0 24 24"><path d="M21 6H3a2 2 0 00-2 2v8a2 2 0 002 2h18a2 2 0 002-2V8a2 2 0 00-2-2zM8 13H6v2H4v-2H2v-2h2V9h2v2h2v2zm4.5 1.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm4-3c-.83 0-1.5-.67-1.5-1.5S15.67 8.5 16.5 8.5 18 9.17 18 10s-.67 1.5-1.5 1.5z"/></svg>
+      </div>
+      <span class="logo-name">Game<span>Stash</span></span>
+    </a>
+    <div class="search-wrap">
+      <svg class="search-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input id="searchInput" type="text" placeholder="Search games…" autocomplete="off" spellcheck="false">
+    </div>
+    <div class="header-end">
+      <span class="game-count" id="gameCount"></span>
+      <span class="by-credit">by luke.j</span>
+      <a class="btn-admin" href="admin.html">Admin</a>
+    </div>
+  </div>
+</header>
+
+<div class="filters-bar">
+  <div class="filters-inner">
+    <span class="filter-label">Platform</span>
+    <button class="chip on" data-p="all">All</button>
+    <button class="chip" data-p="N64">N64</button>
+    <button class="chip" data-p="PS1">PS1</button>
+    <button class="chip" data-p="NDS">DS</button>
+    <button class="chip" data-p="SNES">SNES</button>
+    <button class="chip" data-p="NES">NES</button>
+    <button class="chip" data-p="SEGA">Sega</button>
+  </div>
+</div>
+
+<main>
+  <div class="section-row">
+    <span class="section-title">Library</span>
+    <span class="results-text" id="resultsText"></span>
+  </div>
+  <div class="grid" id="grid"></div>
+  <div class="empty" id="empty">
+    <div class="empty-icon">🎮</div>
+    <h3>Nothing found</h3>
+    <p>Try a different search or filter.</p>
+  </div>
+</main>
+
+<footer>
+  <span class="footer-brand">Game<span>Stash</span></span>
+  <span>Made by <strong style="color:var(--text2)">luke.j</strong></span>
+</footer>
+
+<!-- MODAL -->
+<div class="modal-bg" id="modalBg">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title-wrap">
+        <span class="modal-title" id="modalTitle">—</span>
+        <span id="modalBadge"></span>
+      </div>
+      <div class="modal-actions">
+        <div class="ctrl-dropdown" id="ctrlDropdown">
+          <button class="btn-ctrl" id="btnCtrl">🎮 Controls</button>
+          <div class="ctrl-panel" id="ctrlPanel">
+            <div class="ctrl-panel-title" id="ctrlPanelTitle">Controls</div>
+            <div class="ctrl-list" id="ctrlPanelList"></div>
+          </div>
+        </div>
+        <button class="btn-x" id="btnClose" title="Close (Esc)">✕</button>
+      </div>
+    </div>
+    <div class="modal-game">
+      <div class="game-loader" id="gameLoader">
+        <div class="spin"></div>
+        <span>Loading game…</span>
+      </div>
+      <iframe id="gameFrame"
+        allow="fullscreen; pointer-lock"
+        sandbox="allow-scripts allow-same-origin allow-forms allow-pointer-lock allow-popups allow-modals">
+      </iframe>
+    </div>
+    <div class="save-bar">
+      <button class="save-btn" id="btnSave" title="Save game (key: 1)">💾 Save</button>
+      <button class="save-btn" id="btnLoad" title="Load save (key: 2)">📂 Load Save</button>
+    </div>
+    <div class="modal-below">
+      <div class="modal-info" style="grid-template-columns:1fr">
+        <div class="info-col">
+          <div class="info-label">About</div>
+          <div class="game-desc" id="gameDesc">—</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── CONTROLS PER PLATFORM ────────────────────────────────────────────────────
+var CTRL_DISPLAY = {
+  NES: [
+    ["D-Pad / L-Stick","W A S D"],
+    ["A","B"],
+    ["B","Space"],
+    ["Start","Enter"],
+    ["Select","Enter"],
+    ["Save State","1"],
+    ["Load State","2"]
+  ],
+  SNES: [
+    ["D-Pad / L-Stick","W A S D"],
+    ["A","B"],
+    ["B","Space"],
+    ["X","N"],
+    ["Y","V"],
+    ["L","X"],
+    ["R","M"],
+    ["Start","Enter"],
+    ["Select","Enter"],
+    ["Save State","1"],
+    ["Load State","2"]
+  ],
+  N64: [
+    ["L-Stick / D-Pad","W A S D"],
+    ["A","B"],
+    ["B","Space"],
+    ["Z Trigger","C"],
+    ["L","X"],
+    ["R","M"],
+    ["C-Buttons","Arrow Keys"],
+    ["Start","Enter"],
+    ["Save State","1"],
+    ["Load State","2"]
+  ],
+  PS1: [
+    ["L-Stick / D-Pad","W A S D"],
+    ["R-Stick","Arrow Keys"],
+    ["Cross ✕","Space"],
+    ["Circle ○","B"],
+    ["Square □","V"],
+    ["Triangle △","N"],
+    ["L1","X"],
+    ["L2","C"],
+    ["R1","M"],
+    ["R2",","],
+    ["Start","Enter"],
+    ["Select","Enter"],
+    ["Save State","1"],
+    ["Load State","2"]
+  ],
+  SEGA: [
+    ["D-Pad / L-Stick","W A S D"],
+    ["A","B"],
+    ["B","Space"],
+    ["C","M"],
+    ["Start","Enter"],
+    ["Save State","1"],
+    ["Load State","2"]
+  ],
+  NDS: [
+    ["D-Pad / L-Stick","W A S D"],
+    ["A","B"],
+    ["B","Space"],
+    ["X","N"],
+    ["Y","V"],
+    ["L","X"],
+    ["R","M"],
+    ["Start","Enter"],
+    ["Select","Enter"],
+    ["Save State","1"],
+    ["Load State","2"]
+  ],
+  GBA: [
+    ["D-Pad / L-Stick","W A S D"],
+    ["A","B"],
+    ["B","Space"],
+    ["L","X"],
+    ["R","M"],
+    ["Start","Enter"],
+    ["Select","Enter"],
+    ["Save State","1"],
+    ["Load State","2"]
+  ]
+};
+
+// ── CONTROLS ─────────────────────────────────────────────────────────────────
+var EJS_DEFAULT_CONTROLS = {
+  0: {
+     0: {value:'space',      value2:'BUTTON_2'},
+     1: {value:'v',          value2:'BUTTON_4'},
+     2: {value:'enter',      value2:'SELECT'},
+     3: {value:'enter',      value2:'START'},
+     4: {value:'w',          value2:'DPAD_UP'},
+     5: {value:'s',          value2:'DPAD_DOWN'},
+     6: {value:'a',          value2:'DPAD_LEFT'},
+     7: {value:'d',          value2:'DPAD_RIGHT'},
+     8: {value:'b',          value2:'BUTTON_1'},
+     9: {value:'n',          value2:'BUTTON_3'},
+    10: {value:'x',          value2:'LEFT_TOP_SHOULDER'},
+    11: {value:'m',          value2:'RIGHT_TOP_SHOULDER'},
+    12: {value:'c',          value2:'LEFT_BOTTOM_SHOULDER'},
+    13: {value:'comma',      value2:'RIGHT_BOTTOM_SHOULDER'},
+    14: {value:'',           value2:'LEFT_STICK'},
+    15: {value:'',           value2:'RIGHT_STICK'},
+    16: {value:'d',          value2:'LEFT_STICK_X:+1'},
+    17: {value:'a',          value2:'LEFT_STICK_X:-1'},
+    18: {value:'s',          value2:'LEFT_STICK_Y:+1'},
+    19: {value:'w',          value2:'LEFT_STICK_Y:-1'},
+    20: {value:'right arrow',value2:'RIGHT_STICK_X:+1'},
+    21: {value:'left arrow', value2:'RIGHT_STICK_X:-1'},
+    22: {value:'down arrow', value2:'RIGHT_STICK_Y:+1'},
+    23: {value:'up arrow',   value2:'RIGHT_STICK_Y:-1'},
+    24: {value:'1'},
+    25: {value:'2'},
+    26: {value:'3'},
+    27: {}, 28: {}, 29: {}
+  },
+  1: {}, 2: {}, 3: {}
+};
+
+// ── GAME DATA ────────────────────────────────────────────────────────────────
+var GAMES = [
+  {id:"gran-turismo-2",title:"Gran Turismo 2",platform:"PS1",
+   cover:"https://m.media-amazon.com/images/I/51egYoaJo-L._SX342_SY445_QL70_FMwebp_.jpg",
+   desc:"The definitive PS1 racing sim — 650 cars, 27 tracks, Arcade and Simulation modes.",
+   type:"merge",core:"psx",name:"Gran Turismo 2 (USA) (Arcade Mode)",
+   url:"https://cdn.jsdelivr.net/gh/bubbls/ugss@943907cd0e3f7f47ade82d0b0032eba262a89c93/gran%20turismo%202/Gran%20Turismo%202%20(USA)%20(Arcade%20Mode).chd",
+   min:1,max:24,pad:true,
+   cheats:[
+     ["All Cars Unlocked",   "800E9D14 FFFF"],
+     ["All Cars Unlocked 2", "800E9D16 FFFF"],
+     ["All Tracks Unlocked", "800CC0B8 FFFF"],
+     ["Max Money (Lo)",      "800CC0A0 FFFF"],
+     ["Max Money (Hi)",      "800CC0A2 000F"]
+   ],
+   pathtodata:"https://cdn.jsdelivr.net/gh/genizy/emu@master/",
+   bios:"https://cdn.jsdelivr.net/gh/Abdess/retroarch_system@5f96368f6dbad5851cdb16a5041fefec4bdcd305/Sony%20-%20PlayStation/scph5501.bin"},
+
+  {id:"super-mario-64",title:"Super Mario 64",platform:"N64",
+   cover:"https://upload.wikimedia.org/wikipedia/en/thumb/e/e9/Super_Mario_64.png/250px-Super_Mario_64.png",
+   desc:"The game that invented 3D platforming. Collect 120 Power Stars across 15 open worlds.",
+   type:"direct",core:"parallel_n64",vsync:true,
+   gameUrl:"https://cdn.jsdelivr.net/gh/bubbls/clsm64@139e09e38eb3e7783095eee30fdf75b18ee59e02/Super%20Mario%2064%20(USA).zip",
+   pathtodata:"https://cdn.jsdelivr.net/gh/genizy/emu@master/"},
+
+  {id:"zelda-oot",title:"Zelda: Ocarina of Time",platform:"N64",
+   cover:"https://upload.wikimedia.org/wikipedia/en/5/57/The_Legend_of_Zelda_Ocarina_of_Time.jpg",
+   desc:"One of the greatest games ever made. Guide Link through Hyrule and stop Ganondorf.",
+   type:"merge",core:"parallel_n64",vsync:true,name:"Legend of Zelda, The - Ocarina of Time (USA)",
+   url:"https://cdn.jsdelivr.net/gh/bubbls/ugss@ffa46738ce21236742f4a44db08d87160fed6c7d/ocarinaoftime/Legend%20of%20Zelda%2C%20The%20-%20Ocarina%20of%20Time%20(USA).n64",
+   min:1,max:2,pad:false,
+   pathtodata:"https://cdn.jsdelivr.net/gh/genizy/emu@master/"},
+
+  {id:"paper-mario",title:"Paper Mario",platform:"N64",
+   cover:"https://upload.wikimedia.org/wikipedia/en/thumb/6/61/Papermario.jpg/250px-Papermario.jpg",
+   desc:"Mario in a storybook RPG world. Team up with partners and rescue the Star Spirits.",
+   type:"merge",core:"parallel_n64",vsync:true,name:"Paper Mario (USA)",
+   url:"https://cdn.jsdelivr.net/gh/bubbls/ugss@69e5df0bdfad91580779ec98ca18841e753145fd/Paper%20Mario%20(USA)%20(2)/Paper%20Mario%20(USA).z64",
+   min:1,max:3,pad:false,
+   pathtodata:"https://cdn.jsdelivr.net/gh/genizy/emu@master/"},
+
+  {id:"nba-live-2003",title:"NBA Live 2003",platform:"PS1",
+   cover:"https://upload.wikimedia.org/wikipedia/en/thumb/b/bc/NBA_Live_2003_cover.jpg/250px-NBA_Live_2003_cover.jpg",
+   desc:"Classic basketball with all 29 NBA teams and the legendary 2002-03 rosters.",
+   type:"merge",core:"psx",name:"NBA Live 2003 (USA)",
+   url:"https://cdn.jsdelivr.net/gh/bubbls/ugss@main/2003/NBA%20Live%202003%20(USA).chd",
+   min:1,max:14,pad:true,
+   pathtodata:"https://cdn.jsdelivr.net/gh/bubbls/brogoofyahhmangogotonablacklistskullwiltingrose@main/",
+   loaderPath:"https://cdn.jsdelivr.net/gh/bubbls/brogoofyahhmangogotonablacklistskullwiltingrose@main/loader.js",
+   bios:"https://cdn.jsdelivr.net/gh/Abdess/retroarch_system@5f96368f6dbad5851cdb16a5041fefec4bdcd305/Sony%20-%20PlayStation/scph5501.bin"},
+
+  {id:"lego-batman-2",title:"LEGO Batman 2: DC Super Heroes",platform:"NDS",
+   cover:"https://upload.wikimedia.org/wikipedia/en/thumb/4/43/Legobatman2.jpg/250px-Legobatman2.jpg",
+   desc:"Batman and the Justice League stop Lex Luthor and Joker. 50+ DC characters to unlock.",
+   type:"merge",core:"nds",name:"LEGO Batman 2 - DC Super Heroes (USA)",
+   url:"https://cdn.jsdelivr.net/gh/bubbls/ugss@4183685fe631b2e1735347d60fcf24a7d194bf6a/LEGO%20Batman%202%20-%20DC%20Super%20Heroes%20(USA)%20(En%2CFr%2CEs%2CPt)/LEGO%20Batman%202%20-%20DC%20Super%20Heroes%20(USA)%20(En%2CFr%2CEs%2CPt).nds",
+   min:1,max:7,pad:true,
+   pathtodata:"https://cdn.jsdelivr.net/gh/genizy/emu@master/"},
+
+  {id:"lego-batman-1",title:"LEGO Batman: The Videogame",platform:"NDS",
+   cover:"https://m.media-amazon.com/images/I/517zan+v3eL._SY445_SX342_QL70_FMwebp_.jpg",
+   desc:"Gotham in bricks. Play as Batman and the villains across 30 levels of puzzles.",
+   type:"merge",core:"nds",name:"LEGO Batman - The Videogame (USA)",
+   url:"https://cdn.jsdelivr.net/gh/bubbls/ugss@a401bcb0fdfe66333c583eaba5ff219c106054a6/LEGO%20Batman%20-%20The%20Videogame%20(USA)%20(En%2CFr%2CEs)/LEGO%20Batman%20-%20The%20Videogame%20(USA)%20(En%2CFr%2CEs).nds",
+   min:1,max:4,pad:true,
+   pathtodata:"https://cdn.jsdelivr.net/gh/genizy/emu@master/"},
+
+  {id:"lego-star-wars",title:"LEGO Star Wars: Complete Saga",platform:"NDS",
+   cover:"https://upload.wikimedia.org/wikipedia/en/thumb/5/56/Lego_Star_Wars-The_Complete_Saga.jpg/250px-Lego_Star_Wars-The_Complete_Saga.jpg",
+   desc:"All six Star Wars episodes in LEGO. 160 levels and 120 unlockable characters.",
+   type:"merge",core:"nds",name:"LEGO Star Wars - The Complete Saga (USA)",
+   url:"https://cdn.jsdelivr.net/gh/bubbls/ugss@be3eda6572fba26d9575c87fd864392c7e19261c/LEGO%20Star%20Wars%20-%20The%20Complete%20Saga%20(USA)/LEGO%20Star%20Wars%20-%20The%20Complete%20Saga%20(USA).nds",
+   min:1,max:4,pad:true,
+   pathtodata:"https://cdn.jsdelivr.net/gh/genizy/emu@master/"},
+
+  {id:"super-mario-world",title:"Super Mario World",platform:"SNES",
+   cover:"https://upload.wikimedia.org/wikipedia/en/3/32/Super_Mario_World_Coverart.png",
+   desc:"The SNES masterpiece. Explore Dinosaur Land with Mario and Yoshi, find all 96 exits.",
+   type:"direct",core:"snes9x",
+   gameUrl:"https://cdn.jsdelivr.net/gh/bubbls/UGS-file-encryption@d8359714213990e929bd5fc43895c2be2a21999c/Super%20Mario%20World%20(USA)%20(patched).sfc",
+   pathtodata:"https://cdn.jsdelivr.net/gh/genizy/emu@master/"},
+
+  {id:"sonic-2",title:"Sonic the Hedgehog 2",platform:"SEGA",
+   cover:"https://upload.wikimedia.org/wikipedia/en/thumb/0/0c/Sonic_2_US_Cover.jpg/250px-Sonic_2_US_Cover.jpg",
+   desc:"Sonic and Tails race through 11 zones to stop Dr. Robotnik. Introduces the Spin Dash.",
+   type:"direct",core:"segaMD",
+   gameUrl:"https://cdn.jsdelivr.net/gh/a456pur/seraph@ae2fcc6d6a9cd051654fcc0519080db1f79cf2a7/games/sonicthehedgehog2/Sonic%20The%20Hedgehog%202%20(World).md",
+   pathtodata:"https://cdn.jsdelivr.net/gh/genizy/emu@master/"},
+
+  {id:"punch-out",title:"Mike Tyson's Punch-Out!!",platform:"NES",
+   cover:"https://upload.wikimedia.org/wikipedia/en/thumb/c/c8/Mike_Tyson%27s_Punch-Out%21%21_NES_Box.jpg/250px-Mike_Tyson%27s_Punch-Out%21%21_NES_Box.jpg",
+   desc:"Little Mac fights through the WVBA. Learn each boxer's patterns and claim the belt.",
+   type:"direct",core:"nes",
+   gameUrl:"https://cdn.jsdelivr.net/gh/bubbls/UGS-file-encryption@7f176dd47e40f0e0b68e704654d83d8fb69eabdc/Mike%20Tyson's%20Punch-Out!!%20(Japan%2C%20USA)%20(En).zip",
+   pathtodata:"https://cdn.jsdelivr.net/gh/genizy/emu@master/"},
+
+  {id:"super-mario-3",title:"Super Mario Bros. 3",platform:"NES",
+   cover:"https://upload.wikimedia.org/wikipedia/en/a/a5/Super_Mario_Bros._3_coverart.png",
+   desc:"8 worlds, Tanooki Suit, Frog Suit, a world map to explore, and Bowser's kids to defeat.",
+   type:"direct",core:"nes",
+   gameUrl:"https://cdn.jsdelivr.net/gh/bubbls/UGS-file-encryption@a98e2e20cae75fa14dd7450a1047348ccf0786d6/Super%20Mario%20Bros.%203%20(USA).zip",
+   pathtodata:"https://cdn.jsdelivr.net/gh/genizy/emu@master/"},
+
+  {id:"madden-2002",title:"Madden NFL 2002",platform:"N64",
+   cover:"https://upload.wikimedia.org/wikipedia/en/thumb/a/a0/Madden_NFL_2002_Coverart.png/250px-Madden_NFL_2002_Coverart.png",
+   desc:"All 31 NFL teams from the 2001 season. Exhibition, Season, or Franchise mode.",
+   type:"direct",core:"parallel_n64",vsync:true,
+   gameUrl:"https://cdn.jsdelivr.net/gh/bubbls/UGS-file-encryption@30884886205950003acc451da53cbb940cbda522/Madden%20NFL%202002%20(USA).zip",
+   pathtodata:"https://cdn.jsdelivr.net/gh/genizy/emu@master/"}
+];
+
+var BADGE_CLASS = {PS1:"b-ps1",N64:"b-n64",NDS:"b-nds",SNES:"b-snes",NES:"b-nes",SEGA:"b-sega"};
+var PLAT_LABEL  = {NDS:"DS"};
+
+// ── STORAGE ──────────────────────────────────────────────────────────────────
+var _synced = {edits:{},adminGames:[],deleted:[]};
+function getHidden(){return JSON.parse(localStorage.getItem('pv_hidden')||'[]');}
+
+function getAllGames(){
+  var lp={
+    del:JSON.parse(localStorage.getItem('pv_deleted')||'[]'),
+    edits:JSON.parse(localStorage.getItem('pv_edits')||'{}'),
+    adminGames:JSON.parse(localStorage.getItem('pv_admin_games')||'[]')
+  };
+  var hid=getHidden();
+  var del=_synced.deleted.concat(lp.del.filter(function(id){return _synced.deleted.indexOf(id)===-1;}));
+  var edits=Object.assign({},_synced.edits,lp.edits);
+  var syncedAdmin=_synced.adminGames.filter(function(g){return del.indexOf(g.id)===-1;});
+  var pendingAdmin=lp.adminGames.filter(function(g){
+    return del.indexOf(g.id)===-1&&!_synced.adminGames.some(function(sg){return sg.id===g.id;});
+  });
+  var base=GAMES.filter(function(g){return del.indexOf(g.id)===-1;}).map(function(g){
+    var e=edits[g.id];return e?Object.assign({},g,e):g;
+  }).filter(function(g){return hid.indexOf(g.id)===-1;});
+  var admin=syncedAdmin.concat(pendingAdmin).filter(function(g){return hid.indexOf(g.id)===-1;}).map(function(g){
+    var e=edits[g.id];return e?Object.assign({},g,e):g;
+  });
+  return base.concat(admin);
+}
+
+// ── RENDER GRID ───────────────────────────────────────────────────────────────
+var filter='all', query='';
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+
+function render(){
+  var all=getAllGames();
+  var q=query.toLowerCase().trim();
+  var list=all.filter(function(g){
+    return (filter==='all'||g.platform===filter)&&(!q||g.title.toLowerCase().includes(q)||g.platform.toLowerCase().includes(q));
+  });
+  document.getElementById('gameCount').textContent=all.length+' games';
+  document.getElementById('resultsText').textContent=list.length===all.length?all.length+' games':list.length+' of '+all.length+' games';
+  var grid=document.getElementById('grid');
+  grid.innerHTML='';
+  var empty=document.getElementById('empty');
+  if(!list.length){empty.classList.add('show');return;}
+  empty.classList.remove('show');
+  list.forEach(function(g){
+    var pl=PLAT_LABEL[g.platform]||g.platform;
+    var bc=BADGE_CLASS[g.platform]||'b-other';
+    var div=document.createElement('div');
+    div.className='card';
+    div.innerHTML=
+      '<div class="card-img-wrap">'
+      +'<img class="card-img" src="'+esc(g.cover)+'" alt="'+esc(g.title)+'" referrerpolicy="no-referrer" loading="lazy"'
+      +' onerror="this.style.display=\'none\';this.nextElementSibling.style.display=\'flex\'">'
+      +'<div class="card-fallback"><span style="font-size:2rem">🎮</span><span>'+esc(g.title)+'</span></div>'
+      +'<div class="card-play"><svg viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg></div>'
+      +'</div>'
+      +'<div class="card-body">'
+      +'<div class="card-title" title="'+esc(g.title)+'">'+esc(g.title)+'</div>'
+      +'<div class="card-footer"><span class="badge '+bc+'">'+esc(pl)+'</span></div>'
+      +'</div>';
+    div.addEventListener('click',function(){openModal(g);});
+    grid.appendChild(div);
+  });
+}
+
+// ── BUILD GAME HTML (blob) ────────────────────────────────────────────────────
+function buildGameHtml(g) {
+  var loaderUrl = g.loaderPath || (g.pathtodata.replace(/\/+$/,'') + '/loader.js');
+  var biosLine  = g.bios   ? 'EJS_biosUrl='   + JSON.stringify(g.bios)   + ';\n' : '';
+  var cheatsLine= g.cheats ? 'EJS_cheats='    + JSON.stringify(g.cheats) + ';\n' : '';
+  var vsyncLine = 'EJS_defaultOptions={"vsync":"disabled"};\n';
+  var ctrlLine  = 'EJS_defaultControls='+JSON.stringify(EJS_DEFAULT_CONTROLS)+';\n';
+  var defaultOptsLine = vsyncLine + ctrlLine;
+
+  var head = '<!DOCTYPE html><html><head><meta charset="UTF-8">'
+    + '<style>'
+    + 'body,html{margin:0;padding:0;width:100%;height:100%;background:#000;'
+    + 'display:flex;align-items:center;justify-content:center;'
+    + 'font-family:system-ui,sans-serif;color:#fff}'
+    + '#gc{text-align:center;width:100%;height:100%}'
+    + '#prog{font-size:15px;margin-top:18px;padding:9px 18px;'
+    + 'background:rgba(255,255,255,.08);border-radius:8px;display:inline-block}'
+    + '#sub{margin-top:7px;font-size:12px;color:rgba(255,255,255,.35)}'
+    + '#err{display:none;color:#f87171;margin-top:16px;padding:0 20px;max-width:380px;font-size:13px;line-height:1.5}'
+    + '</style></head><body>'
+    + '<div id="gc"><div id="game"></div>'
+    + '<div id="prog">Loading...</div>'
+    + '<div id="sub">First-time load may take a moment</div>'
+    + '<div id="err"></div></div>'
+    + '<script>';
+
+  var tail = 'window.addEventListener("message",function(e){'
+    + 'function waitEmu(cb){'
+    +   'if(window.EJS_emulator){cb();return;}'
+    +   'var t=setInterval(function(){if(window.EJS_emulator){clearInterval(t);cb();}},100);'
+    + '}'
+    + 'if(e.data==="ejs-save")waitEmu(function(){window.EJS_emulator.saveState();});'
+    + 'if(e.data==="ejs-load")waitEmu(function(){window.EJS_emulator.loadState();});'
+    + '});'
+    + '<\/script></body></html>';
+
+  var body;
+  if (g.type === 'merge') {
+    body = ''
+      + 'function mf(parts,cb){'
+      +   'return new Promise(function(res,rej){'
+      +     'var bufs=[];'
+      +     'function nx(i){'
+      +       'if(i>=parts.length){res(URL.createObjectURL(new Blob(bufs)));return;}'
+      +       'fetch(parts[i]).then(function(r){if(!r.ok)throw new Error("HTTP "+r.status);return r.arrayBuffer();})'
+      +       '.then(function(d){bufs.push(d);cb(i+1);nx(i+1);}).catch(rej);'
+      +     '}'
+      +     'nx(0);'
+      +   '});'
+      + '}'
+      + 'function gp(url,s,e,pad){'
+      +   'var p=[];for(var i=s;i<=e;i++){'
+      +     'var n=pad?String(i).padStart(String(e).length,"0"):String(i);'
+      +     'p.push(url+".part"+n);'
+      +   '}'
+      +   'return p;'
+      + '}'
+      + 'var parts=gp('+JSON.stringify(g.url)+','+g.min+','+g.max+','+(g.pad?'true':'false')+');'
+      + 'var total=parts.length;'
+      + 'var prog=document.getElementById("prog");'
+      + 'mf(parts,function(n){if(prog)prog.textContent="Loading: "+n+" / "+total;})'
+      + '.then(function(gameUrl){'
+      +   'if(prog)prog.remove();'
+      +   'document.getElementById("sub")&&document.getElementById("sub").remove();'
+      +   'EJS_player="#game";'
+      +   'EJS_core='+JSON.stringify(g.core)+';'
+      +   'EJS_gameName='+JSON.stringify(g.name||g.title)+';'
+      +   'EJS_color="#2563eb";'
+      +   'EJS_startOnLoaded=true;'
+      +   'EJS_pathtodata='+JSON.stringify(g.pathtodata)+';'
+      +   'EJS_gameUrl=gameUrl;'
+      +   biosLine
+      +   cheatsLine
+      +   defaultOptsLine
+      +   'var s=document.createElement("script");'
+      +   's.src='+JSON.stringify(loaderUrl)+';'
+      +   'document.body.appendChild(s);'
+      + '}).catch(function(err){'
+      +   'console.error(err);'
+      +   'if(prog)prog.remove();'
+      +   'var e=document.getElementById("err");'
+      +   'e.textContent="Error loading game — check connection and refresh.";'
+      +   'e.style.display="block";'
+      + '});';
+  } else {
+    body = ''
+      + 'var prog=document.getElementById("prog");'
+      + 'var sub=document.getElementById("sub");'
+      + 'var errDiv=document.getElementById("err");'
+      + 'function showErr(m){if(prog)prog.remove();if(sub)sub.remove();errDiv.textContent=m;errDiv.style.display="block";}'
+      + 'fetch('+JSON.stringify(g.gameUrl)+')'
+      + '.then(function(r){'
+      +   'if(!r.ok)throw new Error("HTTP "+r.status);'
+      +   'var total=parseInt(r.headers.get("content-length")||"0");'
+      +   'if(!total||!r.body)return r.arrayBuffer();'
+      +   'var reader=r.body.getReader();var received=0;var chunks=[];'
+      +   'function read(){'
+      +     'return reader.read().then(function(x){'
+      +       'if(x.done)return new Blob(chunks).arrayBuffer();'
+      +       'chunks.push(x.value);received+=x.value.length;'
+      +       'if(prog)prog.textContent="Loading: "+Math.round(received/total*100)+"%";'
+      +       'return read();'
+      +     '});'
+      +   '}'
+      +   'return read();'
+      + '})'
+      + '.then(function(buf){'
+      +   'var gameUrl=URL.createObjectURL(new Blob([buf]));'
+      +   'if(prog)prog.remove();if(sub)sub.remove();'
+      +   'EJS_player="#game";'
+      +   'EJS_core='+JSON.stringify(g.core)+';'
+      +   'EJS_gameName='+JSON.stringify(g.name||g.title)+';'
+      +   'EJS_color="#2563eb";'
+      +   'EJS_startOnLoaded=true;'
+      +   'EJS_pathtodata='+JSON.stringify(g.pathtodata)+';'
+      +   'EJS_gameUrl=gameUrl;'
+      +   biosLine
+      +   cheatsLine
+      +   defaultOptsLine
+      +   'var s=document.createElement("script");'
+      +   's.onerror=function(){showErr("Failed to load emulator. Check your connection.");};'
+      +   's.src='+JSON.stringify(loaderUrl)+';'
+      +   'document.body.appendChild(s);'
+      + '})'
+      + '.catch(function(err){'
+      +   'console.error(err);'
+      +   'showErr("Could not load ROM: "+err.message);'
+      + '});';
+  }
+
+  return head + body + tail;
+}
+
+// ── MODAL ─────────────────────────────────────────────────────────────────────
+var currentGame = null, blobUrl = null;
+
+function buildCtrlHtml(platform) {
+  var rows = CTRL_DISPLAY[platform] || CTRL_DISPLAY['SNES'];
+  return rows.map(function(r) {
+    return '<div class="ctrl-row">'
+      + '<span class="ctrl-action">'+esc(r[0])+'</span>'
+      + '<span class="ctrl-key">'+esc(r[1])+'</span>'
+      + '</div>';
+  }).join('');
+}
+
+function openModal(g) {
+  currentGame = g;
+  var pl = PLAT_LABEL[g.platform] || g.platform;
+  var bc = BADGE_CLASS[g.platform] || 'b-other';
+  document.getElementById('modalTitle').textContent = g.title;
+  document.getElementById('modalBadge').innerHTML = '<span class="badge '+bc+'" style="font-size:.68rem">'+esc(pl)+'</span>';
+  document.getElementById('gameDesc').textContent = g.desc || 'A classic game.';
+  var pl2 = PLAT_LABEL[g.platform] || g.platform;
+  document.getElementById('ctrlPanelTitle').textContent = pl2 + ' Controls';
+  document.getElementById('ctrlPanelList').innerHTML = buildCtrlHtml(g.platform);
+  document.getElementById('ctrlPanel').classList.remove('open');
+  document.getElementById('btnCtrl').classList.remove('open');
+
+  var frame  = document.getElementById('gameFrame');
+  var loader = document.getElementById('gameLoader');
+  loader.style.display = 'flex';
+  frame.style.opacity  = '0';
+  frame.src = 'about:blank';
+  document.getElementById('modalBg').classList.add('open');
+  document.body.style.overflow = 'hidden';
+
+  if (blobUrl) { URL.revokeObjectURL(blobUrl); blobUrl = null; }
+
+  if (g.type === 'merge' || g.type === 'direct') {
+    try {
+      blobUrl = URL.createObjectURL(new Blob([buildGameHtml(g)], {type:'text/html'}));
+      frame.onload = function(){ loader.style.display='none'; frame.style.opacity='1'; };
+      frame.src = blobUrl;
+    } catch(e) {
+      console.error(e);
+      loader.innerHTML = '<span style="color:#f87171">Failed to load game.</span>';
+    }
+  } else if (g.file) {
+    loader.style.display = 'none';
+    frame.style.opacity  = '1';
+    frame.src = g.file;
+  }
+}
+
+function closeModal() {
+  document.getElementById('modalBg').classList.remove('open');
+  document.body.style.overflow = '';
+  var frame = document.getElementById('gameFrame');
+  setTimeout(function(){
+    frame.src = 'about:blank';
+    if (blobUrl) { URL.revokeObjectURL(blobUrl); blobUrl = null; }
+  }, 200);
+  currentGame = null;
+}
+
+document.getElementById('btnClose').addEventListener('click', closeModal);
+document.getElementById('modalBg').addEventListener('click', function(e){ if(e.target===this) closeModal(); });
+document.addEventListener('keydown', function(e){
+  if(e.key==='Escape') closeModal();
+  if(currentGame && e.key==='1'){ msgGame('ejs-save'); }
+  if(currentGame && e.key==='2'){ msgGame('ejs-load'); }
+});
+
+function msgGame(msg) {
+  var frame = document.getElementById('gameFrame');
+  if (frame && frame.contentWindow) frame.contentWindow.postMessage(msg, '*');
+}
+document.getElementById('btnSave').addEventListener('click', function(){ msgGame('ejs-save'); });
+document.getElementById('btnLoad').addEventListener('click', function(){ msgGame('ejs-load'); });
+
+document.getElementById('btnCtrl').addEventListener('click', function(e){
+  e.stopPropagation();
+  var panel = document.getElementById('ctrlPanel');
+  var btn   = document.getElementById('btnCtrl');
+  var open  = panel.classList.toggle('open');
+  btn.classList.toggle('open', open);
+});
+document.addEventListener('click', function(e){
+  if(!document.getElementById('ctrlDropdown').contains(e.target)){
+    document.getElementById('ctrlPanel').classList.remove('open');
+    document.getElementById('btnCtrl').classList.remove('open');
+  }
+});
+
+// ── FILTERS / SEARCH ─────────────────────────────────────────────────────────
+document.getElementById('searchInput').addEventListener('input', function(e){ query=e.target.value; render(); });
+document.querySelectorAll('.chip').forEach(function(c){
+  c.addEventListener('click', function(){
+    document.querySelectorAll('.chip').forEach(function(x){ x.classList.remove('on'); });
+    c.classList.add('on'); filter=c.dataset.p; render();
+  });
+});
+
+// Load synced customizations then render
+fetch('customizations.json?_='+Date.now())
+  .then(function(r){return r.ok?r.json():null;})
+  .then(function(c){if(c)_synced=c;})
+  .catch(function(){})
+  .then(function(){render();});
+</script>
+</body>
+</html>
