@@ -96,6 +96,13 @@
         EJS_pathtodata = "https://cdn.jsdelivr.net/gh/genizy/emu@master/";
         EJS_gameUrl = gameUrl;
         EJS_biosUrl = "https://cdn.jsdelivr.net/gh/Abdess/retroarch_system@5f96368f6dbad5851cdb16a5041fefec4bdcd305/Sony%20-%20PlayStation/scph5501.bin";
+        
+        // --- HARD-CODED CHEATS ADDED HERE ---
+        EJS_cheats = [
+          ["Unlock All Cars", "8002E718 FFFF"],
+          ["Unlock All Tracks", "8002E71C FFFF"]
+        ];
+
         var script = document.createElement("script");
         script.src = "https://cdn.jsdelivr.net/gh/genizy/emu@master/loader.js";
         document.body.appendChild(script);
