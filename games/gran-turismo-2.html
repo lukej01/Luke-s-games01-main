@@ -88,23 +88,27 @@
         var ft = document.getElementById("first-time");
         if (lp) lp.remove();
         if (ft) ft.remove();
+        
         EJS_player = "#game";
         EJS_core = window.gameconfig.core;
         EJS_gameName = window.gameconfig.name;
         EJS_color = "#0064ff";
         EJS_startOnLoaded = true;
-        EJS_pathtodata = "https://cdn.jsdelivr.net/gh/genizy/emu@master/";
+        
+        // --- SWITCHED TO OFFICIAL EMULATORJS SERVER ---
+        EJS_pathtodata = "https://cdn.emulatorjs.org/latest/data/";
         EJS_gameUrl = gameUrl;
         EJS_biosUrl = "https://cdn.jsdelivr.net/gh/Abdess/retroarch_system@5f96368f6dbad5851cdb16a5041fefec4bdcd305/Sony%20-%20PlayStation/scph5501.bin";
         
-        // --- HARD-CODED CHEATS ADDED HERE ---
-       window.EJS_cheats = [
+        // THE CHEATS
+        window.EJS_cheats = [
           ["Unlock All Cars", "8002E718FFFF"],
           ["Unlock All Tracks", "8002E71CFFFF"]
         ];
 
         var script = document.createElement("script");
-        script.src = "https://cdn.jsdelivr.net/gh/genizy/emu@master/loader.js";
+        // --- SWITCHED SCRIPT TO OFFICIAL SERVER ---
+        script.src = "https://cdn.emulatorjs.org/latest/data/loader.js";
         document.body.appendChild(script);
       })
       .catch(function(error) {
