@@ -378,14 +378,24 @@ var EJS_DEFAULT_CONTROLS = {
 
 // ── GAME DATA ────────────────────────────────────────────────────────────────
 var GAMES = [
-  {id:"gran-turismo-2",title:"Gran Turismo 2",platform:"PS1",
-   cover:"https://m.media-amazon.com/images/I/51egYoaJo-L._SX342_SY445_QL70_FMwebp_.jpg",
-   desc:"The definitive PS1 racing sim — 650 cars, 27 tracks, Arcade and Simulation modes.",
-   type:"merge",core:"psx",name:"Gran Turismo 2 (USA) (Arcade Mode)",
-   url:"https://cdn.jsdelivr.net/gh/bubbls/ugss@943907cd0e3f7f47ade82d0b0032eba262a89c93/gran%20turismo%202/Gran%20Turismo%202%20(USA)%20(Arcade%20Mode).chd",
-   min:1,max:24,pad:true,
-   pathtodata:"https://cdn.jsdelivr.net/gh/genizy/emu@master/",
-   bios:"https://cdn.jsdelivr.net/gh/Abdess/retroarch_system@5f96368f6dbad5851cdb16a5041fefec4bdcd305/Sony%20-%20PlayStation/scph5501.bin"},
+  {id:"gran-turismo-2",
+  title:"Gran Turismo 2",
+  platform:"PS1",
+  cover:"https://upload.wikimedia.org/wikipedia/en/3/33/Gran_Turismo_2_cover.jpg",
+  desc:"Full version with Arcade + Simulation modes.",
+  type:"merge",
+  core:"psx",
+
+  // ✅ START ON SIMULATION (IMPORTANT)
+  name:"Gran Turismo 2 (USA) (Simulation Mode)",
+  url:"https://cdn.jsdelivr.net/gh/bubbls/ugss@main/gran%20turismo%202/Gran%20Turismo%202%20(USA)%20(Simulation%20Mode).chd",
+
+  min:1,
+  max:24,
+  pad:true,
+
+  pathtodata:"https://cdn.jsdelivr.net/gh/genizy/emu@master/",
+  bios:"https://cdn.jsdelivr.net/gh/Abdess/retroarch_system@5f96368f6dbad5851cdb16a5041fefec4bdcd305/Sony%20-%20PlayStation/scph5501.bin"}
 
   {id:"super-mario-64",title:"Super Mario 64",platform:"N64",
    cover:"https://upload.wikimedia.org/wikipedia/en/thumb/e/e9/Super_Mario_64.png/250px-Super_Mario_64.png",
