@@ -380,16 +380,15 @@ var EJS_DEFAULT_CONTROLS = {
 var GAMES = [
   {id:"gran-turismo-2",title:"Gran Turismo 2",platform:"PS1",
    cover:"https://m.media-amazon.com/images/I/51egYoaJo-L._SX342_SY445_QL70_FMwebp_.jpg",
-   desc:"The definitive PS1 racing sim — 650 cars, 27 tracks, Arcade and Simulation modes.",
-   type:"merge",core:"psx",name:"Gran Turismo 2 (USA) (Arcade Mode)",
-   url:"https://cdn.jsdelivr.net/gh/bubbls/ugss@943907cd0e3f7f47ade82d0b0032eba262a89c93/gran%20turismo%202/Gran%20Turismo%202%20(USA)%20(Arcade%20Mode).chd",
-   min:1,max:24,pad:true,
+   desc:"The definitive PS1 racing sim — 650 cars, 27 tracks. Simulation Mode with all content unlocked: every car, every track, max credits.",
+   type:"direct",core:"psx",name:"Gran Turismo 2 (USA) (Simulation Mode)",
+   gameUrl:"https://archive.org/download/psx_gt2/Gran%20Turismo%202%20(USA)%20(Simulation%20Mode)%20(V1.2).chd",
    cheats:[
-     ["All Cars Unlocked",   "800E9D14 FFFF"],
-     ["All Cars Unlocked 2", "800E9D16 FFFF"],
-     ["All Tracks Unlocked", "800CC0B8 FFFF"],
-     ["Max Money Lo",        "800CC0A0 FFFF"],
-     ["Max Money Hi",        "800CC0A2 000F"]
+     ["All Cars Unlocked",   "800E9D14 FFFF", true],
+     ["All Cars Unlocked 2", "800E9D16 FFFF", true],
+     ["All Tracks Unlocked", "800CC0B8 FFFF", true],
+     ["Max Credits Lo",      "800CC0A0 FFFF", true],
+     ["Max Credits Hi",      "800CC0A2 000F", true]
    ],
    pathtodata:"https://cdn.jsdelivr.net/gh/genizy/emu@master/",
    bios:"https://cdn.jsdelivr.net/gh/Abdess/retroarch_system@5f96368f6dbad5851cdb16a5041fefec4bdcd305/Sony%20-%20PlayStation/scph5501.bin"},
