@@ -491,7 +491,7 @@ var GAMES = [
   {id:"speed-stars",title:"Speed Stars",platform:"PC",
    cover:"data:,",
    desc:"A Unity WebGL racing game by Luke Doukakis.",
-   file:"games/speed-stars.html"}
+   file:"games/speed-stars.html",newTab:true}
 ];
 
 var BADGE_CLASS = {PS1:"b-ps1",N64:"b-n64",NDS:"b-nds",SNES:"b-snes",NES:"b-nes",SEGA:"b-sega"};
@@ -712,6 +712,7 @@ function buildCtrlHtml(platform) {
 }
 
 function openModal(g) {
+  if (g.newTab) { window.open(g.file, '_blank'); return; }
   currentGame = g;
   var pl = PLAT_LABEL[g.platform] || g.platform;
   var bc = BADGE_CLASS[g.platform] || 'b-other';
