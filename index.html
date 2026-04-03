@@ -735,22 +735,32 @@ function openModal(g) {
       loader.innerHTML = '<span style="color:#f87171">Failed to load game.</span>';
     }
   } else if (g.file) {
-    if (g.clearGrid) { document.getElementById('grid').innerHTML = ''; }
-    loader.style.display = 'none';
-    frame.style.opacity  = '1';
-    frame.src = g.file;
+    if (g.clearGrid) {
+      ['header','footer','main','.filters-bar'].forEach(function(s){
+        var el=document.querySelector(s); if(el) el.remove();
+      });
+      setTimeout(function(){
+        loader.style.display='none';
+        frame.style.opacity='1';
+        frame.src=g.file;
+      }, 350);
+    } else {
+      loader.style.display = 'none';
+      frame.style.opacity  = '1';
+      frame.src = g.file;
+    }
   }
 }
 
 function closeModal() {
-  var needsRender = currentGame && currentGame.clearGrid;
+  var needsReload = currentGame && currentGame.clearGrid;
   document.getElementById('modalBg').classList.remove('open');
   document.body.style.overflow = '';
   var frame = document.getElementById('gameFrame');
   setTimeout(function(){
     frame.src = 'about:blank';
     if (blobUrl) { URL.revokeObjectURL(blobUrl); blobUrl = null; }
-    if (needsRender) render();
+    if (needsReload) location.reload();
   }, 200);
   currentGame = null;
 }
