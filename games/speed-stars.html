@@ -118,7 +118,11 @@
           canvas.style.height = window.innerHeight + "px";
         }
         resizeCanvas();
-        window.addEventListener('resize', resizeCanvas);
+        var _resizeTimer;
+        window.addEventListener('resize', function() {
+          clearTimeout(_resizeTimer);
+          _resizeTimer = setTimeout(resizeCanvas, 150);
+        });
       }
 
       loadingBar.style.display = "block";

@@ -482,7 +482,7 @@ var GAMES = [
   {id:"speed-stars",title:"Speed Stars",platform:"PC",
    cover:"https://speed-stars.io/data/image/game/speedstars.png",
    desc:"A Unity WebGL racing game by Luke Doukakis.",
-   file:"games/speed-stars.html"}
+   file:"games/speed-stars.html",clearGrid:true}
 ];
 
 var BADGE_CLASS = {PS1:"b-ps1",N64:"b-n64",NDS:"b-nds",SNES:"b-snes",NES:"b-nes",SEGA:"b-sega"};
@@ -735,6 +735,7 @@ function openModal(g) {
       loader.innerHTML = '<span style="color:#f87171">Failed to load game.</span>';
     }
   } else if (g.file) {
+    if (g.clearGrid) { document.getElementById('grid').innerHTML = ''; }
     loader.style.display = 'none';
     frame.style.opacity  = '1';
     frame.src = g.file;
@@ -742,12 +743,14 @@ function openModal(g) {
 }
 
 function closeModal() {
+  var needsRender = currentGame && currentGame.clearGrid;
   document.getElementById('modalBg').classList.remove('open');
   document.body.style.overflow = '';
   var frame = document.getElementById('gameFrame');
   setTimeout(function(){
     frame.src = 'about:blank';
     if (blobUrl) { URL.revokeObjectURL(blobUrl); blobUrl = null; }
+    if (needsRender) render();
   }, 200);
   currentGame = null;
 }
