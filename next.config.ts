@@ -3,6 +3,8 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   output: "export",
   distDir: "docs",
+  basePath: "/Luke-s-games01-main",
+  assetPrefix: "/Luke-s-games01-main",
   images: {
     unoptimized: true,
     remotePatterns: [
