@@ -142,6 +142,24 @@ footer{border-top:1px solid var(--border);background:var(--white);padding:14px 2
   .modal-info{grid-template-columns:1fr}
   .info-col:first-child{border-right:none;border-bottom:1px solid var(--border)}
 }
+
+/* ── HERO ── */
+.hero-section{position:relative;height:240px;background:#000;overflow:hidden;display:flex;align-items:center;justify-content:center;cursor:crosshair}
+#particleCanvas{position:absolute;inset:0;width:100%;height:100%;display:block}
+.hero-content{position:relative;z-index:2;text-align:center;pointer-events:none}
+.hero-eyebrow{font-size:.65rem;font-family:'Space Grotesk',monospace;letter-spacing:.4em;text-transform:uppercase;color:rgba(255,255,255,.3);margin-bottom:14px}
+.hero-title{font-family:'Space Grotesk',sans-serif;font-size:clamp(2.2rem,7vw,4.5rem);font-weight:700;background:linear-gradient(to bottom,#fff,rgba(255,255,255,.3));-webkit-background-clip:text;background-clip:text;color:transparent;letter-spacing:-.03em;cursor:pointer;pointer-events:auto;user-select:none}
+.hero-sub{font-size:.65rem;font-family:monospace;letter-spacing:.25em;color:rgba(255,255,255,.2);margin-top:16px;text-transform:uppercase}
+.hero-debug{position:absolute;bottom:10px;right:14px;font-size:.65rem;font-family:monospace;color:rgba(255,255,255,.15);text-align:right;pointer-events:none}
+
+/* ── DOT LOADER ── */
+.dot-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;width:fit-content;margin:0 auto 10px}
+.dot-cell{width:5px;height:5px;border-radius:1px;background:rgba(255,255,255,.12)}
+.dot-cell.on{background:#fff}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ── CARD SCRAMBLE: highlight scrambling chars ── */
+.card-title .sc{display:inline;color:var(--blue);transition:color .1s}
 </style>
 </head>
 <body>
@@ -165,6 +183,17 @@ footer{border-top:1px solid var(--border);background:var(--white);padding:14px 2
     </div>
   </div>
 </header>
+
+<!-- HERO -->
+<section class="hero-section" id="heroSection">
+  <canvas id="particleCanvas"></canvas>
+  <div class="hero-content">
+    <p class="hero-eyebrow">Classic Games · Free Forever</p>
+    <h1 class="hero-title" id="heroTitle">GAMESTASH</h1>
+    <p class="hero-sub">N64 &nbsp;·&nbsp; PS1 &nbsp;·&nbsp; SNES &nbsp;·&nbsp; NES &nbsp;·&nbsp; Sega &nbsp;·&nbsp; DS</p>
+  </div>
+  <div class="hero-debug" id="heroDebug"></div>
+</section>
 
 <div class="filters-bar">
   <div class="filters-inner">
@@ -218,7 +247,7 @@ footer{border-top:1px solid var(--border);background:var(--white);padding:14px 2
     </div>
     <div class="modal-game">
       <div class="game-loader" id="gameLoader">
-        <div class="spin"></div>
+        <div class="dot-grid" id="dotGrid"></div>
         <span>Loading game…</span>
       </div>
       <iframe id="gameFrame"
@@ -809,6 +838,204 @@ fetch('customizations.json?_='+Date.now())
   .then(function(c){if(c)_synced=c;})
   .catch(function(){})
   .then(function(){render();});
+</script>
+
+<script>
+// ═══════════════════════════════════════════════════════════
+//  PARTICLE CANVAS
+// ═══════════════════════════════════════════════════════════
+(function(){
+  var canvas = document.getElementById('particleCanvas');
+  var section = document.getElementById('heroSection');
+  var debug = document.getElementById('heroDebug');
+  if(!canvas||!section) return;
+  var ctx = canvas.getContext('2d');
+  var particles=[], bg=[];
+  var mouse={x:-9999,y:-9999,on:false};
+  var raf, lastT=0, fps=0;
+
+  var DENSITY=0.00015, BG_DENSITY=0.00005;
+  var RADIUS=160, RETURN=0.08, DAMP=0.90, REP=1.2;
+  function rnd(a,b){return Math.random()*(b-a)+a;}
+
+  function init(){
+    var dpr=window.devicePixelRatio||1;
+    var w=section.offsetWidth, h=section.offsetHeight;
+    canvas.width=w*dpr; canvas.height=h*dpr;
+    canvas.style.width=w+'px'; canvas.style.height=h+'px';
+    ctx.setTransform(1,0,0,1,0,0);
+    ctx.scale(dpr,dpr);
+    particles=[];
+    var n=Math.floor(w*h*DENSITY);
+    for(var i=0;i<n;i++){
+      var x=Math.random()*w, y=Math.random()*h;
+      particles.push({x:x,y:y,ox:x,oy:y,vx:0,vy:0,s:rnd(1,2.5),c:Math.random()>.9?'#4285F4':'#fff'});
+    }
+    bg=[];
+    var bn=Math.floor(w*h*BG_DENSITY);
+    for(var j=0;j<bn;j++){
+      bg.push({x:Math.random()*w,y:Math.random()*h,vx:(Math.random()-.5)*.2,vy:(Math.random()-.5)*.2,s:rnd(.5,1.5),a:rnd(.1,.4),ph:Math.random()*Math.PI*2});
+    }
+  }
+
+  function draw(t){
+    var dpr=window.devicePixelRatio||1;
+    var w=canvas.width/dpr, h=canvas.height/dpr;
+    var dt=t-lastT; lastT=t;
+    if(dt>0) fps=Math.round(1000/dt);
+
+    ctx.clearRect(0,0,w,h);
+
+    // Pulsating glow
+    var pulse=Math.sin(t*.0008)*.035+.085;
+    var g=ctx.createRadialGradient(w/2,h/2,0,w/2,h/2,Math.max(w,h)*.7);
+    g.addColorStop(0,'rgba(66,133,244,'+pulse+')');
+    g.addColorStop(1,'rgba(0,0,0,0)');
+    ctx.fillStyle=g; ctx.fillRect(0,0,w,h);
+
+    // Drifting stars
+    for(var i=0;i<bg.length;i++){
+      var p=bg[i];
+      p.x+=p.vx; p.y+=p.vy;
+      if(p.x<0)p.x=w; if(p.x>w)p.x=0;
+      if(p.y<0)p.y=h; if(p.y>h)p.y=0;
+      var tw=Math.sin(t*.002+p.ph)*.5+.5;
+      ctx.globalAlpha=p.a*(.3+.7*tw);
+      ctx.fillStyle='#fff';
+      ctx.beginPath(); ctx.arc(p.x,p.y,p.s,0,Math.PI*2); ctx.fill();
+    }
+    ctx.globalAlpha=1;
+
+    // Interactive particles
+    for(var i=0;i<particles.length;i++){
+      var p=particles[i];
+      var dx=mouse.x-p.x, dy=mouse.y-p.y;
+      var dist=Math.sqrt(dx*dx+dy*dy);
+      if(mouse.on&&dist<RADIUS&&dist>0){
+        var f=(RADIUS-dist)/RADIUS*REP;
+        p.vx-=(dx/dist)*f*5; p.vy-=(dy/dist)*f*5;
+      }
+      p.vx+=(p.ox-p.x)*RETURN; p.vy+=(p.oy-p.y)*RETURN;
+      p.vx*=DAMP; p.vy*=DAMP;
+      p.x+=p.vx; p.y+=p.vy;
+      var spd=Math.sqrt(p.vx*p.vx+p.vy*p.vy);
+      var op=Math.min(.3+spd*.1,1);
+      ctx.fillStyle=p.c==='#fff'?'rgba(255,255,255,'+op+')':p.c;
+      ctx.beginPath(); ctx.arc(p.x,p.y,p.s,0,Math.PI*2); ctx.fill();
+    }
+
+    if(debug) debug.textContent=particles.length+bg.length+' entities\n'+fps+' FPS';
+    raf=requestAnimationFrame(draw);
+  }
+
+  canvas.addEventListener('mousemove',function(e){
+    var r=canvas.getBoundingClientRect();
+    mouse.x=e.clientX-r.left; mouse.y=e.clientY-r.top; mouse.on=true;
+  });
+  canvas.addEventListener('mouseleave',function(){mouse.on=false;});
+  window.addEventListener('resize',function(){cancelAnimationFrame(raf);init();raf=requestAnimationFrame(draw);});
+
+  init();
+  raf=requestAnimationFrame(draw);
+})();
+
+
+// ═══════════════════════════════════════════════════════════
+//  TEXT SCRAMBLE  (hero title + card titles on hover)
+// ═══════════════════════════════════════════════════════════
+var SCHARS='ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%&*';
+
+function applyScramble(el,plain){
+  var iv=null, fr=0;
+  el.addEventListener('mouseenter',function(){
+    fr=0;
+    var dur=plain.length*3;
+    if(iv) clearInterval(iv);
+    iv=setInterval(function(){
+      fr++;
+      var rev=Math.floor(fr/dur*plain.length);
+      var out='';
+      for(var i=0;i<plain.length;i++){
+        if(plain[i]===' '){out+=' '; continue;}
+        if(i<rev){out+=plain[i]; continue;}
+        out+=SCHARS[Math.floor(Math.random()*SCHARS.length)];
+      }
+      el.textContent=out;
+      if(fr>=dur){clearInterval(iv);el.textContent=plain;}
+    },30);
+  });
+  el.addEventListener('mouseleave',function(){/* let it finish */});
+}
+
+// Hero title
+var heroTitle=document.getElementById('heroTitle');
+if(heroTitle) applyScramble(heroTitle,'GAMESTASH');
+
+// Card titles — use event delegation on the grid
+document.getElementById('grid').addEventListener('mouseover',function(e){
+  var ct=e.target.closest('.card-title');
+  if(!ct||ct._scrambleOn) return;
+  ct._scrambleOn=true;
+  applyScramble(ct, ct.textContent.trim());
+  // trigger immediately on first enter
+  ct.dispatchEvent(new Event('mouseenter'));
+});
+
+
+// ═══════════════════════════════════════════════════════════
+//  DOT LOADER
+// ═══════════════════════════════════════════════════════════
+var DOT_FRAMES=[
+  [14,7,0,8,6,13,20],[14,7,13,20,16,27,21],[14,20,27,21,34,24,28],
+  [27,21,34,28,41,32,35],[34,28,41,35,48,40,42],[34,28,41,35,48,42,46],
+  [34,28,41,35,48,42,38],[34,28,41,35,48,30,21],[34,28,41,48,21,22,14],
+  [34,28,41,21,14,16,27],[34,28,21,14,10,20,27],[28,21,14,4,13,20,27],
+  [28,21,14,12,6,13,20],[28,21,14,6,13,20,11],[28,21,14,6,13,20,10],
+  [14,6,13,20,9,7,21]
+];
+var _dotIv=null, _dotFr=0;
+
+function startDots(){
+  var grid=document.getElementById('dotGrid');
+  if(!grid) return;
+  grid.innerHTML='';
+  for(var i=0;i<49;i++){
+    var d=document.createElement('div');
+    d.className='dot-cell';
+    grid.appendChild(d);
+  }
+  _dotFr=0;
+  if(_dotIv) clearInterval(_dotIv);
+  _dotIv=setInterval(function(){
+    var dots=grid.children;
+    var frame=DOT_FRAMES[_dotFr%DOT_FRAMES.length];
+    for(var i=0;i<dots.length;i++) dots[i].classList.toggle('on',frame.indexOf(i)!==-1);
+    _dotFr++;
+  },100);
+}
+
+function stopDots(){if(_dotIv){clearInterval(_dotIv);_dotIv=null;}}
+
+// Hook into existing openModal / frame.onload
+var _origOpen=window.openModal;
+// Patch openModal to start dots
+var _origOpenModal=openModal;
+openModal=function(g){
+  startDots();
+  _origOpenModal(g);
+};
+
+// Patch closeModal to stop dots
+var _origCloseModal=closeModal;
+closeModal=function(){
+  stopDots();
+  _origCloseModal();
+};
+
+// Stop dots once game iframe loads
+document.getElementById('gameFrame').addEventListener('load',function(){
+  stopDots();
+});
 </script>
 </body>
 </html>
