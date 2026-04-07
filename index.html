@@ -9,114 +9,147 @@
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
-  /* Core palette */
-  --bg:        #0b0d12;
-  --surface:   #12151c;
-  --surface2:  #181c26;
-  --border:    rgba(255,255,255,.07);
-  --border2:   rgba(255,255,255,.12);
-  --text:      #f0f2f7;
-  --text2:     #a0a8bc;
-  --text3:     #5a6278;
-  --blue:      #4f8ef7;
-  --blue-d:    #3b7af0;
-  --blue-glow: rgba(79,142,247,.18);
-  --radius:    13px;
+  /* Background stack */
+  --bg:      #f2f4fb;
+  --surface: rgba(255,255,255,.72);
+  --raise:   rgba(255,255,255,.92);
+  /* Text */
+  --text:    #131520;
+  --text2:   #4a5068;
+  --text3:   #8e95af;
+  /* Borders */
+  --border:  rgba(255,255,255,.82);
+  --border2: rgba(255,255,255,.95);
+  /* Accent */
+  --accent:      #4f8ef7;
+  --accent-d:    #3b7af0;
+  --accent-glow: rgba(79,142,247,.22);
+  /* Radius scale */
+  --r-sm: 10px;
+  --r-md: 15px;
+  --r-lg: 20px;
   /* Platform accents */
   --c-n64:  #22c55e;
   --c-ps1:  #4f8ef7;
-  --c-snes: #a78bfa;
-  --c-nes:  #f87171;
-  --c-sega: #fb923c;
-  --c-nds:  #22d3ee;
+  --c-snes: #a855f7;
+  --c-nes:  #ef4444;
+  --c-sega: #f97316;
+  --c-nds:  #06b6d4;
 }
 
 html{scroll-behavior:smooth;background:var(--bg)}
 body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;-webkit-font-smoothing:antialiased}
 #bgCanvas{position:fixed;inset:0;width:100vw;height:100vh;pointer-events:none;z-index:0}
 
-/* ─── HEADER ──────────────────────────────────────────────────────────────── */
+/* ─── HEADER — seamless liquid glass, no hard line ───────────────────────── */
 .header{
-  background:rgba(11,13,18,.82);
-  backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);
-  border-bottom:1px solid var(--border);
+  background:rgba(242,244,251,.48);
+  backdrop-filter:blur(32px) saturate(200%);
+  -webkit-backdrop-filter:blur(32px) saturate(200%);
+  box-shadow:0 1px 0 rgba(255,255,255,.9),0 2px 24px rgba(60,80,180,.06);
   position:sticky;top:0;z-index:100;
 }
-.header-inner{max-width:1280px;margin:0 auto;padding:0 28px;height:60px;display:flex;align-items:center;gap:20px}
+.header-inner{max-width:1280px;margin:0 auto;padding:0 28px;height:62px;display:flex;align-items:center;gap:20px}
 .logo{display:flex;align-items:center;gap:10px;text-decoration:none;flex-shrink:0}
-.logo-mark{width:32px;height:32px;background:linear-gradient(135deg,#4f8ef7,#7c6aff);border-radius:9px;display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 0 18px rgba(79,142,247,.35)}
-.logo-mark svg{width:17px;height:17px;fill:white}
-.logo-name{font-family:'Space Grotesk',sans-serif;font-size:1.12rem;font-weight:700;color:var(--text);letter-spacing:-.4px;user-select:none;cursor:default}
-.logo-name span{color:var(--blue)}
+.logo-mark{
+  width:34px;height:34px;
+  background:linear-gradient(135deg,#4f8ef7 0%,#7c6aff 100%);
+  border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;
+  box-shadow:0 4px 18px rgba(79,142,247,.45),inset 0 1px 0 rgba(255,255,255,.3);
+}
+.logo-mark svg{width:18px;height:18px;fill:white}
+.logo-name{font-family:'Space Grotesk',sans-serif;font-size:1.15rem;font-weight:700;color:var(--text);letter-spacing:-.4px;user-select:none;cursor:default}
+.logo-name span{color:var(--accent)}
 .search-wrap{flex:1;max-width:380px;position:relative}
 .search-wrap input{
   width:100%;padding:8px 14px 8px 36px;
-  border:1px solid var(--border2);border-radius:10px;
-  font-family:'Inter',sans-serif;font-size:.875rem;
-  color:var(--text);background:var(--surface);
-  outline:none;transition:border-color .18s,box-shadow .18s,background .18s;
+  border:1.5px solid rgba(255,255,255,.88);border-radius:var(--r-sm);
+  font-family:'Inter',sans-serif;font-size:.875rem;color:var(--text);
+  background:rgba(255,255,255,.7);backdrop-filter:blur(12px);
+  outline:none;transition:border-color .18s,box-shadow .18s;
+  box-shadow:0 2px 10px rgba(0,0,0,.05),inset 0 1px 0 rgba(255,255,255,.9);
 }
-.search-wrap input:focus{border-color:var(--blue);background:var(--surface2);box-shadow:0 0 0 3px var(--blue-glow)}
+.search-wrap input:focus{
+  border-color:rgba(79,142,247,.5);
+  box-shadow:0 0 0 3px var(--accent-glow),0 2px 10px rgba(0,0,0,.05);
+}
 .search-wrap input::placeholder{color:var(--text3)}
-.search-icon{position:absolute;left:11px;top:50%;transform:translateY(-50%);color:var(--text3);pointer-events:none}
+.search-icon{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--text3);pointer-events:none}
 .header-end{margin-left:auto;display:flex;align-items:center;gap:10px}
 .btn-admin{
-  padding:6px 15px;border:1px solid var(--border2);border-radius:8px;
-  background:var(--surface);color:var(--text2);
-  font-family:'Inter',sans-serif;font-size:.8rem;font-weight:500;
+  padding:6px 16px;border:1.5px solid rgba(255,255,255,.88);border-radius:var(--r-sm);
+  background:rgba(255,255,255,.65);backdrop-filter:blur(12px);
+  color:var(--text2);font-family:'Inter',sans-serif;font-size:.8rem;font-weight:500;
   cursor:pointer;text-decoration:none;transition:.18s;
+  box-shadow:0 2px 8px rgba(0,0,0,.04),inset 0 1px 0 rgba(255,255,255,.9);
 }
-.btn-admin:hover{border-color:var(--blue);color:var(--blue);background:var(--blue-glow)}
-.game-count{font-size:.78rem;color:var(--text3);font-weight:500;white-space:nowrap}
-.by-credit{font-size:.78rem;color:var(--text3);font-weight:500;white-space:nowrap}
+.btn-admin:hover{border-color:rgba(79,142,247,.4);color:var(--accent);background:rgba(255,255,255,.88)}
+.game-count,.by-credit{font-size:.78rem;color:var(--text3);font-weight:500;white-space:nowrap}
 
 /* ─── FILTERS ─────────────────────────────────────────────────────────────── */
 .filters-bar{
-  background:rgba(11,13,18,.72);
-  backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);
-  border-bottom:1px solid var(--border);
+  background:rgba(242,244,251,.42);
+  backdrop-filter:blur(28px) saturate(200%);
+  -webkit-backdrop-filter:blur(28px) saturate(200%);
+  box-shadow:0 1px 0 rgba(255,255,255,.85);
   padding:10px 28px;position:relative;z-index:1;
 }
 .filters-inner{max-width:1280px;margin:0 auto;display:flex;flex-wrap:wrap;gap:6px;align-items:center}
 .filter-label{font-size:.67rem;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.7px;margin-right:6px}
 .chip{
-  padding:5px 14px;border-radius:99px;
-  border:1px solid var(--border2);
-  background:var(--surface);color:var(--text2);
-  font-size:.77rem;font-weight:500;cursor:pointer;
+  padding:5px 15px;border-radius:99px;
+  border:1.5px solid rgba(255,255,255,.88);
+  background:rgba(255,255,255,.65);backdrop-filter:blur(10px);
+  color:var(--text2);font-size:.78rem;font-weight:500;cursor:pointer;
   transition:all .18s;user-select:none;
+  box-shadow:0 2px 8px rgba(0,0,0,.04),inset 0 1px 0 rgba(255,255,255,.9);
 }
-.chip:hover{border-color:rgba(79,142,247,.5);color:var(--blue);background:var(--blue-glow)}
-.chip.on{background:var(--blue);border-color:var(--blue);color:#fff;box-shadow:0 0 14px rgba(79,142,247,.4)}
+.chip:hover{border-color:rgba(79,142,247,.4);color:var(--accent);background:rgba(255,255,255,.9)}
+.chip.on{
+  background:var(--accent);border-color:var(--accent);color:#fff;
+  box-shadow:0 4px 18px rgba(79,142,247,.4),inset 0 1px 0 rgba(255,255,255,.2);
+}
 
 /* ─── MAIN ────────────────────────────────────────────────────────────────── */
 main{max-width:1280px;margin:0 auto;padding:32px 28px 80px;position:relative;z-index:1}
 .section-row{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:20px}
-.section-title{font-family:'Space Grotesk',sans-serif;font-size:1rem;font-weight:700;color:var(--text);letter-spacing:-.3px}
+.section-title{font-family:'Space Grotesk',sans-serif;font-size:1.05rem;font-weight:700;color:var(--text);letter-spacing:-.3px}
 .results-text{font-size:.75rem;color:var(--text3);font-weight:500}
 
 /* ─── GRID & CARDS ────────────────────────────────────────────────────────── */
-.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(152px,1fr));gap:12px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(154px,1fr));gap:14px}
 .card{
   position:relative;
-  background:var(--surface);
-  border:1px solid var(--border);
-  border-radius:var(--radius);
-  overflow:hidden;cursor:pointer;
-  transition:transform .22s cubic-bezier(.25,.46,.45,.94),
-             box-shadow .22s cubic-bezier(.25,.46,.45,.94),
-             border-color .22s;
+  background:rgba(255,255,255,.72);
+  backdrop-filter:blur(16px) saturate(180%);
+  -webkit-backdrop-filter:blur(16px) saturate(180%);
+  border:1.5px solid rgba(255,255,255,.92);
+  border-radius:var(--r-md);overflow:hidden;cursor:pointer;
+  box-shadow:0 2px 8px rgba(0,0,0,.05),inset 0 1px 0 rgba(255,255,255,.9);
+  transition:
+    transform .24s cubic-bezier(.25,.46,.45,.94),
+    box-shadow .24s cubic-bezier(.25,.46,.45,.94);
 }
+/* Platform accent strip */
 .card::after{
-  content:'';position:absolute;top:0;left:0;right:0;height:2px;
-  opacity:.35;transition:opacity .22s,height .22s;z-index:2;
+  content:'';position:absolute;top:0;left:0;right:0;height:2.5px;z-index:2;
+  opacity:.4;transition:opacity .24s;
 }
 .card:hover{
-  transform:translateY(-4px);
-  border-color:var(--border2);
-  box-shadow:0 0 0 1px var(--border2),0 8px 32px rgba(0,0,0,.6),0 20px 60px rgba(0,0,0,.35);
+  transform:translateY(-6px) scale(1.025);
+  box-shadow:
+    0 20px 56px rgba(0,0,0,.12),
+    0 6px 20px rgba(0,0,0,.07),
+    inset 0 1px 0 rgba(255,255,255,1);
 }
-.card:hover::after{opacity:1;height:3px}
+.card:hover::after{opacity:1}
+.card:active{transform:translateY(-3px) scale(1.01);transition-duration:.1s}
+/* Card launch pop animation */
+.card.launching{
+  transform:translateY(-10px) scale(1.04)!important;
+  box-shadow:0 28px 70px rgba(0,0,0,.16)!important;
+  transition:transform .15s cubic-bezier(.175,.885,.32,1.275),box-shadow .15s!important;
+}
 .card[data-plat="N64"]::after  {background:var(--c-n64)}
 .card[data-plat="PS1"]::after  {background:var(--c-ps1)}
 .card[data-plat="SNES"]::after {background:var(--c-snes)}
@@ -124,33 +157,34 @@ main{max-width:1280px;margin:0 auto;padding:32px 28px 80px;position:relative;z-i
 .card[data-plat="SEGA"]::after {background:var(--c-sega)}
 .card[data-plat="NDS"]::after  {background:var(--c-nds)}
 .card[data-plat="PC"]::after   {background:var(--text3)}
-.card-img-wrap{position:relative;width:100%;aspect-ratio:1/1;overflow:hidden;background:var(--surface2)}
+.card-img-wrap{position:relative;width:100%;aspect-ratio:1/1;overflow:hidden;background:rgba(79,142,247,.06)}
 .card-img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .32s cubic-bezier(.25,.46,.45,.94)}
 .card:hover .card-img{transform:scale(1.07)}
 .card-fallback{position:absolute;inset:0;display:none;flex-direction:column;align-items:center;justify-content:center;gap:8px;color:var(--text3);font-size:.8rem;font-weight:600;text-align:center;padding:12px}
 .card-play{
   position:absolute;inset:0;
-  background:rgba(0,0,0,.45);
+  background:rgba(255,255,255,.28);
+  backdrop-filter:blur(4px);
   display:flex;align-items:center;justify-content:center;
-  opacity:0;transition:opacity .22s;backdrop-filter:blur(3px);
+  opacity:0;transition:opacity .22s;
 }
-.card-play svg{width:40px;height:40px;fill:white;filter:drop-shadow(0 2px 12px rgba(0,0,0,.6))}
+.card-play svg{width:44px;height:44px;fill:white;filter:drop-shadow(0 2px 14px rgba(0,0,0,.35))}
 .card:hover .card-play{opacity:1}
-.card-body{padding:10px 12px 11px}
+.card-body{padding:10px 12px 12px}
 .card-title{
-  font-family:'Space Grotesk',sans-serif;font-size:.81rem;font-weight:700;
+  font-family:'Space Grotesk',sans-serif;font-size:.82rem;font-weight:700;
   color:var(--text);margin-bottom:7px;line-height:1.3;
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:-.2px;
 }
 .card-footer{display:flex;align-items:center}
 .badge{font-size:.62rem;font-weight:700;padding:2px 8px;border-radius:99px;letter-spacing:.3px;text-transform:uppercase}
-.b-ps1 {background:rgba(79,142,247,.15);color:#7baeff}
-.b-n64 {background:rgba(34,197,94,.15);color:#4ade80}
-.b-nds {background:rgba(34,211,238,.15);color:#67e8f9}
-.b-snes{background:rgba(167,139,250,.15);color:#c4b5fd}
-.b-nes {background:rgba(248,113,113,.15);color:#fca5a5}
-.b-sega{background:rgba(251,146,60,.15);color:#fdba74}
-.b-other{background:rgba(255,255,255,.06);color:var(--text3)}
+.b-ps1 {background:rgba(79,142,247,.12);color:#3b7af0}
+.b-n64 {background:rgba(34,197,94,.12);color:#16a34a}
+.b-nds {background:rgba(6,182,212,.12);color:#0891b2}
+.b-snes{background:rgba(168,85,247,.12);color:#9333ea}
+.b-nes {background:rgba(239,68,68,.12);color:#dc2626}
+.b-sega{background:rgba(249,115,22,.12);color:#ea580c}
+.b-other{background:rgba(0,0,0,.06);color:var(--text3)}
 
 /* ─── EMPTY ───────────────────────────────────────────────────────────────── */
 .empty{text-align:center;padding:80px 20px;display:none}
@@ -159,45 +193,170 @@ main{max-width:1280px;margin:0 auto;padding:32px 28px 80px;position:relative;z-i
 .empty h3{font-family:'Space Grotesk',sans-serif;font-size:1.1rem;color:var(--text);margin-bottom:6px}
 .empty p{font-size:.875rem;color:var(--text3)}
 
-/* ─── MODAL ───────────────────────────────────────────────────────────────── */
+/* ─── MODAL OVERLAY ───────────────────────────────────────────────────────── */
 .modal-bg{
   position:fixed;inset:0;z-index:500;
-  background:rgba(0,0,0,.75);
-  backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
-  display:none;align-items:stretch;padding:0;
+  background:rgba(10,15,35,.38);
+  backdrop-filter:blur(22px);-webkit-backdrop-filter:blur(22px);
+  display:flex;align-items:stretch;padding:0;
+  visibility:hidden;opacity:0;
+  transition:opacity .28s ease,visibility 0s linear .28s;
 }
-.modal-bg.open{display:flex}
-.modal{background:var(--surface);width:100%;height:100%;overflow:hidden;display:flex;flex-direction:column}
-.modal-header{
+.modal-bg.open{
+  visibility:visible;opacity:1;
+  transition:opacity .28s ease,visibility 0s linear 0s;
+}
+.modal{
+  width:100%;height:100%;position:relative;overflow:hidden;
+  background:rgba(248,250,255,.94);
+  backdrop-filter:blur(40px) saturate(200%);
+  -webkit-backdrop-filter:blur(40px) saturate(200%);
+}
+
+/* ─── DETAIL VIEW ─────────────────────────────────────────────────────────── */
+.modal-detail{
+  display:flex;position:absolute;inset:0;
+  opacity:1;transform:scale(1);
+  transition:opacity .25s ease,transform .25s cubic-bezier(.25,.46,.45,.94);
+}
+.modal-detail.out{opacity:0;transform:scale(.97);pointer-events:none}
+
+.btn-detail-close{
+  position:absolute;top:18px;right:18px;z-index:20;
+  width:36px;height:36px;border-radius:50%;border:1.5px solid rgba(0,0,0,.09);
+  background:rgba(255,255,255,.8);backdrop-filter:blur(12px);
+  color:var(--text2);cursor:pointer;font-size:.9rem;
+  display:flex;align-items:center;justify-content:center;
+  transition:.18s;box-shadow:0 2px 12px rgba(0,0,0,.08);
+}
+.btn-detail-close:hover{background:rgba(0,0,0,.06);color:var(--text)}
+
+/* Left: blurred artwork poster */
+.detail-left{
+  flex:0 0 52%;position:relative;overflow:hidden;
+  display:flex;align-items:center;justify-content:center;padding:56px;
+}
+.detail-left-bg{
+  position:absolute;inset:-10%;
+  background-size:cover;background-position:center;
+  filter:blur(48px) saturate(1.6);opacity:.55;
+  transition:background-image .4s ease;
+}
+/* Soft gradient vignette into right panel */
+.detail-left::after{
+  content:'';position:absolute;inset:0;z-index:1;
+  background:
+    linear-gradient(to right,rgba(248,250,255,0) 55%,rgba(248,250,255,.95) 100%),
+    linear-gradient(to bottom,rgba(248,250,255,.3) 0%,rgba(248,250,255,0) 20%,rgba(248,250,255,0) 80%,rgba(248,250,255,.3) 100%);
+}
+.detail-cover-card{
+  position:relative;z-index:2;
+  width:min(290px,58%);
+  border-radius:18px;overflow:hidden;
+  box-shadow:
+    0 48px 80px rgba(0,0,0,.28),
+    0 16px 32px rgba(0,0,0,.14),
+    0 0 0 1px rgba(255,255,255,.3);
+  animation:detailFloat 5s ease-in-out infinite;
+}
+@keyframes detailFloat{
+  0%,100%{transform:translateY(0) perspective(900px) rotateY(-4deg)}
+  50%{transform:translateY(-14px) perspective(900px) rotateY(-4deg)}
+}
+.detail-cover-card img{width:100%;display:block}
+
+/* Right: info + play */
+.detail-right{
+  flex:1;display:flex;flex-direction:column;
+  padding:56px 48px 44px;overflow-y:auto;position:relative;z-index:2;
+}
+.detail-plat-row{display:flex;align-items:center;gap:8px;margin-bottom:14px}
+.detail-title{
+  font-family:'Space Grotesk',sans-serif;
+  font-size:clamp(1.5rem,3vw,2.2rem);font-weight:700;
+  color:var(--text);letter-spacing:-.04em;line-height:1.12;margin-bottom:16px;
+}
+.detail-desc{
+  font-size:.9rem;color:var(--text2);line-height:1.75;margin-bottom:28px;
+}
+.detail-ctrl-label{
+  font-family:'Space Grotesk',sans-serif;font-size:.67rem;font-weight:700;
+  text-transform:uppercase;letter-spacing:.7px;color:var(--text3);margin-bottom:10px;
+}
+.detail-ctrl-grid{
+  display:grid;grid-template-columns:1fr 1fr;gap:0 20px;margin-bottom:36px;
+}
+.detail-ctrl-row{
   display:flex;align-items:center;justify-content:space-between;
-  padding:14px 20px;border-bottom:1px solid var(--border);flex-shrink:0;
-  background:var(--surface2);
+  padding:5px 0;border-bottom:1px solid rgba(0,0,0,.055);
 }
-.modal-title-wrap{display:flex;align-items:center;gap:10px}
-.modal-title{font-family:'Space Grotesk',sans-serif;font-size:1rem;font-weight:700;color:var(--text);letter-spacing:-.3px}
-.modal-actions{display:flex;align-items:center;gap:8px}
+.detail-ctrl-row:last-child,.detail-ctrl-row:nth-last-child(2):nth-child(odd){border-bottom:none}
+.detail-ctrl-action{font-size:.73rem;color:var(--text3)}
+.detail-ctrl-key{
+  font-size:.68rem;font-weight:600;color:var(--text);
+  background:rgba(0,0,0,.04);border:1px solid rgba(0,0,0,.1);
+  border-radius:5px;padding:1px 7px;font-family:monospace;white-space:nowrap;
+}
+
+/* Play button */
+.btn-play{
+  position:relative;overflow:hidden;
+  margin-top:auto;width:100%;padding:17px 0;
+  border:none;border-radius:var(--r-md);
+  background:linear-gradient(135deg,#4f8ef7 0%,#7c6aff 100%);
+  color:#fff;font-family:'Space Grotesk',sans-serif;
+  font-size:1.05rem;font-weight:700;letter-spacing:-.01em;
+  cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;
+  box-shadow:0 8px 32px rgba(79,142,247,.45),inset 0 1px 0 rgba(255,255,255,.22);
+  transition:transform .2s cubic-bezier(.25,.46,.45,.94),box-shadow .2s;
+  -webkit-tap-highlight-color:transparent;
+}
+.btn-play:hover{
+  transform:translateY(-2px);
+  box-shadow:0 16px 48px rgba(79,142,247,.55),inset 0 1px 0 rgba(255,255,255,.22);
+}
+.btn-play:active{transform:translateY(0);transition-duration:.08s}
+.btn-play-icon{font-size:1rem;line-height:1}
+/* Ripple rings */
+.ripple-ring{
+  position:absolute;border-radius:50%;
+  background:rgba(255,255,255,.38);
+  transform:scale(0);pointer-events:none;
+  animation:rippleOut .65s cubic-bezier(.22,.61,.36,1) forwards;
+}
+@keyframes rippleOut{to{transform:scale(4.5);opacity:0}}
+
+/* ─── GAME VIEW ───────────────────────────────────────────────────────────── */
+.modal-game-wrap{
+  display:flex;flex-direction:column;
+  position:absolute;inset:0;
+  opacity:0;pointer-events:none;
+  transition:opacity .3s ease;
+}
+.modal-game-wrap.visible{opacity:1;pointer-events:auto}
+.game-top-bar{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:12px 20px;flex-shrink:0;
+  background:rgba(248,250,255,.9);backdrop-filter:blur(20px);
+  box-shadow:0 1px 0 rgba(0,0,0,.07);
+}
+.game-top-left{display:flex;align-items:center;gap:10px}
+.game-top-title{font-family:'Space Grotesk',sans-serif;font-size:.95rem;font-weight:700;color:var(--text);letter-spacing:-.3px}
+.game-top-actions{display:flex;align-items:center;gap:8px}
 .btn-x{
-  width:32px;height:32px;border-radius:8px;
-  border:1px solid var(--border2);background:transparent;
-  color:var(--text2);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:.9rem;transition:.18s;
+  width:32px;height:32px;border-radius:8px;border:1.5px solid rgba(0,0,0,.1);
+  background:rgba(255,255,255,.7);color:var(--text2);cursor:pointer;
+  display:flex;align-items:center;justify-content:center;font-size:.9rem;transition:.18s;
 }
-.btn-x:hover{background:rgba(248,113,113,.15);border-color:rgba(248,113,113,.4);color:#fca5a5}
+.btn-x:hover{background:rgba(239,68,68,.08);border-color:rgba(239,68,68,.3);color:#ef4444}
 .modal-game{position:relative;background:#000;flex:1;min-height:0}
 .modal-game iframe{position:absolute;inset:0;width:100%;height:100%;border:none;display:block}
+/* Loader */
 .game-loader{position:absolute;inset:0;background:#07101e;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:2}
-.gl-badge{
-  font-size:.58rem;font-family:'Space Grotesk',sans-serif;font-weight:700;
-  letter-spacing:.4em;text-transform:uppercase;color:rgba(255,255,255,.3);
-  margin-bottom:12px;padding:3px 14px;
-  border:1px solid rgba(255,255,255,.1);border-radius:99px;
-}
-.gl-title{
-  font-family:'Space Grotesk',sans-serif;font-size:clamp(1.2rem,3.5vw,1.9rem);
-  font-weight:700;color:#fff;letter-spacing:-.03em;
-  text-align:center;padding:0 32px;max-width:520px;margin-bottom:40px;line-height:1.2;
-}
+.gl-badge{font-size:.58rem;font-family:'Space Grotesk',sans-serif;font-weight:700;letter-spacing:.4em;text-transform:uppercase;color:rgba(255,255,255,.3);margin-bottom:12px;padding:3px 14px;border:1px solid rgba(255,255,255,.1);border-radius:99px}
+.gl-title{font-family:'Space Grotesk',sans-serif;font-size:clamp(1.2rem,3.5vw,1.9rem);font-weight:700;color:#fff;letter-spacing:-.03em;text-align:center;padding:0 32px;max-width:520px;margin-bottom:40px;line-height:1.2}
 .gl-bars{display:flex;align-items:center;gap:5px;height:36px}
-.gl-bar{width:3px;border-radius:3px;background:var(--blue);animation:glBar 1.1s ease-in-out infinite}
+.gl-bar{width:3px;border-radius:3px;background:var(--accent);animation:glBar 1.1s ease-in-out infinite}
 .gl-bar:nth-child(1){height:8px;animation-delay:0s}
 .gl-bar:nth-child(2){height:18px;animation-delay:.11s}
 .gl-bar:nth-child(3){height:30px;animation-delay:.22s}
@@ -206,62 +365,62 @@ main{max-width:1280px;margin:0 auto;padding:32px 28px 80px;position:relative;z-i
 @keyframes glBar{0%,100%{transform:scaleY(.3);opacity:.25}50%{transform:scaleY(1);opacity:1}}
 .gl-status{margin-top:24px;font-size:.58rem;font-family:monospace;letter-spacing:.4em;text-transform:uppercase;color:rgba(255,255,255,.2);animation:glFade 2s ease-in-out infinite}
 @keyframes glFade{0%,100%{opacity:.35}50%{opacity:1}}
-.save-bar{display:flex;gap:8px;padding:10px 16px;background:var(--surface2);border-top:1px solid var(--border);flex-shrink:0}
+/* Save bar */
+.save-bar{display:flex;gap:8px;padding:10px 16px;flex-shrink:0;background:rgba(248,250,255,.9);backdrop-filter:blur(16px);box-shadow:0 -1px 0 rgba(0,0,0,.06)}
 .save-btn{
-  flex:1;padding:8px 0;border:1px solid var(--border2);border-radius:8px;
+  flex:1;padding:8px 0;border:1.5px solid rgba(79,142,247,.3);border-radius:var(--r-sm);
   font-size:.8rem;font-weight:600;cursor:pointer;
-  background:transparent;color:var(--text2);
+  background:rgba(255,255,255,.8);color:var(--accent);
   transition:.18s;font-family:'Inter',sans-serif;
 }
-.save-btn:hover{background:var(--blue);border-color:var(--blue);color:#fff;box-shadow:0 0 12px var(--blue-glow)}
-.modal-below{flex-shrink:0}
-.modal-info{display:grid;grid-template-columns:1fr 1fr;gap:0;border-top:1px solid var(--border)}
-.info-col{padding:16px 20px}
-.info-col:first-child{border-right:1px solid var(--border)}
-.info-label{font-family:'Space Grotesk',sans-serif;font-size:.67rem;font-weight:700;text-transform:uppercase;letter-spacing:.7px;color:var(--text3);margin-bottom:10px}
-.game-desc{font-size:.84rem;color:var(--text2);line-height:1.7}
-.ctrl-list{display:flex;flex-direction:column;gap:0}
-.ctrl-row{display:flex;align-items:center;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border)}
-.ctrl-row:last-child{border-bottom:none}
-.ctrl-action{font-size:.75rem;color:var(--text3)}
-.ctrl-key{font-size:.7rem;font-weight:600;color:var(--text);background:var(--surface2);border:1px solid var(--border2);border-radius:5px;padding:1px 7px;font-family:monospace;white-space:nowrap}
+.save-btn:hover{background:var(--accent);border-color:var(--accent);color:#fff;box-shadow:0 4px 16px rgba(79,142,247,.35)}
+/* Controls dropdown */
 .ctrl-dropdown{position:relative}
 .btn-ctrl{
-  padding:6px 12px;border:1px solid var(--border2);border-radius:8px;
-  background:transparent;color:var(--text2);
+  padding:6px 12px;border:1.5px solid rgba(0,0,0,.1);border-radius:var(--r-sm);
+  background:rgba(255,255,255,.7);color:var(--text2);
   font-family:'Inter',sans-serif;font-size:.78rem;font-weight:500;
   cursor:pointer;transition:.18s;display:flex;align-items:center;gap:5px;
 }
-.btn-ctrl:hover,.btn-ctrl.open{background:var(--blue-glow);border-color:rgba(79,142,247,.4);color:var(--blue)}
+.btn-ctrl:hover,.btn-ctrl.open{background:var(--accent-glow);border-color:rgba(79,142,247,.4);color:var(--accent)}
 .ctrl-panel{
   position:absolute;top:calc(100% + 6px);right:0;
-  background:var(--surface2);border:1px solid var(--border2);
-  border-radius:12px;box-shadow:0 8px 32px rgba(0,0,0,.5);
-  z-index:600;min-width:230px;padding:14px 16px;display:none;
+  background:rgba(255,255,255,.96);backdrop-filter:blur(20px);
+  border:1px solid rgba(0,0,0,.08);border-radius:var(--r-md);
+  box-shadow:0 8px 40px rgba(0,0,0,.12);z-index:600;min-width:230px;padding:14px 16px;display:none;
 }
 .ctrl-panel.open{display:block}
 .ctrl-panel-title{font-family:'Space Grotesk',sans-serif;font-size:.67rem;font-weight:700;text-transform:uppercase;letter-spacing:.7px;color:var(--text3);margin-bottom:10px}
+.ctrl-list{display:flex;flex-direction:column}
+.ctrl-row{display:flex;align-items:center;justify-content:space-between;padding:5px 0;border-bottom:1px solid rgba(0,0,0,.05)}
+.ctrl-row:last-child{border-bottom:none}
+.ctrl-action{font-size:.75rem;color:var(--text3)}
+.ctrl-key{font-size:.7rem;font-weight:600;color:var(--text);background:rgba(0,0,0,.04);border:1px solid rgba(0,0,0,.1);border-radius:5px;padding:1px 7px;font-family:monospace;white-space:nowrap}
 
 /* ─── FOOTER ──────────────────────────────────────────────────────────────── */
 footer{
-  border-top:1px solid var(--border);
-  background:rgba(11,13,18,.82);
-  backdrop-filter:blur(24px);
+  position:relative;z-index:1;
+  background:rgba(242,244,251,.48);
+  backdrop-filter:blur(28px) saturate(200%);
+  box-shadow:0 -1px 0 rgba(255,255,255,.9);
   padding:16px 28px;display:flex;align-items:center;justify-content:space-between;
-  font-size:.78rem;color:var(--text3);position:relative;z-index:1;
+  font-size:.78rem;color:var(--text3);
 }
 .footer-brand{font-family:'Space Grotesk',sans-serif;font-weight:700;color:var(--text);font-size:.85rem;letter-spacing:-.3px}
-.footer-brand span{color:var(--blue)}
+.footer-brand span{color:var(--accent)}
 
 /* ─── RESPONSIVE ──────────────────────────────────────────────────────────── */
-@media(max-width:680px){
+@media(max-width:700px){
   .header-inner{padding:0 16px;gap:12px}
   .filters-bar{padding:10px 16px}
   main{padding:20px 16px 56px}
   .grid{grid-template-columns:repeat(2,1fr);gap:10px}
   .game-count{display:none}
-  .modal-info{grid-template-columns:1fr}
-  .info-col:first-child{border-right:none;border-bottom:1px solid var(--border)}
+  .modal-detail{flex-direction:column}
+  .detail-left{flex:0 0 38%;padding:28px}
+  .detail-right{padding:24px 24px 32px}
+  .detail-ctrl-grid{grid-template-columns:1fr}
+  .detail-title{font-size:1.4rem}
 }
 </style>
 
@@ -324,50 +483,76 @@ footer{
 <!-- MODAL -->
 <div class="modal-bg" id="modalBg">
   <div class="modal">
-    <div class="modal-header">
-      <div class="modal-title-wrap">
-        <span class="modal-title" id="modalTitle">—</span>
-        <span id="modalBadge"></span>
+
+    <!-- ── DETAIL VIEW ──────────────────────────────────────────────────── -->
+    <div class="modal-detail" id="modalDetail">
+      <button class="btn-detail-close" id="btnDetailClose">✕</button>
+
+      <div class="detail-left" id="detailLeft">
+        <div class="detail-left-bg" id="detailLeftBg"></div>
+        <div class="detail-cover-card">
+          <img id="detailCover" src="" alt="" referrerpolicy="no-referrer">
+        </div>
       </div>
-      <div class="modal-actions">
-        <div class="ctrl-dropdown" id="ctrlDropdown">
-          <button class="btn-ctrl" id="btnCtrl">🎮 Controls</button>
-          <div class="ctrl-panel" id="ctrlPanel">
-            <div class="ctrl-panel-title" id="ctrlPanelTitle">Controls</div>
-            <div class="ctrl-list" id="ctrlPanelList"></div>
+
+      <div class="detail-right">
+        <div class="detail-plat-row" id="detailPlatRow"></div>
+        <h2 class="detail-title" id="detailTitle">—</h2>
+        <p class="detail-desc" id="detailDesc">—</p>
+        <div class="detail-ctrl-label">Controls</div>
+        <div class="detail-ctrl-grid" id="detailCtrlGrid"></div>
+        <button class="btn-play" id="btnPlay">
+          <span class="btn-play-icon">▶</span>
+          <span>Play Now</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- ── GAME VIEW ────────────────────────────────────────────────────── -->
+    <div class="modal-game-wrap" id="modalGameWrap">
+      <div class="game-top-bar">
+        <div class="game-top-left">
+          <span class="game-top-title" id="modalTitle">—</span>
+          <span id="modalBadge"></span>
+        </div>
+        <div class="game-top-actions">
+          <button class="save-btn" id="btnSave" style="flex:unset;padding:6px 14px" title="Save (1)">💾 Save</button>
+          <button class="save-btn" id="btnLoad" style="flex:unset;padding:6px 14px" title="Load (2)">📂 Load</button>
+          <div class="ctrl-dropdown" id="ctrlDropdown">
+            <button class="btn-ctrl" id="btnCtrl">🎮 Controls</button>
+            <div class="ctrl-panel" id="ctrlPanel">
+              <div class="ctrl-panel-title" id="ctrlPanelTitle">Controls</div>
+              <div class="ctrl-list" id="ctrlPanelList"></div>
+            </div>
           </div>
-        </div>
-        <button class="btn-x" id="btnClose" title="Close (Esc)">✕</button>
-      </div>
-    </div>
-    <div class="modal-game">
-      <div class="game-loader" id="gameLoader">
-        <div class="gl-badge" id="loaderBadge"></div>
-        <div class="gl-title" id="loaderTitle">—</div>
-        <div class="gl-bars">
-          <div class="gl-bar"></div><div class="gl-bar"></div>
-          <div class="gl-bar"></div><div class="gl-bar"></div>
-          <div class="gl-bar"></div>
-        </div>
-        <div class="gl-status">Loading</div>
-      </div>
-      <iframe id="gameFrame"
-        allow="fullscreen; pointer-lock"
-        sandbox="allow-scripts allow-same-origin allow-forms allow-pointer-lock allow-popups allow-modals">
-      </iframe>
-    </div>
-    <div class="save-bar">
-      <button class="save-btn" id="btnSave" title="Save game (key: 1)">💾 Save</button>
-      <button class="save-btn" id="btnLoad" title="Load save (key: 2)">📂 Load Save</button>
-    </div>
-    <div class="modal-below">
-      <div class="modal-info" style="grid-template-columns:1fr">
-        <div class="info-col">
-          <div class="info-label">About</div>
-          <div class="game-desc" id="gameDesc">—</div>
+          <button class="btn-x" id="btnClose" title="Close (Esc)">✕</button>
         </div>
       </div>
+      <div class="modal-game">
+        <div class="game-loader" id="gameLoader">
+          <div class="gl-badge" id="loaderBadge"></div>
+          <div class="gl-title" id="loaderTitle">—</div>
+          <div class="gl-bars">
+            <div class="gl-bar"></div><div class="gl-bar"></div>
+            <div class="gl-bar"></div><div class="gl-bar"></div>
+            <div class="gl-bar"></div>
+          </div>
+          <div class="gl-status">Loading</div>
+        </div>
+        <iframe id="gameFrame"
+          allow="fullscreen; pointer-lock"
+          sandbox="allow-scripts allow-same-origin allow-forms allow-pointer-lock allow-popups allow-modals">
+        </iframe>
+      </div>
+      <div class="save-bar" style="display:none" id="saveBarBottom">
+        <button class="save-btn">💾 Save State</button>
+        <button class="save-btn">📂 Load State</button>
+      </div>
     </div>
+
+    <!-- compat: gameDesc read by JS -->
+    <div id="gameDesc" style="display:none"></div>
+
   </div>
 </div>
 
@@ -680,7 +865,11 @@ function render(){
       +'<div class="card-title" title="'+esc(g.title)+'">'+esc(g.title)+'</div>'
       +'<div class="card-footer"><span class="badge '+bc+'">'+esc(pl)+'</span></div>'
       +'</div>';
-    div.addEventListener('click',function(){openModal(g);});
+    div.addEventListener('click',function(){
+      div.classList.add('launching');
+      setTimeout(function(){ openModal(g); }, 120);
+      setTimeout(function(){ div.classList.remove('launching'); }, 600);
+    });
     grid.appendChild(div);
   });
 }
@@ -837,22 +1026,57 @@ function openModal(g) {
   currentGame = g;
   var pl = PLAT_LABEL[g.platform] || g.platform;
   var bc = BADGE_CLASS[g.platform] || 'b-other';
+
+  // ── Fill game-view elements (used when play is clicked) ──────────────────
   document.getElementById('modalTitle').textContent = g.title;
-  document.getElementById('modalBadge').innerHTML = '<span class="badge '+bc+'" style="font-size:.68rem">'+esc(pl)+'</span>';
-  document.getElementById('gameDesc').textContent = g.desc || 'A classic game.';
-  var pl2 = PLAT_LABEL[g.platform] || g.platform;
-  document.getElementById('ctrlPanelTitle').textContent = pl2 + ' Controls';
+  document.getElementById('modalBadge').innerHTML = '<span class="badge '+bc+'">'+esc(pl)+'</span>';
+  document.getElementById('ctrlPanelTitle').textContent = pl + ' Controls';
   document.getElementById('ctrlPanelList').innerHTML = buildCtrlHtml(g.platform);
   document.getElementById('ctrlPanel').classList.remove('open');
   document.getElementById('btnCtrl').classList.remove('open');
+  document.getElementById('loaderTitle').textContent = g.title || '—';
+  document.getElementById('loaderBadge').textContent = pl;
 
+  // ── Fill detail-view elements ────────────────────────────────────────────
+  document.getElementById('detailTitle').textContent = g.title;
+  document.getElementById('detailDesc').textContent = g.desc || 'A classic game.';
+  document.getElementById('detailPlatRow').innerHTML = '<span class="badge '+bc+'" style="font-size:.72rem">'+esc(pl)+'</span>';
+  var cover = document.getElementById('detailCover');
+  cover.src = g.cover || '';
+  cover.alt = g.title;
+  var bg = document.getElementById('detailLeftBg');
+  bg.style.backgroundImage = g.cover ? 'url('+esc(g.cover)+')' : 'none';
+
+  // Controls grid (2-col)
+  var rows = CTRL_DISPLAY[g.platform] || CTRL_DISPLAY['SNES'];
+  document.getElementById('detailCtrlGrid').innerHTML = rows.map(function(r){
+    return '<div class="detail-ctrl-row">'
+      +'<span class="detail-ctrl-action">'+esc(r[0])+'</span>'
+      +'<span class="detail-ctrl-key">'+esc(r[1])+'</span>'
+      +'</div>';
+  }).join('');
+
+  // ── Reset to detail state ────────────────────────────────────────────────
+  document.getElementById('modalDetail').classList.remove('out');
+  document.getElementById('modalGameWrap').classList.remove('visible');
+  document.getElementById('gameFrame').src = 'about:blank';
+
+  // ── Open overlay ─────────────────────────────────────────────────────────
+  document.getElementById('modalBg').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function startGame(g) {
   var frame  = document.getElementById('gameFrame');
   var loader = document.getElementById('gameLoader');
   loader.style.display = 'flex';
-  frame.style.opacity  = '0';
-  frame.src = 'about:blank';
-  document.getElementById('modalBg').classList.add('open');
-  document.body.style.overflow = 'hidden';
+  frame.style.opacity = '0';
+
+  // Transition: detail out → game in
+  document.getElementById('modalDetail').classList.add('out');
+  setTimeout(function(){
+    document.getElementById('modalGameWrap').classList.add('visible');
+  }, 180);
 
   if (blobUrl) { URL.revokeObjectURL(blobUrl); blobUrl = null; }
 
@@ -863,21 +1087,21 @@ function openModal(g) {
       frame.src = blobUrl;
     } catch(e) {
       console.error(e);
-      loader.innerHTML = '<span style="color:#f87171">Failed to load game.</span>';
+      loader.innerHTML = '<span style="color:#f87171;font-size:.9rem">Failed to load — check connection.</span>';
     }
   } else if (g.file) {
     if (g.clearGrid) {
       ['header','footer','main','.filters-bar'].forEach(function(s){
-        var el=document.querySelector(s); if(el) el.remove();
+        var el = document.querySelector(s); if(el) el.remove();
       });
       setTimeout(function(){
         loader.style.display='none';
         frame.style.opacity='1';
-        frame.src=g.file;
+        frame.src = g.file;
       }, 350);
     } else {
-      loader.style.display = 'none';
-      frame.style.opacity  = '1';
+      loader.style.display='none';
+      frame.style.opacity='1';
       frame.src = g.file;
     }
   }
@@ -892,10 +1116,27 @@ function closeModal() {
     frame.src = 'about:blank';
     if (blobUrl) { URL.revokeObjectURL(blobUrl); blobUrl = null; }
     if (needsReload) location.reload();
-  }, 200);
+  }, 300);
   currentGame = null;
 }
 
+// Play button — ripple then launch game
+document.getElementById('btnPlay').addEventListener('click', function(e){
+  if (!currentGame) return;
+  var btn = this;
+  var r = btn.getBoundingClientRect();
+  var size = Math.max(r.width, r.height) * 2;
+  var ring = document.createElement('span');
+  ring.className = 'ripple-ring';
+  ring.style.cssText = 'width:'+size+'px;height:'+size+'px;'
+    +'left:'+(e.clientX - r.left - size/2)+'px;'
+    +'top:'+(e.clientY - r.top - size/2)+'px';
+  btn.appendChild(ring);
+  setTimeout(function(){ ring.remove(); }, 700);
+  setTimeout(function(){ startGame(currentGame); }, 220);
+});
+
+document.getElementById('btnDetailClose').addEventListener('click', closeModal);
 document.getElementById('btnClose').addEventListener('click', closeModal);
 document.getElementById('modalBg').addEventListener('click', function(e){ if(e.target===this) closeModal(); });
 document.addEventListener('keydown', function(e){
@@ -1016,13 +1257,13 @@ fetch('customizations.json?_='+Date.now())
       d.x  += d.vx;
       d.y  += d.vy;
 
-      // Dark theme: dim slate at rest → electric blue on hover
-      var opacity = lerp(0.10, 0.75, prox);
-      var r       = BASE_R + prox * 1.8;
-      // Color lerp: muted slate (60,70,90) → electric blue (79,142,247)
-      var cr = Math.round(lerp(60,  79,  prox));
-      var cg = Math.round(lerp(70,  142, prox));
-      var cb = Math.round(lerp(90,  247, prox));
+      // Light theme: ghost blue at rest → vivid accent on hover
+      var opacity = lerp(0.09, 0.65, prox);
+      var r       = BASE_R + prox * 1.6;
+      // Color lerp: periwinkle (160,175,230) → electric blue (79,142,247)
+      var cr = Math.round(lerp(160, 79,  prox));
+      var cg = Math.round(lerp(175, 142, prox));
+      var cb = Math.round(lerp(230, 247, prox));
 
       ctx.fillStyle = 'rgba('+cr+','+cg+','+cb+','+opacity+')';
       ctx.beginPath();
@@ -1079,20 +1320,7 @@ fetch('customizations.json?_='+Date.now())
 })();
 
 
-// ═══════════════════════════════════════════════════════
-//  GAME LOADER — show title + badge when modal opens
-// ═══════════════════════════════════════════════════════
-(function(){
-  var PLAT = {NDS:'DS'};
-  var _orig = openModal;
-  openModal = function(g){
-    var t = document.getElementById('loaderTitle');
-    var b = document.getElementById('loaderBadge');
-    if(t) t.textContent = g.title || '—';
-    if(b) b.textContent = PLAT[g.platform] || g.platform || '';
-    _orig(g);
-  };
-})();
+// loader title/badge now set directly in openModal above
 </script>
 </body>
 </html>
