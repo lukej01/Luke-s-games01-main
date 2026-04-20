@@ -1,15 +1,16 @@
 "use client"
 
-import { useState, useCallback, useRef, useEffect } from "react"
+import React, { useState, useCallback, useRef, useEffect } from "react"
 
 const CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%&*"
 
 interface TextScrambleProps {
   text: string
   className?: string
+  style?: React.CSSProperties
 }
 
-export function TextScramble({ text, className = "" }: TextScrambleProps) {
+export function TextScramble({ text, className = "", style }: TextScrambleProps) {
   const [displayText, setDisplayText] = useState(text)
   const [isHovering, setIsHovering] = useState(false)
   const [isScrambling, setIsScrambling] = useState(false)
@@ -66,6 +67,7 @@ export function TextScramble({ text, className = "" }: TextScrambleProps) {
   return (
     <div
       className={`group relative inline-flex flex-col cursor-pointer select-none ${className}`}
+      style={style}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
     >
