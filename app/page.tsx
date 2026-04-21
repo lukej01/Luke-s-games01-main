@@ -480,8 +480,7 @@ export default function Home() {
 
   const closeModal = useCallback(() => setSelectedGame(null), []);
 
-  const heroOpacity = Math.max(0, 1 - scrollY / 500);
-  const heroY = scrollY * 0.3;
+  const heroOpacity = Math.max(0, 1 - scrollY / 420);
 
   return (
     <>
@@ -500,40 +499,23 @@ export default function Home() {
           {/* Interactive cursor-reactive background */}
           <HeroBackground />
 
-          {/* Parallax content layer */}
+          {/* Content layer — opacity only, no translateY (prevents scroll catching) */}
           <div
             className="absolute inset-0 z-20 flex flex-col"
-            style={{
-              transform: `translateY(${heroY}px)`,
-              opacity: heroOpacity,
-              willChange: "transform, opacity",
-            }}
+            style={{ opacity: heroOpacity, willChange: "opacity" }}
           >
-            {/* Nav */}
-            <nav className="flex justify-between items-center px-8 md:px-12 pt-8 pb-0 pointer-events-none">
-              <div className="pointer-events-auto flex flex-col gap-0.5">
-                <span
-                  className="font-pixel text-[9px] neon-text tracking-wide"
-                  style={{ animation: "neon-pulse 3s ease-in-out infinite" }}
-                >
-                  GS
-                </span>
-                <span className="font-mono-cyber text-[8px] text-[var(--text-muted)] tracking-[0.4em] uppercase">
-                  GameStash
-                </span>
-              </div>
-
-              <div className="hidden md:flex items-center gap-8 pointer-events-auto">
-                {(["GAMES", "LEADERBOARD", "ABOUT", "CONTACT"] as const).map((link) => (
+            {/* Nav — logo absolutely centered */}
+            <nav className="relative flex items-center justify-between px-8 md:px-12 pt-8 pointer-events-none">
+              {/* Left links */}
+              <div className="hidden md:flex items-center gap-7 pointer-events-auto">
+                {(["GAMES", "LEADERBOARD"] as const).map((link) => (
                   <a
                     key={link}
-                    href="#"
+                    href={link === "GAMES" ? "#library" : "#"}
                     className="relative font-mono-cyber text-[11px] tracking-[0.25em] uppercase group"
                     style={{ color: "var(--text-dim)" }}
                   >
-                    <span className="group-hover:text-[var(--neon)] transition-colors duration-200">
-                      {link}
-                    </span>
+                    <span className="group-hover:text-[var(--neon)] transition-colors duration-200">{link}</span>
                     <span
                       className="absolute -bottom-0.5 left-0 h-px bg-[var(--neon)] scale-x-0 group-hover:scale-x-100 origin-left transition-transform duration-300"
                       style={{ boxShadow: "0 0 6px var(--neon)" }}
@@ -542,37 +524,60 @@ export default function Home() {
                 ))}
               </div>
 
-              <div
-                className="pointer-events-auto hidden md:flex items-center gap-2 border px-3 py-1.5 font-mono-cyber text-[9px] tracking-widest uppercase"
-                style={{
-                  borderColor: "var(--border-glow)",
-                  color: "var(--neon)",
-                  background: "oklch(0.88 0.22 195 / 0.06)",
-                  boxShadow: "0 0 10px oklch(0.88 0.22 195 / 0.15)",
-                }}
-              >
+              {/* Center logo — absolutely centered in nav */}
+              <div className="absolute left-1/2 -translate-x-1/2 pointer-events-auto flex flex-col items-center gap-0.5">
                 <span
-                  className="w-1.5 h-1.5 rounded-full bg-[var(--neon)]"
-                  style={{ animation: "neon-pulse 1.5s ease-in-out infinite" }}
-                />
-                Online
+                  className="font-pixel text-[11px] neon-text tracking-widest"
+                  style={{ animation: "neon-pulse 3s ease-in-out infinite" }}
+                >
+                  GAMESTASH
+                </span>
+                <div className="h-px w-full" style={{ background: "linear-gradient(90deg, transparent, var(--neon), transparent)", boxShadow: "0 0 6px var(--neon)" }} />
+              </div>
+
+              {/* Right links + status */}
+              <div className="hidden md:flex items-center gap-6 pointer-events-auto">
+                {(["ABOUT", "CONTACT"] as const).map((link) => (
+                  <a
+                    key={link}
+                    href="#"
+                    className="relative font-mono-cyber text-[11px] tracking-[0.25em] uppercase group"
+                    style={{ color: "var(--text-dim)" }}
+                  >
+                    <span className="group-hover:text-[var(--neon)] transition-colors duration-200">{link}</span>
+                    <span
+                      className="absolute -bottom-0.5 left-0 h-px bg-[var(--neon)] scale-x-0 group-hover:scale-x-100 origin-left transition-transform duration-300"
+                      style={{ boxShadow: "0 0 6px var(--neon)" }}
+                    />
+                  </a>
+                ))}
+                <div
+                  className="flex items-center gap-1.5 border px-3 py-1.5 font-mono-cyber text-[9px] tracking-widest uppercase"
+                  style={{
+                    borderColor: "var(--border-glow)",
+                    color: "var(--neon)",
+                    background: "oklch(0.88 0.22 195 / 0.06)",
+                    boxShadow: "0 0 10px oklch(0.88 0.22 195 / 0.15)",
+                  }}
+                >
+                  <span className="w-1.5 h-1.5 rounded-full bg-[var(--neon)]" style={{ animation: "neon-pulse 1.5s ease-in-out infinite" }} />
+                  Online
+                </div>
               </div>
             </nav>
 
-            {/* Hero content */}
-            <div className="flex-1 flex flex-col justify-center px-8 md:px-12 lg:px-20">
-              <div className="mb-6 flex items-center gap-3">
-                <div
-                  className="h-px w-8 bg-[var(--neon)]"
-                  style={{ boxShadow: "0 0 6px var(--neon)" }}
-                />
-                <span className="font-mono-cyber text-[10px] tracking-[0.4em] uppercase text-[var(--neon)]">
+            {/* Hero content — centered */}
+            <div className="flex-1 flex flex-col items-center justify-center text-center px-8 md:px-12 lg:px-20">
+              <div className="mb-7 flex items-center gap-3">
+                <div className="h-px w-12" style={{ background: "linear-gradient(90deg, transparent, var(--neon))", boxShadow: "0 0 6px var(--neon)" }} />
+                <span className="font-mono-cyber text-[10px] tracking-[0.45em] uppercase text-[var(--neon)]">
                   // Classic Vault v2.0
                 </span>
+                <div className="h-px w-12" style={{ background: "linear-gradient(90deg, var(--neon), transparent)", boxShadow: "0 0 6px var(--neon)" }} />
               </div>
 
               <h1
-                className="text-[clamp(3.5rem,10vw,9rem)] font-bold leading-none tracking-tighter mb-4"
+                className="text-[clamp(4rem,11vw,10rem)] font-bold leading-none tracking-tighter mb-6"
                 style={{ fontFamily: "'Space Grotesk', sans-serif" }}
               >
                 <span
@@ -588,8 +593,7 @@ export default function Home() {
                   style={{
                     WebkitTextStroke: "2px var(--neon)",
                     color: "transparent",
-                    textShadow: "none",
-                    filter: "drop-shadow(0 0 16px var(--neon))",
+                    filter: "drop-shadow(0 0 20px var(--neon))",
                   }}
                 >
                   STASH
@@ -597,33 +601,31 @@ export default function Home() {
               </h1>
 
               <p
-                className="font-mono-cyber text-sm md:text-base mb-10 max-w-lg"
+                className="font-mono-cyber text-sm md:text-base mb-12 max-w-lg"
                 style={{ color: "var(--text-dim)" }}
               >
-                <Typewriter text="13 classic titles. Zero latency. Pure nostalgia." delay={800} />
+                <Typewriter text="13 classic titles. Zero latency. Pure nostalgia." delay={900} />
               </p>
 
-              <div className="flex flex-wrap items-center gap-4">
+              <div className="flex flex-wrap items-center justify-center gap-4">
                 {/* Primary CTA */}
                 <a
                   href="#library"
                   data-hover
-                  className="relative group px-8 py-3 font-mono-cyber text-[11px] tracking-[0.3em] uppercase overflow-hidden border transition-all duration-300"
+                  className="relative group px-10 py-3.5 font-mono-cyber text-[11px] tracking-[0.35em] uppercase overflow-hidden border transition-all duration-300"
                   style={{
                     borderColor: "var(--neon)",
                     color: "var(--background)",
                     background: "var(--neon)",
-                    boxShadow:
-                      "0 0 20px oklch(0.88 0.22 195 / 0.4), 0 0 60px oklch(0.88 0.22 195 / 0.1)",
+                    boxShadow: "0 0 24px oklch(0.88 0.22 195 / 0.5), 0 0 70px oklch(0.88 0.22 195 / 0.12)",
+                    transition: "box-shadow 0.3s, transform 0.2s",
                   }}
                   onMouseEnter={(e) => {
-                    (e.currentTarget as HTMLElement).style.boxShadow =
-                      "0 0 40px oklch(0.88 0.22 195 / 0.7), 0 0 100px oklch(0.88 0.22 195 / 0.2)";
-                    (e.currentTarget as HTMLElement).style.transform = "translateY(-2px)";
+                    (e.currentTarget as HTMLElement).style.boxShadow = "0 0 44px oklch(0.88 0.22 195 / 0.8), 0 0 110px oklch(0.88 0.22 195 / 0.25)";
+                    (e.currentTarget as HTMLElement).style.transform = "translateY(-3px)";
                   }}
                   onMouseLeave={(e) => {
-                    (e.currentTarget as HTMLElement).style.boxShadow =
-                      "0 0 20px oklch(0.88 0.22 195 / 0.4), 0 0 60px oklch(0.88 0.22 195 / 0.1)";
+                    (e.currentTarget as HTMLElement).style.boxShadow = "0 0 24px oklch(0.88 0.22 195 / 0.5), 0 0 70px oklch(0.88 0.22 195 / 0.12)";
                     (e.currentTarget as HTMLElement).style.transform = "translateY(0)";
                   }}
                 >
@@ -637,17 +639,13 @@ export default function Home() {
                 {/* Secondary CTA */}
                 <button
                   data-hover
-                  className="group relative px-8 py-3 font-mono-cyber text-[11px] tracking-[0.3em] uppercase border overflow-hidden transition-all duration-300"
-                  style={{
-                    borderColor: "var(--border-glow)",
-                    color: "var(--text-dim)",
-                  }}
+                  className="px-10 py-3.5 font-mono-cyber text-[11px] tracking-[0.35em] uppercase border transition-all duration-300"
+                  style={{ borderColor: "var(--border-glow)", color: "var(--text-dim)" }}
                   onMouseEnter={(e) => {
                     (e.currentTarget as HTMLButtonElement).style.borderColor = "var(--neon-2)";
                     (e.currentTarget as HTMLButtonElement).style.color = "var(--neon-2)";
-                    (e.currentTarget as HTMLButtonElement).style.boxShadow =
-                      "0 0 20px oklch(0.78 0.22 280 / 0.35)";
-                    (e.currentTarget as HTMLButtonElement).style.transform = "translateY(-2px)";
+                    (e.currentTarget as HTMLButtonElement).style.boxShadow = "0 0 24px oklch(0.78 0.22 280 / 0.4)";
+                    (e.currentTarget as HTMLButtonElement).style.transform = "translateY(-3px)";
                   }}
                   onMouseLeave={(e) => {
                     (e.currentTarget as HTMLButtonElement).style.borderColor = "var(--border-glow)";
@@ -661,58 +659,56 @@ export default function Home() {
               </div>
             </div>
 
-            {/* Scroll hint */}
+            {/* Stat bar — centered at bottom */}
             <div
-              className="absolute bottom-10 right-8 flex flex-col items-center gap-2"
-              style={{ opacity: scrollY > 50 ? 0 : 1, transition: "opacity 0.4s" }}
+              className="absolute bottom-8 left-1/2 -translate-x-1/2 flex items-center gap-10"
+              style={{ opacity: scrollY > 60 ? 0 : 1, transition: "opacity 0.4s" }}
             >
-              <span
-                className="font-mono-cyber text-[9px] tracking-[0.4em] uppercase rotate-90 mb-1"
-                style={{ color: "var(--text-muted)" }}
-              >
-                Scroll
-              </span>
-              <div
-                className="w-px h-12"
-                style={{
-                  background: "linear-gradient(to bottom, var(--neon), transparent)",
-                  boxShadow: "0 0 4px var(--neon)",
-                }}
-              />
-            </div>
-
-            {/* Stat bar */}
-            <div className="absolute bottom-8 left-8 flex items-center gap-6">
               {[
                 { label: "GAMES", val: "13" },
                 { label: "PLATFORMS", val: "07" },
                 { label: "PLAYERS", val: "∞" },
-              ].map(({ label, val }) => (
-                <div key={label} className="flex flex-col gap-0.5">
-                  <span
-                    className="font-bold text-lg leading-none"
-                    style={{ color: "var(--neon)", textShadow: "0 0 10px var(--neon)" }}
-                  >
-                    {val}
-                  </span>
-                  <span
-                    className="font-mono-cyber text-[8px] tracking-[0.35em] uppercase"
-                    style={{ color: "var(--text-muted)" }}
-                  >
-                    {label}
-                  </span>
-                </div>
+              ].map(({ label, val }, i) => (
+                <React.Fragment key={label}>
+                  <div className="flex flex-col items-center gap-0.5">
+                    <span
+                      className="font-bold text-xl leading-none"
+                      style={{ color: "var(--neon)", textShadow: "0 0 12px var(--neon)" }}
+                    >
+                      {val}
+                    </span>
+                    <span className="font-mono-cyber text-[8px] tracking-[0.35em] uppercase" style={{ color: "var(--text-muted)" }}>
+                      {label}
+                    </span>
+                  </div>
+                  {i < 2 && <div className="w-px h-6" style={{ background: "var(--border-glow)" }} />}
+                </React.Fragment>
               ))}
+            </div>
+
+            {/* Scroll hint */}
+            <div
+              className="absolute bottom-8 right-8 flex flex-col items-center gap-2"
+              style={{ opacity: scrollY > 50 ? 0 : 1, transition: "opacity 0.4s" }}
+            >
+              <span className="font-mono-cyber text-[9px] tracking-[0.4em] uppercase rotate-90 mb-1" style={{ color: "var(--text-muted)" }}>
+                Scroll
+              </span>
+              <div className="w-px h-10" style={{ background: "linear-gradient(to bottom, var(--neon), transparent)", boxShadow: "0 0 4px var(--neon)" }} />
             </div>
           </div>
 
-          {/* Vignette */}
+          {/* Radial vignette */}
           <div
             className="absolute inset-0 z-10 pointer-events-none"
             style={{
-              background:
-                "radial-gradient(ellipse 80% 60% at 50% 50%, transparent 40%, oklch(0.04 0.005 195 / 0.7) 100%)",
+              background: "radial-gradient(ellipse 85% 65% at 50% 45%, transparent 35%, oklch(0.04 0.005 195 / 0.75) 100%)",
             }}
+          />
+          {/* Bottom fade — softens the transition to next section */}
+          <div
+            className="absolute bottom-0 left-0 right-0 h-40 z-10 pointer-events-none"
+            style={{ background: "linear-gradient(to bottom, transparent, var(--background))" }}
           />
         </section>
 
