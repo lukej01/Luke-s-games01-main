@@ -65,11 +65,11 @@
       EJS_gameName = window.gameconfig.name;
       EJS_color = "#0064ff";
       EJS_startOnLoaded = true;
-      EJS_pathtodata = "https://cdn.jsdelivr.net/gh/genizy/emu@master/";
+      EJS_pathtodata = "https://cdn.emulatorjs.org/stable/data/";
       EJS_gameUrl = gameUrl;
       EJS_defaultOptions = { vsync: "disabled" };
       var s = document.createElement("script");
-      s.src = "https://cdn.jsdelivr.net/gh/genizy/emu@master/loader.js";
+      s.src = "https://cdn.emulatorjs.org/stable/data/loader.js";
       document.body.appendChild(s);
     }).catch(err => {
       console.error(err);

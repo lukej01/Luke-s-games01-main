@@ -34,13 +34,13 @@
       EJS_core = "snes9x";
       EJS_color = "#000000";
       EJS_startOnLoaded = true;
-      EJS_pathtodata = "https://cdn.jsdelivr.net/gh/genizy/emu@master/";
+      EJS_pathtodata = "https://cdn.emulatorjs.org/stable/data/";
       // NOTE: The original UGS document had a copy-paste error for this game (Lego Star Wars HTML was used).
       // This URL uses the correct SNES core. If this URL does not load, visit the UGS document for the correct link:
       // https://docs.google.com/document/d/1_FmH3BlSBQI7FGgAQL59-ZPe8eCxs35wel6JUyVaG8Q/
       EJS_gameUrl = "https://cdn.jsdelivr.net/gh/bubbls/UGS-file-encryption@d8359714213990e929bd5fc43895c2be2a21999c/Super%20Mario%20World%20(USA)%20(patched).sfc";
       var s = document.createElement("script");
-      s.src = "https://cdn.jsdelivr.net/gh/genizy/emu@master/loader.js";
+      s.src = "https://cdn.emulatorjs.org/stable/data/loader.js";
       s.onerror = function() {
         document.getElementById("game").style.display = "none";
         document.getElementById("error-msg").textContent = "Error loading emulator. Check your connection and try refreshing. If this persists, the game URL may need updating in Admin settings.";
