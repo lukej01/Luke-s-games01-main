@@ -1,11 +1,12 @@
 "use client";
 
 import React, { useState, useEffect, useRef, useCallback } from "react";
+import gsap from "gsap";
 
 // ── Constants ────────────────────────────────────────────────────────────────
 const RADIUS = 300;
 const CW = 112;    // cartridge width
-const CH = 160;    // cartridge height (taller for cover + name)
+const CH = 160;    // cartridge height
 const CXW = 480;   // console width
 const CXH = 156;   // console height
 const CXD = 24;
@@ -20,14 +21,14 @@ export interface CarouselGame {
   platform: string;
   year: string;
   hue: number;
-  coverImage?: string; // optional cover image URL
+  coverImage?: string;
 }
 
 // ── Cart3D ───────────────────────────────────────────────────────────────────
 function Cart3D({ game, isActive }: { game: CarouselGame; isActive: boolean }) {
   const c = gc(game.hue);
   const cd = gcd(game.hue);
-  const coverH = Math.floor(CH * 0.50); // 50% for cover art area
+  const coverH = Math.floor(CH * 0.50);
 
   return (
     <div style={{ width: CW, height: CH, position: "relative", transformStyle: "preserve-3d" }}>
@@ -45,7 +46,7 @@ function Cart3D({ game, isActive }: { game: CarouselGame; isActive: boolean }) {
         transition: "border-color 0.3s, box-shadow 0.3s",
       }}>
 
-        {/* ── Cover art area ── */}
+        {/* Cover art area */}
         <div style={{
           width: "90%", height: coverH, marginTop: 7, flexShrink: 0,
           background: game.coverImage
@@ -56,18 +57,15 @@ function Cart3D({ game, isActive }: { game: CarouselGame; isActive: boolean }) {
           position: "relative",
           overflow: "hidden",
         }}>
-          {/* Grid overlay — always visible, shows through on placeholder */}
           <div style={{
             position: "absolute", inset: 0, pointerEvents: "none",
             backgroundImage: `linear-gradient(${c}08 1px, transparent 1px), linear-gradient(90deg, ${c}08 1px, transparent 1px)`,
             backgroundSize: "10px 10px",
           }} />
-          {/* CRT scanlines */}
           <div style={{
             position: "absolute", inset: 0, pointerEvents: "none",
             backgroundImage: "repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(0,0,0,0.12) 3px, rgba(0,0,0,0.12) 4px)",
           }} />
-          {/* Platform watermark on placeholder */}
           {!game.coverImage && (
             <div style={{
               position: "absolute", inset: 0,
@@ -79,7 +77,6 @@ function Cart3D({ game, isActive }: { game: CarouselGame; isActive: boolean }) {
               {game.platform}
             </div>
           )}
-          {/* Corner accent */}
           <div style={{
             position: "absolute", top: 3, left: 3,
             width: 5, height: 5, border: `1px solid ${c}44`,
@@ -92,7 +89,7 @@ function Cart3D({ game, isActive }: { game: CarouselGame; isActive: boolean }) {
           }} />
         </div>
 
-        {/* ── Game name ── */}
+        {/* Game name */}
         <div style={{
           width: "90%", flex: 1,
           display: "flex", alignItems: "center", justifyContent: "center",
@@ -108,7 +105,7 @@ function Cart3D({ game, isActive }: { game: CarouselGame; isActive: boolean }) {
           </span>
         </div>
 
-        {/* ── Bottom strip: platform + connector pins ── */}
+        {/* Bottom strip */}
         <div style={{
           width: "100%", flexShrink: 0,
           background: `oklch(0.10 0.05 ${game.hue})`,
@@ -195,7 +192,6 @@ function Console({ insertedGame, onEject }: { insertedGame: CarouselGame | null;
           transition: "all 0.4s",
           position: "relative",
         }}>
-          {/* Cart peeking from slot */}
           {insertedGame && (
             <div style={{
               position: "absolute", bottom: 9, left: "50%", transform: "translateX(-50%)",
@@ -270,7 +266,7 @@ function Console({ insertedGame, onEject }: { insertedGame: CarouselGame | null;
           textShadow: isOn ? `0 0 12px oklch(0.88 0.22 195 / 0.3)` : "none",
         }}>GAMESTASH</span>
 
-        {/* Screen — bigger and more prominent */}
+        {/* Screen */}
         <div style={{
           position: "absolute", left: "50%", transform: "translateX(-50%)",
           width: 160, height: 52,
@@ -374,10 +370,65 @@ export function CartridgeCarousel({ games, onPlay }: { games: CarouselGame[]; on
   const playTimer                       = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [flyCart, setFlyCart]           = useState<{ game: CarouselGame; sx: number; sy: number; dx: number; dy: number } | null>(null);
   const [ejectCart, setEjectCart]       = useState<{ game: CarouselGame; sx: number; sy: number; ex: number; ey: number } | null>(null);
-  const cartEls   = useRef<(HTMLDivElement | null)[]>([]);
-  const consoleEl = useRef<HTMLDivElement>(null);
-  const wrapEl    = useRef<HTMLDivElement>(null);
-  const wLock     = useRef(false);
+  const cartEls      = useRef<(HTMLDivElement | null)[]>([]);
+  const cardFlyRefs  = useRef<(HTMLDivElement | null)[]>([]);  // GSAP fly-in targets
+  const consoleEl    = useRef<HTMLDivElement>(null);
+  const wrapEl       = useRef<HTMLDivElement>(null);
+  const wLock        = useRef(false);
+  const gsapReady    = useRef(false);
+
+  // ── Load admin cover image overrides from localStorage ──────────────────
+  const [adminImages, setAdminImages] = useState<Record<string, string>>({});
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem("pv_edits");
+      if (!raw) return;
+      const edits: Record<string, { cover?: string }> = JSON.parse(raw);
+      const map: Record<string, string> = {};
+      Object.entries(edits).forEach(([id, ed]) => {
+        if (ed.cover) map[id] = ed.cover;
+      });
+      setAdminImages(map);
+    } catch { /* silently ignore */ }
+  }, []);
+
+  // ── GSAP fly-in: set initial hidden state immediately on mount ──────────
+  useEffect(() => {
+    const refs = cardFlyRefs.current.filter(Boolean) as HTMLDivElement[];
+    if (refs.length === 0) return;
+    gsap.set(refs, { opacity: 0, y: 140, scale: 0.35, rotationZ: 0 });
+  }, []);
+
+  // ── IntersectionObserver → trigger fly-in once visible ──────────────────
+  useEffect(() => {
+    const el = wrapEl.current;
+    if (!el) return;
+    const obs = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting && !gsapReady.current) {
+          gsapReady.current = true;
+          const refs = cardFlyRefs.current.filter(Boolean) as HTMLDivElement[];
+          if (refs.length === 0) return;
+          gsap.to(refs, {
+            opacity: 1,
+            y: 0,
+            scale: 1,
+            rotationZ: 0,
+            duration: 0.85,
+            stagger: {
+              each: 0.055,
+              from: "center",
+            },
+            ease: "back.out(1.6)",
+            clearProps: "transform,opacity",
+          });
+        }
+      },
+      { threshold: 0.12 }
+    );
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, []);
 
   // Smooth rotation lerp
   useEffect(() => {
@@ -460,7 +511,6 @@ export function CartridgeCarousel({ games, onPlay }: { games: CarouselGame[]; on
       setInFlight(null);
       setFlyCart(null);
       setTargetIdx(i => (i + 1) % TOTAL);
-      // auto-launch after console boot animation (BOOTING → LOADING → title)
       playTimer.current = setTimeout(() => onPlay(game), 1100);
     }, 920);
   }, [games, inFlight, insertedGame, TOTAL]);
@@ -506,13 +556,35 @@ export function CartridgeCarousel({ games, onPlay }: { games: CarouselGame[]; on
   };
 
   return (
-    <div ref={wrapEl} style={{ position: "relative", width: "100%", display: "flex", flexDirection: "column", alignItems: "center" }}>
-
-      {/* 3-D carousel ring — taller container so front cart has breathing room */}
-      <div style={{ perspective: "1100px", perspectiveOrigin: "50% 50%", width: "100%", height: 380, position: "relative" }}>
+    <div
+      ref={wrapEl}
+      style={{
+        position: "relative",
+        width: "100%",
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        overflow: "hidden",
+      }}
+    >
+      {/* 3-D carousel ring */}
+      <div style={{
+        perspective: "1100px",
+        perspectiveOrigin: "50% 50%",
+        width: "100%",
+        height: 380,
+        position: "relative",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+      }}>
+        {/* Ring origin — zero-size, centered */}
         <div style={{
-          position: "absolute", left: "50%", top: "52%",
-          width: 0, height: 0,
+          position: "absolute",
+          left: "50%",
+          top: "52%",
+          width: 0,
+          height: 0,
           transformStyle: "preserve-3d",
           transform: `rotateY(${angle}deg)`,
         }}>
@@ -520,27 +592,38 @@ export function CartridgeCarousel({ games, onPlay }: { games: CarouselGame[]; on
             const op       = getOpacity(idx);
             const isActive = idx === targetIdx && game.id !== inFlight && game.id !== insertedGame?.id;
             const c        = gc(game.hue);
+            const coverImg = adminImages[game.id] ?? game.coverImage;
             return (
               <div
                 key={game.id}
                 ref={el => { cartEls.current[idx] = el; }}
                 style={{
-                  position: "absolute", transformStyle: "preserve-3d", cursor: "pointer",
+                  position: "absolute",
+                  transformStyle: "preserve-3d",
+                  cursor: "pointer",
                   transform: `rotateY(${idx * STEP}deg) translateZ(${RADIUS}px) translateX(-${CW / 2}px) translateY(-${CH / 2}px)`,
-                  opacity: op, pointerEvents: op < 0.05 ? "none" : "auto", transition: "opacity 0.3s",
+                  opacity: op,
+                  pointerEvents: op < 0.05 ? "none" : "auto",
+                  transition: "opacity 0.3s",
                 }}
                 onClick={() => handleCartClick(idx)}
               >
-                <div style={{
-                  transform: isActive ? "translateY(-28px) scale(1.12)" : "translateY(0) scale(1)",
-                  transformOrigin: `${CW / 2}px ${CH / 2}px`,
-                  transition: "transform 0.48s cubic-bezier(0.34,1.5,0.64,1)",
-                  transformStyle: "preserve-3d",
-                  filter: isActive
-                    ? `drop-shadow(0 0 34px ${c}dd) drop-shadow(0 18px 30px rgba(0,0,0,0.85))`
-                    : "drop-shadow(0 5px 14px rgba(0,0,0,0.65))",
-                }}>
-                  <Cart3D game={game} isActive={isActive} />
+                {/* GSAP fly-in wrapper — separate div so GSAP and React don't conflict */}
+                <div
+                  ref={el => { cardFlyRefs.current[idx] = el; }}
+                  style={{ transformStyle: "preserve-3d" }}
+                >
+                  <div style={{
+                    transform: isActive ? "translateY(-28px) scale(1.12)" : "translateY(0) scale(1)",
+                    transformOrigin: `${CW / 2}px ${CH / 2}px`,
+                    transition: "transform 0.48s cubic-bezier(0.34,1.5,0.64,1)",
+                    transformStyle: "preserve-3d",
+                    filter: isActive
+                      ? `drop-shadow(0 0 34px ${c}dd) drop-shadow(0 18px 30px rgba(0,0,0,0.85))`
+                      : "drop-shadow(0 5px 14px rgba(0,0,0,0.65))",
+                  }}>
+                    <Cart3D game={{ ...game, coverImage: coverImg }} isActive={isActive} />
+                  </div>
                 </div>
               </div>
             );
@@ -580,9 +663,25 @@ export function CartridgeCarousel({ games, onPlay }: { games: CarouselGame[]; on
         CLICK FRONT CART TO INSERT · SCROLL / ← → TO SPIN
       </div>
 
-      {/* Console — centered */}
-      <div style={{ marginTop: 22, zIndex: 5, width: "100%", display: "flex", justifyContent: "center" }}>
-        <div ref={consoleEl} style={{ width: CXW, height: CXH, flexShrink: 0 }}>
+      {/* Console — centered with explicit margin and centering */}
+      <div style={{
+        marginTop: 22,
+        zIndex: 5,
+        width: "100%",
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+      }}>
+        <div
+          ref={consoleEl}
+          style={{
+            width: CXW,
+            height: CXH,
+            flexShrink: 0,
+            marginLeft: "auto",
+            marginRight: "auto",
+          }}
+        >
           <Console insertedGame={insertedGame} onEject={handleEject} />
         </div>
       </div>
