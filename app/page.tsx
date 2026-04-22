@@ -449,192 +449,30 @@ function GamePlayer({ game, onClose }: { game: Game | null; onClose: () => void 
   );
 }
 
-// ── Game Modal — info card ─────────────────────────────────────────────────
-function GameModal({
-  game,
-  onClose,
-  onLaunch,
-}: {
-  game: Game | null;
-  onClose: () => void;
-  onLaunch: () => void;
-}) {
+// ── SplitReveal — letter-by-letter entrance animation ─────────────────────
+function SplitReveal({ text, className, style }: { text: string; className?: string; style?: React.CSSProperties }) {
+  const ref = useRef<HTMLSpanElement>(null);
   const [visible, setVisible] = useState(false);
-
   useEffect(() => {
-    if (game) {
-      document.body.style.overflow = "hidden";
-      const id = requestAnimationFrame(() => setVisible(true));
-      return () => cancelAnimationFrame(id);
-    } else {
-      setVisible(false);
-      document.body.style.overflow = "";
-    }
-    return () => { document.body.style.overflow = ""; };
-  }, [game]);
-
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [onClose]);
-
-  if (!game) return null;
-
-  const neon = `oklch(0.85 0.22 ${game.hue})`;
-  const neonDim = `oklch(0.55 0.18 ${game.hue})`;
-  const surf = `oklch(0.07 0.025 ${game.hue})`;
-
+    const el = ref.current;
+    if (!el) return;
+    const obs = new IntersectionObserver(([e]) => { if (e.isIntersecting) { setVisible(true); obs.disconnect(); } }, { threshold: 0.05 });
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, []);
   return (
-    <div
-      role="dialog"
-      aria-modal="true"
-      aria-label={game.title}
-      className="fixed inset-0 z-[9200] flex items-center justify-center p-4 md:p-8"
-      style={{
-        background: visible ? "oklch(0.04 0.005 195 / 0.88)" : "transparent",
-        backdropFilter: "blur(16px)",
-        transition: "background 0.3s ease",
-      }}
-      onClick={onClose}
-    >
-      <div
-        className="relative w-full max-w-lg border overflow-hidden"
-        style={{
-          background: surf,
-          borderColor: `${neon}88`,
-          boxShadow: `0 0 60px ${neon}22, 0 0 140px ${neonDim}0e, inset 0 0 40px ${neon}06`,
-          transform: visible ? "translateY(0) scale(1)" : "translateY(32px) scale(0.92)",
+    <span ref={ref} className={className} style={{ ...style, display: "inline-block" }} aria-label={text}>
+      {text.split("").map((ch, i) => (
+        <span key={i} aria-hidden style={{
+          display: "inline-block",
+          transform: visible ? "translateY(0)" : "translateY(110%)",
           opacity: visible ? 1 : 0,
-          transition: "transform 0.4s cubic-bezier(0.16,1,0.3,1), opacity 0.3s ease",
-        }}
-        onClick={(e) => e.stopPropagation()}
-      >
-        {/* Top accent */}
-        <div className="h-px w-full" style={{ background: `linear-gradient(90deg, transparent, ${neon}, transparent)` }} />
-
-        {/* Corner brackets */}
-        {(["top-0 left-0 border-t border-l", "top-0 right-0 border-t border-r", "bottom-0 left-0 border-b border-l", "bottom-0 right-0 border-b border-r"] as const).map((cls, i) => (
-          <div key={i} className={`absolute w-5 h-5 ${cls}`} style={{ borderColor: neon }} />
-        ))}
-
-        {/* Cover art strip */}
-        <div
-          className="relative overflow-hidden"
-          style={{
-            height: "160px",
-            background: `linear-gradient(135deg, oklch(0.12 0.08 ${game.hue}), oklch(0.06 0.04 ${game.hue}) 60%, oklch(0.04 0.02 ${game.hue}))`,
-          }}
-        >
-          <div
-            className="absolute inset-0"
-            style={{
-              backgroundImage: `linear-gradient(${neon}08 1px, transparent 1px), linear-gradient(90deg, ${neon}08 1px, transparent 1px)`,
-              backgroundSize: "32px 32px",
-            }}
-          />
-          <div className="absolute inset-0" style={{
-            backgroundImage: "repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(0,0,0,0.1) 3px, rgba(0,0,0,0.1) 4px)",
-          }} />
-          <div className="absolute inset-0" style={{
-            background: "radial-gradient(ellipse at center, transparent 40%, rgba(0,0,0,0.6) 100%)",
-          }} />
-          <div className="absolute inset-0 flex items-center justify-center">
-            <h2
-              className="font-pixel text-center px-8"
-              style={{
-                fontSize: "clamp(0.55rem, 2.5vw, 0.9rem)",
-                color: neon,
-                textShadow: `0 0 14px ${neon}, 0 0 36px ${neonDim}`,
-                lineHeight: 1.8,
-              }}
-            >
-              {game.title.toUpperCase()}
-            </h2>
-          </div>
-          <div
-            className="absolute top-3 left-3 font-mono-cyber text-[8px] tracking-widest px-2 py-1 border"
-            style={{ color: neon, borderColor: `${neon}55`, background: `${neon}12` }}
-          >
-            {game.platform}
-          </div>
-          <div className="absolute top-3 right-3 font-mono-cyber text-[8px] tracking-widest" style={{ color: neonDim }}>
-            {game.year}
-          </div>
-        </div>
-
-        <div className="p-7">
-          <button
-            onClick={onClose}
-            className="absolute top-[168px] right-4 font-mono-cyber text-[10px] tracking-widest transition-colors duration-200"
-            style={{ color: neonDim, cursor: "none" }}
-            onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.color = neon; }}
-            onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.color = neonDim; }}
-          >
-            [ ESC ]
-          </button>
-
-          <div className="flex items-center gap-3 mb-4">
-            <span className="font-mono-cyber text-[9px] tracking-[0.35em] px-2 py-1 border" style={{ color: neon, borderColor: `${neon}55`, background: `${neon}10` }}>
-              {game.platform}
-            </span>
-            <span className="font-mono-cyber text-[9px] tracking-widest" style={{ color: neonDim }}>{game.year}</span>
-            <span className="ml-auto font-mono-cyber text-[9px] tracking-[0.25em]" style={{ color: neonDim }}>// {game.genre.toUpperCase()}</span>
-          </div>
-
-          <p className="font-mono-cyber text-[11px] leading-relaxed mb-6" style={{ color: "oklch(0.60 0.06 195)" }}>
-            {game.desc}
-          </p>
-
-          <div className="mb-5 h-px" style={{ background: `linear-gradient(90deg, ${neon}40, transparent)` }} />
-
-          <div className="flex flex-wrap gap-3 mb-7">
-            {[
-              { key: "WASD / Arrows", action: "Move" },
-              { key: "Z / Enter", action: "Action" },
-              { key: "ESC", action: "Menu" },
-            ].map(({ key, action }) => (
-              <div key={key} className="flex items-center gap-1.5">
-                <span className="font-mono-cyber text-[8px] px-1.5 py-0.5 border tracking-wider" style={{ color: neon, borderColor: `${neon}44`, background: `${neon}08` }}>
-                  {key}
-                </span>
-                <span className="font-mono-cyber text-[8px] tracking-widest" style={{ color: neonDim }}>{action}</span>
-              </div>
-            ))}
-          </div>
-
-          {/* Launch CTA — opens in-page iframe */}
-          <button
-            onClick={onLaunch}
-            className="group relative flex items-center justify-center gap-3 w-full py-4 font-mono-cyber text-[11px] tracking-[0.35em] uppercase overflow-hidden border transition-all duration-300"
-            style={{
-              borderColor: neon,
-              color: "oklch(0.04 0.005 195)",
-              background: neon,
-              boxShadow: `0 0 28px ${neon}55, 0 0 70px ${neonDim}22`,
-              cursor: "none",
-            }}
-            onMouseEnter={(e) => {
-              (e.currentTarget as HTMLElement).style.boxShadow = `0 0 50px ${neon}99, 0 0 120px ${neonDim}33`;
-              (e.currentTarget as HTMLElement).style.transform = "translateY(-2px)";
-            }}
-            onMouseLeave={(e) => {
-              (e.currentTarget as HTMLElement).style.boxShadow = `0 0 28px ${neon}55, 0 0 70px ${neonDim}22`;
-              (e.currentTarget as HTMLElement).style.transform = "translateY(0)";
-            }}
-          >
-            <span className="relative z-10 text-[14px]">▶</span>
-            <span className="relative z-10">Launch Game</span>
-            <span
-              className="absolute inset-0 translate-x-[-101%] group-hover:translate-x-0 transition-transform duration-300"
-              style={{ background: `oklch(0.75 0.28 ${game.hue})` }}
-            />
-          </button>
-        </div>
-
-        <div className="h-px w-full" style={{ background: `linear-gradient(90deg, transparent, ${neon}55, transparent)` }} />
-      </div>
-    </div>
+          transition: `transform 0.58s ${i * 0.022}s cubic-bezier(0.16,1,0.3,1), opacity 0.45s ${i * 0.022}s ease`,
+        }}>
+          {ch === " " ? " " : ch}
+        </span>
+      ))}
+    </span>
   );
 }
 
@@ -686,12 +524,12 @@ function GameCard({
         opacity: visible ? 1 : 0,
         transform: visible
           ? hovered
-            ? `translateY(-8px) scale(1.03) rotateY(${tilt.x}deg) rotateX(${tilt.y}deg)`
-            : "translateY(0) scale(1)"
-          : "translateY(36px) scale(0.95)",
+            ? `translateY(-10px) scale(1.04) rotateY(${tilt.x}deg) rotateX(${tilt.y}deg)`
+            : "translateY(0) scale(1) rotateX(0deg)"
+          : "translateY(64px) scale(0.86) rotateX(14deg)",
         transition: visible
-          ? `opacity 0.55s ${delay}s ease, transform 0.38s cubic-bezier(0.16,1,0.3,1), box-shadow 0.3s`
-          : `opacity 0.55s ${delay}s ease, transform 0.55s ${delay}s cubic-bezier(0.16,1,0.3,1)`,
+          ? `opacity 0.6s ${delay}s ease, transform 0.42s cubic-bezier(0.16,1,0.3,1), box-shadow 0.3s`
+          : `opacity 0.6s ${delay}s ease, transform 0.7s ${delay}s cubic-bezier(0.16,1,0.3,1)`,
         boxShadow: hovered
           ? `0 28px 70px ${neon}44, 0 0 0 1px ${neon}88, 0 0 40px ${neon}18`
           : `0 0 0 1px oklch(0.18 0.05 195)`,
@@ -883,7 +721,7 @@ function Typewriter({ text, delay = 0 }: { text: string; delay?: number }) {
 export default function Home() {
   const [filter, setFilter] = useState<Platform>("ALL");
   const [scrollY, setScrollY] = useState(0);
-  const [selectedGame, setSelectedGame] = useState<Game | null>(null);
+  const [scrollProgress, setScrollProgress] = useState(0);
   const [insertingGame, setInsertingGame] = useState<Game | null>(null);
   const [playingGame, setPlayingGame] = useState<Game | null>(null);
   const libraryReveal = useReveal(0.03);
@@ -893,21 +731,17 @@ export default function Home() {
   const filtered = filter === "ALL" ? GAMES : GAMES.filter((g) => g.platform === filter);
 
   useEffect(() => {
-    const onScroll = () => setScrollY(window.scrollY);
+    const onScroll = () => {
+      const sy = window.scrollY;
+      setScrollY(sy);
+      const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
+      if (maxScroll > 0) setScrollProgress((sy / maxScroll) * 100);
+    };
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
-  const closeModal  = useCallback(() => setSelectedGame(null), []);
   const closePlayer = useCallback(() => setPlayingGame(null), []);
-
-  // "Launch Game" from modal → triggers cart insert animation
-  const launchGame = useCallback(() => {
-    if (selectedGame) {
-      setInsertingGame(selectedGame);
-      setSelectedGame(null);
-    }
-  }, [selectedGame]);
 
   // Cart animation done → open the actual game player
   const onInsertDone = useCallback((g: Game) => {
@@ -922,9 +756,17 @@ export default function Home() {
   return (
     <>
       <CyberpunkCursor />
+      <HeroBackground />
       <CartInsertOverlay game={insertingGame} onDone={onInsertDone} />
       <GamePlayer game={playingGame} onClose={closePlayer} />
-      <GameModal game={selectedGame} onClose={closeModal} onLaunch={launchGame} />
+      {/* Scroll progress bar */}
+      <div aria-hidden="true" style={{
+        position: "fixed", top: 0, left: 0, height: 2, zIndex: 9999, pointerEvents: "none",
+        width: `${scrollProgress}%`,
+        background: "linear-gradient(90deg, var(--neon), oklch(0.78 0.22 280))",
+        boxShadow: "0 0 10px var(--neon), 0 0 24px var(--neon-dim)",
+        transition: "width 0.12s linear",
+      }} />
 
       <main className="text-white overflow-x-hidden" style={{ background: "var(--background)" }}>
 
@@ -932,7 +774,6 @@ export default function Home() {
         {/* The hero stays sticky while library slides over it from below    */}
         <div style={{ position: "relative", height: "100vh", zIndex: 1 }}>
           <section ref={heroRef} className="sticky top-0 h-screen overflow-hidden circuit-bg">
-            <HeroBackground />
 
             {/* Content fades on scroll */}
             <div
@@ -1156,12 +997,12 @@ export default function Home() {
                 </div>
 
                 <h2
-                  className="text-4xl md:text-6xl font-bold tracking-tighter leading-none mb-4"
+                  className="text-4xl md:text-6xl font-bold tracking-tighter leading-none mb-4 overflow-hidden"
                   style={{ fontFamily: "'Space Grotesk', sans-serif" }}
                 >
-                  Every Legend,
+                  <SplitReveal text="Every Legend," />
                   <br />
-                  <span style={{ WebkitTextStroke: "1.5px var(--text-muted)", color: "transparent" }}>One Place.</span>
+                  <SplitReveal text="One Place." style={{ WebkitTextStroke: "1.5px var(--text-muted)" as string, color: "transparent" }} />
                 </h2>
 
                 <p className="font-mono-cyber text-sm max-w-md" style={{ color: "var(--text-dim)" }}>
@@ -1221,7 +1062,7 @@ export default function Home() {
                     key={game.id}
                     game={game}
                     index={i}
-                    onClick={() => setSelectedGame(game)}
+                    onClick={() => setInsertingGame(game)}
                   />
                 ))}
               </div>

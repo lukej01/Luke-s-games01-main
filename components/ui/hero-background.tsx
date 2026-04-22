@@ -3,10 +3,8 @@
 import React, { useEffect, useRef } from "react";
 
 interface Particle {
-  x: number;
-  y: number;
-  vx: number;
-  vy: number;
+  x: number; y: number;
+  vx: number; vy: number;
   size: number;
   baseAlpha: number;
   hue: number;
@@ -15,31 +13,28 @@ interface Particle {
 }
 
 const CONNECT_DIST = 140;
-const REPEL_DIST   = 220;
-const ATTRACT_DIST = 400;
+const REPEL_DIST   = 240;
+const ATTRACT_DIST = 420;
 const TRAIL_LEN    = 8;
 
 export function HeroBackground() {
-  const canvasRef    = useRef<HTMLCanvasElement>(null);
-  const containerRef = useRef<HTMLDivElement>(null);
-  const mouse        = useRef({ x: -9999, y: -9999, vx: 0, vy: 0, px: -9999, py: -9999 });
-  const particles    = useRef<Particle[]>([]);
-  const raf          = useRef<number>(0);
-  const time         = useRef(0);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const mouse     = useRef({ x: -9999, y: -9999, vx: 0, vy: 0, px: -9999, py: -9999 });
+  const particles = useRef<Particle[]>([]);
+  const raf       = useRef<number>(0);
+  const time      = useRef(0);
 
   useEffect(() => {
-    const canvas    = canvasRef.current;
-    const container = containerRef.current;
-    if (!canvas || !container) return;
+    const canvas = canvasRef.current;
+    if (!canvas) return;
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
     let W = 0, H = 0;
 
     const resize = () => {
-      const rect = container.getBoundingClientRect();
-      W = rect.width;
-      H = rect.height;
+      W = window.innerWidth;
+      H = window.innerHeight;
       const dpr = Math.min(window.devicePixelRatio || 1, 2);
       canvas.width  = W * dpr;
       canvas.height = H * dpr;
@@ -65,9 +60,8 @@ export function HeroBackground() {
     };
 
     const onMouseMove = (e: MouseEvent) => {
-      const rect = container.getBoundingClientRect();
-      const nx = e.clientX - rect.left;
-      const ny = e.clientY - rect.top;
+      const nx = e.clientX;
+      const ny = e.clientY;
       mouse.current.vx = nx - mouse.current.px;
       mouse.current.vy = ny - mouse.current.py;
       mouse.current.px = mouse.current.x;
@@ -75,9 +69,10 @@ export function HeroBackground() {
       mouse.current.x  = nx;
       mouse.current.y  = ny;
     };
-    const onMouseLeave = () => { mouse.current = { x: -9999, y: -9999, vx: 0, vy: 0, px: -9999, py: -9999 }; };
+    const onMouseLeave = () => {
+      mouse.current = { x: -9999, y: -9999, vx: 0, vy: 0, px: -9999, py: -9999 };
+    };
 
-    // ── Draw ────────────────────────────────────────────────────────────────
     const draw = () => {
       time.current += 0.007;
       ctx.clearRect(0, 0, W, H);
@@ -89,34 +84,34 @@ export function HeroBackground() {
       const mSpeed = Math.sqrt(mvx * mvx + mvy * mvy);
       const hasMouse = mx > -100;
 
-      // ── Cursor spotlight ───────────────────────────────────────────────
+      // Cursor spotlight — follows cursor site-wide
       if (hasMouse) {
-        const grd = ctx.createRadialGradient(mx, my, 0, mx, my, 340);
-        grd.addColorStop(0,    "rgba(0,255,220,0.16)");
-        grd.addColorStop(0.3,  "rgba(0,180,255,0.06)");
-        grd.addColorStop(1,    "rgba(0,0,0,0)");
+        const grd = ctx.createRadialGradient(mx, my, 0, mx, my, 360);
+        grd.addColorStop(0,   "rgba(0,255,220,0.13)");
+        grd.addColorStop(0.3, "rgba(0,180,255,0.05)");
+        grd.addColorStop(1,   "rgba(0,0,0,0)");
         ctx.fillStyle = grd;
         ctx.fillRect(0, 0, W, H);
 
         const inner = ctx.createRadialGradient(mx, my, 0, mx, my, 70);
-        inner.addColorStop(0, "rgba(0,255,220,0.09)");
+        inner.addColorStop(0, "rgba(0,255,220,0.07)");
         inner.addColorStop(1, "rgba(0,0,0,0)");
         ctx.fillStyle = inner;
         ctx.fillRect(0, 0, W, H);
       }
 
-      // ── Ambient breathing glow ─────────────────────────────────────────
-      const pulse = 0.035 + 0.014 * Math.sin(time.current * 0.6);
-      const ag = ctx.createRadialGradient(W * 0.5, H * 0.42, 0, W * 0.5, H * 0.42, W * 0.6);
-      ag.addColorStop(0,   `rgba(0,255,220,${pulse})`);
-      ag.addColorStop(0.55, `rgba(120,0,255,${pulse * 0.4})`);
-      ag.addColorStop(1,   "rgba(0,0,0,0)");
+      // Ambient breathing glow (subtle — canvas is overlaid on content)
+      const pulse = 0.012 + 0.005 * Math.sin(time.current * 0.6);
+      const ag = ctx.createRadialGradient(W * 0.5, H * 0.42, 0, W * 0.5, H * 0.42, W * 0.55);
+      ag.addColorStop(0,    `rgba(0,255,220,${pulse})`);
+      ag.addColorStop(0.55, `rgba(120,0,255,${pulse * 0.35})`);
+      ag.addColorStop(1,    "rgba(0,0,0,0)");
       ctx.fillStyle = ag;
       ctx.fillRect(0, 0, W, H);
 
       const parts = particles.current;
 
-      // ── Physics update ─────────────────────────────────────────────────
+      // Physics
       for (let i = 0; i < parts.length; i++) {
         const p = parts[i];
         p.trail.push({ x: p.x, y: p.y });
@@ -128,37 +123,31 @@ export function HeroBackground() {
           const dist = Math.sqrt(dx * dx + dy * dy);
 
           if (dist < REPEL_DIST && dist > 0.01) {
-            // Explosive repulsion — stronger near cursor, boosted by mouse velocity
             const t     = (REPEL_DIST - dist) / REPEL_DIST;
             const force = Math.pow(t, 1.8) * 0.08 + mSpeed * 0.003;
             p.vx += (dx / dist) * force * REPEL_DIST * 0.9;
             p.vy += (dy / dist) * force * REPEL_DIST * 0.9;
-            // Perpendicular swirl component
             p.vx += (-dy / dist) * force * 8;
             p.vy += ( dx / dist) * force * 8;
           } else if (dist < ATTRACT_DIST) {
-            // Gentle vortex attraction in outer zone
             const force = ((ATTRACT_DIST - dist) / ATTRACT_DIST) * 0.0012;
             p.vx += (-dx / dist) * force * 22 + ( dy / dist) * force * 9;
             p.vy += (-dy / dist) * force * 22 + (-dx / dist) * force * 9;
           }
         }
 
-        // Speed cap — higher near cursor
         const spd    = Math.sqrt(p.vx * p.vx + p.vy * p.vy);
         const maxSpd = hasMouse ? 6 : 2.6;
         if (spd > maxSpd) { p.vx = (p.vx / spd) * maxSpd; p.vy = (p.vy / spd) * maxSpd; }
 
-        p.vx *= 0.965;
-        p.vy *= 0.965;
-        p.x  += p.vx;
-        p.y  += p.vy;
+        p.vx *= 0.965; p.vy *= 0.965;
+        p.x  += p.vx;  p.y  += p.vy;
 
         if (p.x < -15) p.x = W + 15; else if (p.x > W + 15) p.x = -15;
         if (p.y < -15) p.y = H + 15; else if (p.y > H + 15) p.y = -15;
       }
 
-      // ── Particle trails ────────────────────────────────────────────────
+      // Particle trails near cursor
       if (hasMouse) {
         for (let i = 0; i < parts.length; i++) {
           const p = parts[i];
@@ -180,7 +169,7 @@ export function HeroBackground() {
         }
       }
 
-      // ── Connection lines ───────────────────────────────────────────────
+      // Connection lines
       ctx.lineWidth = 0.5;
       for (let i = 0; i < parts.length; i++) {
         const a = parts[i];
@@ -205,9 +194,8 @@ export function HeroBackground() {
         }
       }
 
-      // ── Cursor rings + crosshair ───────────────────────────────────────
+      // Cursor rings + crosshair (site-wide)
       if (hasMouse) {
-        // Outer pulsing ring
         const r1 = 60 + 10 * Math.sin(time.current * 2.8);
         ctx.beginPath();
         ctx.arc(mx, my, r1, 0, Math.PI * 2);
@@ -215,7 +203,6 @@ export function HeroBackground() {
         ctx.lineWidth = 0.7;
         ctx.stroke();
 
-        // Middle ring (rotates)
         ctx.save();
         ctx.translate(mx, my);
         ctx.rotate(time.current * 1.2);
@@ -226,7 +213,6 @@ export function HeroBackground() {
         ctx.stroke();
         ctx.restore();
 
-        // Inner ring (counter-rotates)
         ctx.save();
         ctx.translate(mx, my);
         ctx.rotate(-time.current * 2.1);
@@ -237,9 +223,7 @@ export function HeroBackground() {
         ctx.stroke();
         ctx.restore();
 
-        // Crosshair lines
-        const cL = 18;
-        const gap = 6;
+        const cL = 18, gap = 6;
         ctx.strokeStyle = "rgba(0,255,220,0.32)";
         ctx.lineWidth   = 0.6;
         ctx.beginPath();
@@ -249,7 +233,6 @@ export function HeroBackground() {
         ctx.moveTo(mx, my + gap);      ctx.lineTo(mx, my + cL + gap);
         ctx.stroke();
 
-        // Velocity streak — faint line showing mouse direction
         if (mSpeed > 1.5) {
           const streak = Math.min(mSpeed * 5, 80);
           ctx.beginPath();
@@ -262,16 +245,16 @@ export function HeroBackground() {
         }
       }
 
-      // ── Draw particles ─────────────────────────────────────────────────
+      // Draw particles
       for (let i = 0; i < parts.length; i++) {
-        const p  = parts[i];
-        const dxM = mx - p.x;
-        const dyM = my - p.y;
+        const p       = parts[i];
+        const dxM     = mx - p.x;
+        const dyM     = my - p.y;
         const dCursor = Math.sqrt(dxM * dxM + dyM * dyM);
-        const nearBoost = hasMouse && dCursor < 220 ? (1 - dCursor / 220) * 0.65 : 0;
-        const spd = Math.sqrt(p.vx * p.vx + p.vy * p.vy);
+        const nearBoost  = hasMouse && dCursor < 220 ? (1 - dCursor / 220) * 0.65 : 0;
+        const spd        = Math.sqrt(p.vx * p.vx + p.vy * p.vy);
         const speedBoost = Math.min(spd * 0.1, 0.4);
-        const alpha = Math.min(
+        const alpha      = Math.min(
           p.baseAlpha + nearBoost + speedBoost + 0.08 * Math.sin(time.current + p.phase),
           0.98
         );
@@ -300,21 +283,24 @@ export function HeroBackground() {
     };
 
     window.addEventListener("resize", resize);
-    container.addEventListener("mousemove", onMouseMove);
-    container.addEventListener("mouseleave", onMouseLeave);
+    window.addEventListener("mousemove", onMouseMove);
+    document.addEventListener("mouseleave", onMouseLeave);
     resize();
     raf.current = requestAnimationFrame(draw);
 
     return () => {
       window.removeEventListener("resize", resize);
-      container.removeEventListener("mousemove", onMouseMove);
-      container.removeEventListener("mouseleave", onMouseLeave);
+      window.removeEventListener("mousemove", onMouseMove);
+      document.removeEventListener("mouseleave", onMouseLeave);
       cancelAnimationFrame(raf.current);
     };
   }, []);
 
   return (
-    <div ref={containerRef} className="absolute inset-0 z-0 overflow-hidden">
+    <div
+      className="fixed inset-0 overflow-hidden pointer-events-none"
+      style={{ zIndex: 50 }}
+    >
       <canvas ref={canvasRef} className="block w-full h-full" />
     </div>
   );

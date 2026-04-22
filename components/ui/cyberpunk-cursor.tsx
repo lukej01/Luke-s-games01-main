@@ -27,7 +27,7 @@ export function CyberpunkCursor() {
 
     const onMove = (e: MouseEvent) => {
       mouse.current = { x: e.clientX, y: e.clientY };
-      dot.style.transform = `translate(${e.clientX - 4}px, ${e.clientY - 4}px)`;
+      dot.style.transform = `translate(${e.clientX - 2}px, ${e.clientY - 2}px)`;
     };
     const onDown = () => { click.current = true; };
     const onUp   = () => { click.current = false; };
@@ -185,10 +185,10 @@ export function CyberpunkCursor() {
         aria-hidden="true"
         style={{
           ...base,
-          width: 8,
-          height: 8,
+          width: 4,
+          height: 4,
           background: "oklch(0.88 0.22 195)",
-          boxShadow: "0 0 6px oklch(0.88 0.22 195), 0 0 14px oklch(0.65 0.18 195)",
+          boxShadow: "0 0 5px oklch(0.88 0.22 195), 0 0 10px oklch(0.65 0.18 195)",
           transition: "background 0.12s, box-shadow 0.12s",
           zIndex: 99998,
         }}
