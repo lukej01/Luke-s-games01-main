@@ -263,6 +263,66 @@ function GamePlayer({ game, onClose }: { game: Game | null; onClose: () => void 
   );
 }
 
+// ── ScatterTitle — GAMESTASH letters scatter apart on scroll ──────────────
+function ScatterTitle({ scrollY }: { scrollY: number }) {
+  const scatter = useRef<{ x: number; y: number; r: number; s: number }[]>([]);
+  if (scatter.current.length === 0) {
+    // Pre-compute stable scatter vectors per letter: index 0-3 = GAME, 4-8 = STASH
+    const spread = [
+      { x: -340, y: -180, r: -52, s: 0.15 },
+      { x: -120, y: -290, r:  38, s: 0.20 },
+      { x:  80,  y: -260, r: -28, s: 0.18 },
+      { x:  260, y: -140, r:  62, s: 0.22 },
+      { x: -280, y:  200, r:  44, s: 0.12 },
+      { x: -80,  y:  310, r: -56, s: 0.20 },
+      { x:  120, y:  280, r:  34, s: 0.15 },
+      { x:  300, y:  160, r: -48, s: 0.18 },
+      { x:  420, y: -60,  r:  70, s: 0.16 },
+    ];
+    scatter.current = spread;
+  }
+
+  // scrollY 0→320: scatter begins; eased progress 0→1
+  const raw = Math.min(1, scrollY / 320);
+  const t   = raw < 0.5 ? 2 * raw * raw : 1 - Math.pow(-2 * raw + 2, 2) / 2;
+
+  const words = [
+    { text: "GAME",  style: { color: "var(--foreground)" } },
+    { text: "STASH", style: { WebkitTextStroke: "2px var(--neon)", color: "transparent", filter: "drop-shadow(0 0 20px var(--neon))" } },
+  ] as const;
+
+  return (
+    <h1
+      className="text-[clamp(4rem,11vw,10rem)] font-bold leading-none tracking-tighter mb-6"
+      style={{ fontFamily: "'Space Grotesk', sans-serif", willChange: "transform" }}
+      aria-label="GAMESTASH"
+    >
+      {words.map((w, wi) => (
+        <span key={w.text} className="glitch-wrap block" style={w.style as React.CSSProperties}>
+          {w.text.split("").map((ch, ci) => {
+            const idx = wi * 4 + ci;
+            const sv  = scatter.current[idx] ?? { x: 0, y: 0, r: 0, s: 0 };
+            return (
+              <span
+                key={ci}
+                aria-hidden
+                style={{
+                  display: "inline-block",
+                  transform: `translate(${sv.x * t}px, ${sv.y * t}px) rotate(${sv.r * t}deg) scale(${1 - (1 - sv.s) * t})`,
+                  opacity: Math.max(0, 1 - t * 1.4),
+                  willChange: "transform, opacity",
+                }}
+              >
+                {ch}
+              </span>
+            );
+          })}
+        </span>
+      ))}
+    </h1>
+  );
+}
+
 // ── SplitReveal — letter-by-letter entrance animation ─────────────────────
 function SplitReveal({ text, className, style }: { text: string; className?: string; style?: React.CSSProperties }) {
   const ref = useRef<HTMLSpanElement>(null);
@@ -587,14 +647,17 @@ export default function Home() {
               {/* Nav */}
               <nav className="relative flex items-center justify-between px-8 md:px-12 pt-8 pointer-events-none">
                 <div className="hidden md:flex items-center gap-7 pointer-events-auto">
-                  {(["GAMES", "LEADERBOARD"] as const).map((link) => (
+                  {[
+                    { label: "GAMES", href: "#library" },
+                    { label: "ADMIN", href: "/Luke-s-games01-main/admin.html" },
+                  ].map(({ label, href }) => (
                     <a
-                      key={link}
-                      href={link === "GAMES" ? "#library" : "#"}
+                      key={label}
+                      href={href}
                       className="relative font-mono-cyber text-[11px] tracking-[0.25em] uppercase group"
                       style={{ color: "var(--text-dim)", cursor: "none" }}
                     >
-                      <span className="group-hover:text-[var(--neon)] transition-colors duration-200">{link}</span>
+                      <span className="group-hover:text-[var(--neon)] transition-colors duration-200">{label}</span>
                       <span
                         className="absolute -bottom-0.5 left-0 h-px bg-[var(--neon)] scale-x-0 group-hover:scale-x-100 origin-left transition-transform duration-300"
                         style={{ boxShadow: "0 0 6px var(--neon)" }}
@@ -649,13 +712,7 @@ export default function Home() {
                   <div className="h-px w-12" style={{ background: "linear-gradient(90deg, var(--neon), transparent)", boxShadow: "0 0 6px var(--neon)" }} />
                 </div>
 
-                <h1
-                  className="text-[clamp(4rem,11vw,10rem)] font-bold leading-none tracking-tighter mb-6"
-                  style={{ fontFamily: "'Space Grotesk', sans-serif", transform: `translateY(${heroParallax}px)`, willChange: "transform" }}
-                >
-                  <MagneticText strength={10} tag="span" className="glitch-wrap block" style={{ color: "var(--foreground)" }}>GAME</MagneticText>
-                  <MagneticText strength={10} tag="span" className="glitch-wrap block" style={{ WebkitTextStroke: "2px var(--neon)", color: "transparent", filter: "drop-shadow(0 0 20px var(--neon))" }}>STASH</MagneticText>
-                </h1>
+                <ScatterTitle scrollY={scrollY} />
 
                 <MagneticText strength={4} radius={300} tag="p" className="font-mono-cyber text-sm md:text-base mb-12 max-w-lg" style={{ color: "var(--text-dim)" }}>
                   <Typewriter text="13 classic titles. Zero latency. Pure nostalgia." delay={900} />
@@ -686,25 +743,27 @@ export default function Home() {
                     <span className="absolute inset-0 translate-x-[-101%] group-hover:translate-x-0 transition-transform duration-300" style={{ background: "oklch(0.75 0.28 195)" }} />
                   </a>
 
-                  <button
+                  <a
+                    href="/Luke-s-games01-main/admin.html"
                     data-hover
-                    className="px-10 py-3.5 font-mono-cyber text-[11px] tracking-[0.35em] uppercase border transition-all duration-300"
+                    className="px-10 py-3.5 font-mono-cyber text-[11px] tracking-[0.35em] uppercase border transition-all duration-300 flex items-center gap-2"
                     style={{ borderColor: "var(--border-glow)", color: "var(--text-dim)", cursor: "none" }}
                     onMouseEnter={(e) => {
-                      (e.currentTarget as HTMLButtonElement).style.borderColor = "var(--neon-2)";
-                      (e.currentTarget as HTMLButtonElement).style.color = "var(--neon-2)";
-                      (e.currentTarget as HTMLButtonElement).style.boxShadow = "0 0 28px oklch(0.78 0.22 280 / 0.45)";
-                      (e.currentTarget as HTMLButtonElement).style.transform = "translateY(-3px)";
+                      (e.currentTarget as HTMLElement).style.borderColor = "var(--neon-2)";
+                      (e.currentTarget as HTMLElement).style.color = "var(--neon-2)";
+                      (e.currentTarget as HTMLElement).style.boxShadow = "0 0 28px oklch(0.78 0.22 280 / 0.45)";
+                      (e.currentTarget as HTMLElement).style.transform = "translateY(-3px)";
                     }}
                     onMouseLeave={(e) => {
-                      (e.currentTarget as HTMLButtonElement).style.borderColor = "var(--border-glow)";
-                      (e.currentTarget as HTMLButtonElement).style.color = "var(--text-dim)";
-                      (e.currentTarget as HTMLButtonElement).style.boxShadow = "none";
-                      (e.currentTarget as HTMLButtonElement).style.transform = "translateY(0)";
+                      (e.currentTarget as HTMLElement).style.borderColor = "var(--border-glow)";
+                      (e.currentTarget as HTMLElement).style.color = "var(--text-dim)";
+                      (e.currentTarget as HTMLElement).style.boxShadow = "none";
+                      (e.currentTarget as HTMLElement).style.transform = "translateY(0)";
                     }}
                   >
-                    Leaderboard
-                  </button>
+                    <span>⚙</span>
+                    <span>Admin Panel</span>
+                  </a>
                 </div>
               </div>
 
