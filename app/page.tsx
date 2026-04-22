@@ -154,192 +154,6 @@ function useReveal(threshold = 0.15) {
   return { ref, visible };
 }
 
-// ── CartInsertOverlay — console insert animation before game launches ─────
-function CartInsertOverlay({ game, onDone }: { game: Game | null; onDone: (g: Game) => void }) {
-  const [phase, setPhase] = useState(0);
-  const [screenText, setScreenText] = useState("INSERT GAME");
-  const doneRef = useRef(onDone);
-  doneRef.current = onDone;
-
-  useEffect(() => {
-    if (!game) { setPhase(0); setScreenText("INSERT GAME"); return; }
-    setPhase(1);
-    setScreenText("INSERT GAME");
-    const t1 = setTimeout(() => setPhase(2), 80);
-    const t2 = setTimeout(() => setPhase(3), 650);
-    const t3 = setTimeout(() => { setPhase(4); setScreenText(game.title.toUpperCase()); }, 870);
-    const t4 = setTimeout(() => setPhase(5), 1150);
-    const t5 = setTimeout(() => doneRef.current(game), 1450);
-    return () => { clearTimeout(t1); clearTimeout(t2); clearTimeout(t3); clearTimeout(t4); clearTimeout(t5); };
-  }, [game]);
-
-  if (!game || phase === 0) return null;
-
-  const neon    = `oklch(0.85 0.22 ${game.hue})`;
-  const neonDim = `oklch(0.55 0.18 ${game.hue})`;
-  const isOn    = phase >= 4;
-
-  return (
-    <div
-      style={{
-        position: "fixed", inset: 0, zIndex: 9100,
-        background: `oklch(0.02 0.01 ${game.hue} / 0.97)`,
-        backdropFilter: "blur(14px)",
-        display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
-        opacity: phase >= 1 ? 1 : 0,
-        transition: "opacity 0.18s ease",
-      }}
-    >
-      {/* Ambient glow */}
-      <div style={{
-        position: "absolute", width: 560, height: 560, borderRadius: "50%",
-        background: `radial-gradient(circle, ${neon}10 0%, transparent 70%)`,
-        filter: "blur(50px)",
-        opacity: isOn ? 1 : 0, transition: "opacity 0.6s",
-        pointerEvents: "none",
-      }} />
-
-      <div style={{ position: "relative", width: 280 }}>
-        {/* Cartridge — slides in from above */}
-        <div style={{
-          display: "flex", justifyContent: "center",
-          height: phase >= 3 ? 18 : 128,
-          overflow: "hidden",
-          transition: "height 0.48s cubic-bezier(0.5,0,0.5,1)",
-          marginBottom: -2,
-        }}>
-          <div style={{
-            width: 108, height: 128, flexShrink: 0,
-            background: `linear-gradient(160deg, oklch(0.30 0.16 ${game.hue}), oklch(0.20 0.12 ${game.hue}))`,
-            border: `1px solid ${neon}88`,
-            borderRadius: "5px 5px 2px 2px",
-            boxShadow: `0 0 32px ${neon}66, inset 0 1px 0 rgba(255,255,255,0.18)`,
-            display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 7, padding: 10,
-            transform: phase >= 2 ? "translateY(0)" : "translateY(-160px)",
-            transition: "transform 0.52s cubic-bezier(0.5,0,0.5,1) 0.04s",
-          }}>
-            <div style={{
-              width: "100%", flex: 1,
-              background: `linear-gradient(135deg, oklch(0.22 0.10 ${game.hue}), oklch(0.14 0.07 ${game.hue}))`,
-              border: `1px solid ${neon}55`, borderRadius: 2,
-              display: "flex", alignItems: "center", justifyContent: "center", padding: 4,
-            }}>
-              <span style={{
-                fontFamily: "'Press Start 2P'", fontSize: 5, color: neon, textAlign: "center",
-                textShadow: `0 0 8px ${neon}`, lineHeight: 1.7,
-              }}>
-                {game.title.slice(0, 14).toUpperCase()}
-              </span>
-            </div>
-            <span style={{ fontFamily: "Share Tech Mono", fontSize: 7, color: neonDim, letterSpacing: "0.14em" }}>
-              {game.platform}
-            </span>
-            <div style={{ display: "flex", gap: 3.5 }}>
-              {Array.from({ length: 7 }, (_, i) => (
-                <div key={i} style={{ width: 3, height: 7, background: `oklch(0.45 0.08 ${game.hue + 20})`, borderRadius: "0 0 1px 1px" }} />
-              ))}
-            </div>
-          </div>
-        </div>
-
-        {/* Console body */}
-        <div style={{
-          background: `linear-gradient(160deg, oklch(0.16 0.07 ${game.hue}), oklch(0.10 0.04 ${game.hue}))`,
-          border: `1px solid ${isOn ? `${neon}44` : "rgba(255,255,255,0.06)"}`,
-          borderRadius: 10,
-          padding: "18px 22px 22px",
-          boxShadow: isOn
-            ? `0 0 70px ${neon}22, 0 0 140px ${neon}0d, 0 28px 90px rgba(0,0,0,0.88), inset 0 1px 0 rgba(255,255,255,0.06)`
-            : `0 28px 90px rgba(0,0,0,0.88), inset 0 1px 0 rgba(255,255,255,0.04)`,
-          transform: phase >= 1 ? "translateY(0) scale(1)" : "translateY(40px) scale(0.9)",
-          opacity: phase >= 1 ? 1 : 0,
-          transition: "transform 0.5s cubic-bezier(0.16,1,0.3,1), opacity 0.3s, border-color 0.4s, box-shadow 0.5s",
-        }}>
-          {/* Cart slot ridge */}
-          <div style={{
-            height: 8, width: "55%", margin: "0 auto 16px",
-            background: "oklch(0.02 0.005 195)",
-            border: `1px solid ${isOn ? `${neon}66` : "rgba(255,255,255,0.07)"}`,
-            borderRadius: 2,
-            boxShadow: isOn ? `inset 0 0 8px ${neon}33` : "inset 0 2px 5px rgba(0,0,0,0.8)",
-            transition: "all 0.35s",
-          }} />
-
-          {/* Screen */}
-          <div style={{
-            height: 78,
-            background: isOn ? `oklch(0.04 0.025 ${game.hue})` : "oklch(0.02 0.005 195)",
-            border: `1px solid ${isOn ? `${neon}88` : "rgba(255,255,255,0.06)"}`,
-            borderRadius: 4, marginBottom: 16,
-            display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 5,
-            transition: "all 0.35s",
-            boxShadow: isOn ? `0 0 16px ${neon}22, inset 0 0 14px ${neon}14` : "inset 0 3px 7px rgba(0,0,0,0.65)",
-            overflow: "hidden", position: "relative",
-          }}>
-            <div style={{
-              position: "absolute", inset: 0, pointerEvents: "none",
-              backgroundImage: "repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(0,0,0,0.1) 3px, rgba(0,0,0,0.1) 4px)",
-            }} />
-            <span style={{
-              fontFamily: "'Press Start 2P'", fontSize: isOn ? 7 : 6,
-              color: isOn ? neon : "oklch(0.16 0.04 195)",
-              textShadow: isOn ? `0 0 10px ${neon}, 0 0 28px ${neonDim}` : "none",
-              textAlign: "center", padding: "0 10px",
-              transition: "all 0.35s", position: "relative",
-            }}>
-              {screenText}
-            </span>
-            {isOn && (
-              <span style={{
-                fontFamily: "Share Tech Mono", fontSize: 8, color: neonDim, letterSpacing: "0.22em",
-                opacity: phase >= 5 ? 1 : 0, transition: "opacity 0.3s", position: "relative",
-              }}>
-                {game.platform} · {game.year}
-              </span>
-            )}
-          </div>
-
-          {/* Status row */}
-          <div style={{ display: "flex", alignItems: "center", gap: 9 }}>
-            <div style={{
-              width: 9, height: 9, borderRadius: "50%", flexShrink: 0,
-              background: isOn ? neon : "oklch(0.06 0.02 195)",
-              boxShadow: isOn ? `0 0 10px ${neon}, 0 0 26px ${neon}88, 0 0 52px ${neon}44` : "none",
-              transition: "all 0.35s",
-              animation: isOn ? "neon-pulse 1.2s ease-in-out infinite" : "none",
-            }} />
-            <span style={{
-              fontFamily: "Share Tech Mono", fontSize: 8, flex: 1,
-              color: isOn ? neon : "oklch(0.22 0.04 195)",
-              letterSpacing: "0.18em", transition: "color 0.35s",
-            }}>
-              {phase >= 5 ? "LAUNCHING..." : isOn ? "BOOTING..." : "READY"}
-            </span>
-            <div style={{ display: "flex", gap: 6 }}>
-              {[neon, neonDim].map((c, i) => (
-                <div key={i} style={{
-                  width: 10, height: 10, borderRadius: "50%",
-                  background: isOn ? c : "oklch(0.05 0.015 195)",
-                  boxShadow: isOn ? `0 0 7px ${c}99` : "none",
-                  transition: `all 0.3s ${i * 0.07}s`,
-                }} />
-              ))}
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div style={{
-        marginTop: 26, fontFamily: "Share Tech Mono", fontSize: 8,
-        color: `oklch(0.25 0.04 ${game.hue})`, letterSpacing: "0.32em",
-        opacity: isOn ? 1 : 0, transition: "opacity 0.4s 0.25s",
-      }}>
-        LOADING GAME DATA...
-      </div>
-    </div>
-  );
-}
-
 // ── GamePlayer — full-screen iframe overlay ────────────────────────────────
 function GamePlayer({ game, onClose }: { game: Game | null; onClose: () => void }) {
   const [mounted, setMounted] = useState(false);
@@ -722,7 +536,6 @@ function Typewriter({ text, delay = 0 }: { text: string; delay?: number }) {
 export default function Home() {
   const [scrollY, setScrollY] = useState(0);
   const [scrollProgress, setScrollProgress] = useState(0);
-  const [insertingGame, setInsertingGame] = useState<Game | null>(null);
   const [playingGame, setPlayingGame] = useState<Game | null>(null);
   const libraryReveal = useReveal(0.03);
   const platformReveal = useReveal(0.12);
@@ -741,7 +554,7 @@ export default function Home() {
 
   const closePlayer = useCallback(() => setPlayingGame(null), []);
   const handlePlay = useCallback((game: Game) => {
-    setInsertingGame(game);
+    setPlayingGame(game);
   }, []);
 
   // Hero content fades as library slides over it
@@ -752,7 +565,6 @@ export default function Home() {
     <>
       <CyberpunkCursor />
       <HeroBackground />
-      <CartInsertOverlay game={insertingGame} onDone={(g) => { setInsertingGame(null); setPlayingGame(g); }} />
       <GamePlayer game={playingGame} onClose={closePlayer} />
       {/* Scroll progress bar */}
       <div aria-hidden="true" style={{

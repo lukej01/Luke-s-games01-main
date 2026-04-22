@@ -175,7 +175,7 @@ function Console({ insertedGame, onEject }: { insertedGame: CarouselGame | null;
   }, [insertedGame]);
 
   return (
-    <div style={{ position: "relative", width: CXW, perspective: 900 }}>
+    <div style={{ position: "relative", width: CXW, height: CXH, perspective: 900 }}>
       {/* Cart slot top */}
       <div style={{
         position: "absolute", top: 0, left: 0, width: CXW, height: 34,
@@ -580,13 +580,11 @@ export function CartridgeCarousel({ games, onPlay }: { games: CarouselGame[]; on
         CLICK FRONT CART TO INSERT · SCROLL / ← → TO SPIN
       </div>
 
-      {/* Console */}
-      <div style={{ marginTop: 22, position: "relative", zIndex: 5 }}>
-        <div ref={consoleEl}>
+      {/* Console — centered */}
+      <div style={{ marginTop: 22, zIndex: 5, width: "100%", display: "flex", justifyContent: "center" }}>
+        <div ref={consoleEl} style={{ width: CXW, height: CXH, flexShrink: 0 }}>
           <Console insertedGame={insertedGame} onEject={handleEject} />
         </div>
-
-        {/* Auto-launches after console boot — no button needed */}
       </div>
 
       {/* Fly-in animation */}
