@@ -787,12 +787,9 @@ export default function Home() {
 
                 {/* Centered logo */}
                 <div className="absolute left-1/2 -translate-x-1/2 pointer-events-auto flex flex-col items-center gap-0.5">
-                  <span
-                    className="font-pixel text-[11px] neon-text tracking-widest"
-                    style={{ animation: "neon-pulse 3s ease-in-out infinite" }}
-                  >
+                  <MagneticText strength={9} radius={160} tag="span" className="font-pixel text-[11px] neon-text tracking-widest" style={{ animation: "neon-flicker 9s ease-in-out infinite", display: "inline-block" }}>
                     GAMESTASH
-                  </span>
+                  </MagneticText>
                   <div className="h-px w-full" style={{ background: "linear-gradient(90deg, transparent, var(--neon), transparent)", boxShadow: "0 0 6px var(--neon)" }} />
                 </div>
 
