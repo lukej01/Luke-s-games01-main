@@ -4,6 +4,7 @@ import React, { useState, useEffect, useRef, useCallback } from "react";
 import { HeroBackground } from "@/components/ui/hero-background";
 import { TextScramble } from "@/components/ui/text-scramble";
 import { CyberpunkCursor } from "@/components/ui/cyberpunk-cursor";
+import { MagneticText } from "@/components/ui/magnetic-text";
 
 // ── Game data ──────────────────────────────────────────────────────────────
 const GAMES = [
@@ -841,9 +842,7 @@ export default function Home() {
               <div className="flex-1 flex flex-col items-center justify-center text-center px-8 md:px-12 lg:px-20">
                 <div className="mb-7 flex items-center gap-3">
                   <div className="h-px w-12" style={{ background: "linear-gradient(90deg, transparent, var(--neon))", boxShadow: "0 0 6px var(--neon)" }} />
-                  <span className="font-mono-cyber text-[10px] tracking-[0.45em] uppercase text-[var(--neon)]">
-                    // Classic Vault v2.0
-                  </span>
+                  <TextScramble text="// Classic Vault v2.0" className="font-mono-cyber text-[10px] tracking-[0.45em] uppercase" style={{ color: "var(--neon)" }} />
                   <div className="h-px w-12" style={{ background: "linear-gradient(90deg, var(--neon), transparent)", boxShadow: "0 0 6px var(--neon)" }} />
                 </div>
 
@@ -851,23 +850,13 @@ export default function Home() {
                   className="text-[clamp(4rem,11vw,10rem)] font-bold leading-none tracking-tighter mb-6"
                   style={{ fontFamily: "'Space Grotesk', sans-serif", transform: `translateY(${heroParallax}px)`, willChange: "transform" }}
                 >
-                  <span className="glitch-wrap block" data-text="GAME" style={{ color: "var(--foreground)" }}>GAME</span>
-                  <span
-                    className="glitch-wrap block"
-                    data-text="STASH"
-                    style={{
-                      WebkitTextStroke: "2px var(--neon)",
-                      color: "transparent",
-                      filter: "drop-shadow(0 0 20px var(--neon))",
-                    }}
-                  >
-                    STASH
-                  </span>
+                  <MagneticText strength={10} tag="span" className="glitch-wrap block" style={{ color: "var(--foreground)" }}>GAME</MagneticText>
+                  <MagneticText strength={10} tag="span" className="glitch-wrap block" style={{ WebkitTextStroke: "2px var(--neon)", color: "transparent", filter: "drop-shadow(0 0 20px var(--neon))" }}>STASH</MagneticText>
                 </h1>
 
-                <p className="font-mono-cyber text-sm md:text-base mb-12 max-w-lg" style={{ color: "var(--text-dim)" }}>
+                <MagneticText strength={4} radius={300} tag="p" className="font-mono-cyber text-sm md:text-base mb-12 max-w-lg" style={{ color: "var(--text-dim)" }}>
                   <Typewriter text="13 classic titles. Zero latency. Pure nostalgia." delay={900} />
-                </p>
+                </MagneticText>
 
                 <div className="flex flex-wrap items-center justify-center gap-4">
                   <a
@@ -928,12 +917,8 @@ export default function Home() {
                 ].map(({ label, val }, i) => (
                   <React.Fragment key={label}>
                     <div className="flex flex-col items-center gap-0.5">
-                      <span className="font-bold text-xl leading-none" style={{ color: "var(--neon)", textShadow: "0 0 12px var(--neon)" }}>
-                        {val}
-                      </span>
-                      <span className="font-mono-cyber text-[8px] tracking-[0.35em] uppercase" style={{ color: "var(--text-muted)" }}>
-                        {label}
-                      </span>
+                      <MagneticText strength={8} tag="span" className="font-bold text-xl leading-none" style={{ color: "var(--neon)", textShadow: "0 0 12px var(--neon)" }}>{val}</MagneticText>
+                      <MagneticText strength={3} tag="span" className="font-mono-cyber text-[8px] tracking-[0.35em] uppercase" style={{ color: "var(--text-muted)" }}>{label}</MagneticText>
                     </div>
                     {i < 2 && <div className="w-px h-6" style={{ background: "var(--border-glow)" }} />}
                   </React.Fragment>
@@ -987,9 +972,7 @@ export default function Home() {
               >
                 <div className="flex items-center gap-3 mb-3">
                   <div className="h-px w-6" style={{ background: "var(--neon)", boxShadow: "0 0 6px var(--neon)" }} />
-                  <span className="font-mono-cyber text-[10px] tracking-[0.4em] uppercase text-[var(--neon)]">
-                    // Game Library
-                  </span>
+                  <TextScramble text="// Game Library" className="font-mono-cyber text-[10px] tracking-[0.4em] uppercase" style={{ color: "var(--neon)" }} />
                 </div>
 
                 <h2
@@ -1105,21 +1088,15 @@ export default function Home() {
                 <div>
                   <div className="flex items-center gap-3 mb-6">
                     <div className="h-px w-6" style={{ background: "var(--neon-2)", boxShadow: "0 0 6px var(--neon-2)" }} />
-                    <span className="font-mono-cyber text-[10px] tracking-[0.4em] uppercase" style={{ color: "var(--neon-2)" }}>
-                      // The Vault
-                    </span>
+                    <TextScramble text="// The Vault" className="font-mono-cyber text-[10px] tracking-[0.4em] uppercase" style={{ color: "var(--neon-2)" }} />
                   </div>
                   <h2
                     className="text-5xl md:text-7xl lg:text-8xl font-bold leading-none tracking-tighter"
                     style={{ fontFamily: "'Space Grotesk', sans-serif" }}
                   >
-                    <span className="block" style={{ color: "var(--foreground)" }}>No downloads.</span>
-                    <span className="block" style={{ color: "var(--neon-2)", textShadow: "0 0 20px var(--neon-2), 0 0 60px var(--neon-2-dim)" }}>
-                      No installs.
-                    </span>
-                    <span className="block" style={{ WebkitTextStroke: "1.5px var(--text-muted)", color: "transparent" }}>
-                      Just play.
-                    </span>
+                    <MagneticText strength={6} tag="span" className="block" style={{ color: "var(--foreground)" }}>No downloads.</MagneticText>
+                    <MagneticText strength={6} tag="span" className="block" style={{ color: "var(--neon-2)", textShadow: "0 0 20px var(--neon-2), 0 0 60px var(--neon-2-dim)" }}>No installs.</MagneticText>
+                    <MagneticText strength={6} tag="span" className="block" style={{ WebkitTextStroke: "1.5px var(--text-muted)", color: "transparent" }}>Just play.</MagneticText>
                   </h2>
                 </div>
 
