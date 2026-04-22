@@ -27,7 +27,6 @@ export function HeroBackground() {
       left: "0",
       pointerEvents: "none",
       zIndex: "50",
-      transition: "opacity 0.6s ease",
     });
     document.body.appendChild(canvas);
 
@@ -61,12 +60,6 @@ export function HeroBackground() {
           phase: Math.random() * Math.PI * 2,
         };
       });
-    };
-
-    const onScroll = () => {
-      const heroH = H || window.innerHeight;
-      const op = Math.max(0, 1 - window.scrollY / (heroH * 0.65));
-      canvas.style.opacity = String(op);
     };
 
     const onMouseMove = (e: MouseEvent) => {
@@ -189,7 +182,6 @@ export function HeroBackground() {
 
     window.addEventListener("resize", resize);
     window.addEventListener("mousemove", onMouseMove);
-    window.addEventListener("scroll", onScroll, { passive: true });
     document.addEventListener("mouseleave", onMouseLeave);
     resize();
     raf = requestAnimationFrame(draw);
@@ -197,8 +189,7 @@ export function HeroBackground() {
     return () => {
       window.removeEventListener("resize", resize);
       window.removeEventListener("mousemove", onMouseMove);
-      window.removeEventListener("scroll", onScroll);
-      document.removeEventListener("mouseleave", onMouseLeave);
+document.removeEventListener("mouseleave", onMouseLeave);
       cancelAnimationFrame(raf);
       if (canvas.parentNode) canvas.parentNode.removeChild(canvas);
     };
