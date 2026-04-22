@@ -2,32 +2,26 @@
 
 import React, { useEffect, useRef } from "react";
 
-const TRAIL = 10;
+const TRAIL = 16; // longer tail
 
 export function CyberpunkCursor() {
   const dotRef    = useRef<HTMLDivElement>(null);
-  const ringRef   = useRef<HTMLDivElement>(null);
-  const auraRef   = useRef<HTMLDivElement>(null);
   const trailRefs = useRef<(HTMLDivElement | null)[]>([]);
   const mouse     = useRef({ x: -200, y: -200 });
-  const ringPos   = useRef({ x: -200, y: -200 });
-  const auraPos   = useRef({ x: -200, y: -200 });
   const trail     = useRef<Array<{ x: number; y: number }>>(
     Array.from({ length: TRAIL }, () => ({ x: -200, y: -200 }))
   );
-  const raf       = useRef<number>(0);
-  const hover     = useRef(false);
-  const click     = useRef(false);
+  const raf   = useRef<number>(0);
+  const hover = useRef(false);
+  const click = useRef(false);
 
   useEffect(() => {
-    const dot  = dotRef.current;
-    const ring = ringRef.current;
-    const aura = auraRef.current;
-    if (!dot || !ring || !aura) return;
+    const dot = dotRef.current;
+    if (!dot) return;
 
     const onMove = (e: MouseEvent) => {
       mouse.current = { x: e.clientX, y: e.clientY };
-      dot.style.transform = `translate(${e.clientX - 2}px, ${e.clientY - 2}px)`;
+      dot.style.transform = `translate(${e.clientX - 3}px, ${e.clientY - 3}px)`;
     };
     const onDown = () => { click.current = true; };
     const onUp   = () => { click.current = false; };
@@ -46,48 +40,30 @@ export function CyberpunkCursor() {
     const tick = () => {
       const { x, y } = mouse.current;
 
-      // Trail cascade — each step follows the one before at 55% lerp
+      // Trail cascade — each step follows the prior with slightly decreasing lerp
+      // to create a stretched comet-tail effect
       trail.current[0] = {
-        x: trail.current[0].x + (x - trail.current[0].x) * 0.38,
-        y: trail.current[0].y + (y - trail.current[0].y) * 0.38,
+        x: trail.current[0].x + (x - trail.current[0].x) * 0.30,
+        y: trail.current[0].y + (y - trail.current[0].y) * 0.30,
       };
       for (let i = 1; i < TRAIL; i++) {
         const prev = trail.current[i - 1];
         trail.current[i] = {
-          x: trail.current[i].x + (prev.x - trail.current[i].x) * 0.52,
-          y: trail.current[i].y + (prev.y - trail.current[i].y) * 0.52,
+          x: trail.current[i].x + (prev.x - trail.current[i].x) * 0.44,
+          y: trail.current[i].y + (prev.y - trail.current[i].y) * 0.44,
         };
       }
+
       for (let i = 0; i < TRAIL; i++) {
         const el = trailRefs.current[i];
         if (!el) continue;
-        const t = 1 - i / TRAIL;
-        const sz = 2 + t * 4;
+        const t = 1 - i / TRAIL;          // 1 at head, 0 at tail
+        const sz = 1.2 + t * 4.2;          // shrinks toward tail end
         el.style.transform = `translate(${trail.current[i].x - sz * 0.5}px, ${trail.current[i].y - sz * 0.5}px)`;
         el.style.width  = `${sz}px`;
         el.style.height = `${sz}px`;
-        el.style.opacity = String(t * (click.current ? 0.75 : 0.45));
+        el.style.opacity = String(t * t * (click.current ? 0.80 : 0.55));
       }
-
-      // Ring
-      const rx = ringPos.current.x + (x - ringPos.current.x) * 0.13;
-      const ry = ringPos.current.y + (y - ringPos.current.y) * 0.13;
-      ringPos.current = { x: rx, y: ry };
-      const rs = click.current ? 14 : hover.current ? 38 : 22;
-      ring.style.transform = `translate(${rx - rs * 0.5}px, ${ry - rs * 0.5}px)`;
-      ring.style.width     = `${rs}px`;
-      ring.style.height    = `${rs}px`;
-      ring.style.opacity   = String(click.current ? 0.9 : hover.current ? 0.85 : 0.55);
-
-      // Aura
-      const ax = auraPos.current.x + (x - auraPos.current.x) * 0.055;
-      const ay = auraPos.current.y + (y - auraPos.current.y) * 0.055;
-      auraPos.current = { x: ax, y: ay };
-      const as_ = click.current ? 30 : hover.current ? 52 : 38;
-      aura.style.transform = `translate(${ax - as_ * 0.5}px, ${ay - as_ * 0.5}px)`;
-      aura.style.width     = `${as_}px`;
-      aura.style.height    = `${as_}px`;
-      aura.style.opacity   = String(click.current ? 0.18 : hover.current ? 0.12 : 0.07);
 
       // Dot color
       if (click.current) {
@@ -96,9 +72,17 @@ export function CyberpunkCursor() {
       } else if (hover.current) {
         dot.style.background = "oklch(0.95 0.22 195)";
         dot.style.boxShadow  = "0 0 10px oklch(0.88 0.22 195), 0 0 22px oklch(0.65 0.18 195)";
+        dot.style.width = "7px";
+        dot.style.height = "7px";
+        dot.style.marginLeft = "-1px";
+        dot.style.marginTop = "-1px";
       } else {
         dot.style.background = "oklch(0.88 0.22 195)";
         dot.style.boxShadow  = "0 0 6px oklch(0.88 0.22 195), 0 0 12px oklch(0.65 0.18 195)";
+        dot.style.width = "5px";
+        dot.style.height = "5px";
+        dot.style.marginLeft = "0px";
+        dot.style.marginTop = "0px";
       }
 
       raf.current = requestAnimationFrame(tick);
@@ -133,7 +117,7 @@ export function CyberpunkCursor() {
 
   return (
     <>
-      {/* Trail particles */}
+      {/* Comet tail — 16 particles fading to tail */}
       {Array.from({ length: TRAIL }, (_, i) => (
         <div
           key={i}
@@ -143,41 +127,12 @@ export function CyberpunkCursor() {
             ...base,
             width: 6,
             height: 6,
-            background: `oklch(0.88 0.22 ${195 + i * 9})`,
-            boxShadow: `0 0 5px oklch(0.88 0.22 ${195 + i * 9} / 0.7)`,
+            background: `oklch(0.88 0.22 ${195 + i * 7})`,
+            boxShadow: `0 0 4px oklch(0.88 0.22 ${195 + i * 7} / 0.6)`,
             zIndex: 99990 + (TRAIL - i),
           }}
         />
       ))}
-
-      {/* Aura blob */}
-      <div
-        ref={auraRef}
-        aria-hidden="true"
-        style={{
-          ...base,
-          width: 38,
-          height: 38,
-          background: "radial-gradient(circle, oklch(0.88 0.22 195 / 0.2) 0%, transparent 70%)",
-          transition: "width 0.28s ease, height 0.28s ease",
-          zIndex: 99994,
-        }}
-      />
-
-      {/* Lagging ring */}
-      <div
-        ref={ringRef}
-        aria-hidden="true"
-        style={{
-          ...base,
-          width: 22,
-          height: 22,
-          border: "1px solid oklch(0.88 0.22 195 / 0.9)",
-          boxShadow: "0 0 5px oklch(0.88 0.22 195 / 0.4)",
-          transition: "width 0.16s cubic-bezier(0.16,1,0.3,1), height 0.16s cubic-bezier(0.16,1,0.3,1), opacity 0.15s ease",
-          zIndex: 99997,
-        }}
-      />
 
       {/* Crisp dot */}
       <div
@@ -185,12 +140,12 @@ export function CyberpunkCursor() {
         aria-hidden="true"
         style={{
           ...base,
-          width: 4,
-          height: 4,
+          width: 5,
+          height: 5,
           background: "oklch(0.88 0.22 195)",
-          boxShadow: "0 0 5px oklch(0.88 0.22 195), 0 0 10px oklch(0.65 0.18 195)",
-          transition: "background 0.12s, box-shadow 0.12s",
-          zIndex: 99998,
+          boxShadow: "0 0 6px oklch(0.88 0.22 195), 0 0 12px oklch(0.65 0.18 195)",
+          transition: "background 0.12s, box-shadow 0.12s, width 0.12s, height 0.12s",
+          zIndex: 99999,
         }}
       />
     </>
