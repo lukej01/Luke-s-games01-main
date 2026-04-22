@@ -7,6 +7,82 @@ import { CyberpunkCursor } from "@/components/ui/cyberpunk-cursor";
 import { MagneticText } from "@/components/ui/magnetic-text";
 import { CartridgeCarousel } from "@/components/ui/cartridge-carousel";
 
+// ── Module-level mouse tracker for FloatLetter ─────────────────────────────
+const _hm = { x: -9999, y: -9999 };
+let _hmReady = false;
+function _hmAttach() {
+  if (_hmReady || typeof window === "undefined") return;
+  _hmReady = true;
+  window.addEventListener("mousemove", e => { _hm.x = e.clientX; _hm.y = e.clientY; }, { passive: true });
+}
+
+// ── FloatLetter — floating + cursor anti-gravity per character ─────────────
+function FloatLetter({ char, phase, amp }: { char: string; phase: number; amp: number }) {
+  const ref = useRef<HTMLSpanElement>(null);
+  const s   = useRef({ px: 0, py: 0, t: phase });
+
+  useEffect(() => {
+    _hmAttach();
+    const el = ref.current;
+    if (!el) return;
+    let raf: number;
+    const tick = () => {
+      s.current.t += 0.011;
+      const fy = Math.sin(s.current.t) * amp;
+      const rect = el.getBoundingClientRect();
+      const cx = rect.left + rect.width  * 0.5;
+      const cy = rect.top  + rect.height * 0.5;
+      const dx = _hm.x - cx;
+      const dy = _hm.y - cy;
+      const d  = Math.sqrt(dx * dx + dy * dy);
+      let tx = 0, ty = 0;
+      if (d < 200 && d > 1) {
+        const f = Math.pow((200 - d) / 200, 2) * 26;
+        tx = -(dx / d) * f;
+        ty = -(dy / d) * f;
+      }
+      s.current.px += (tx - s.current.px) * 0.07;
+      s.current.py += (ty - s.current.py) * 0.07;
+      el.style.transform = `translate(${s.current.px.toFixed(2)}px,${(s.current.py + fy).toFixed(2)}px)`;
+      raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, [phase, amp]);
+
+  return (
+    <span ref={ref} aria-hidden style={{ display: "inline-block", willChange: "transform" }}>
+      {char}
+    </span>
+  );
+}
+
+// ── FloatTitle — GAMESTASH with per-letter anti-gravity ───────────────────
+function FloatTitle() {
+  return (
+    <h1
+      className="text-[clamp(4rem,11vw,10rem)] font-bold leading-none tracking-tighter mb-6"
+      style={{ fontFamily: "'Space Grotesk', sans-serif" }}
+      aria-label="GAMESTASH"
+    >
+      <span className="glitch-wrap block" style={{ color: "var(--foreground)" }}>
+        {"GAME".split("").map((ch, i) => (
+          <FloatLetter key={i} char={ch} phase={i * 0.9} amp={7 + i * 0.8} />
+        ))}
+      </span>
+      <span className="glitch-wrap block" style={{
+        WebkitTextStroke: "2px var(--neon)",
+        color: "transparent",
+        filter: "drop-shadow(0 0 24px var(--neon))",
+      }}>
+        {"STASH".split("").map((ch, i) => (
+          <FloatLetter key={i} char={ch} phase={3.6 + i * 0.85} amp={6 + i * 1.1} />
+        ))}
+      </span>
+    </h1>
+  );
+}
+
 // ── Game data ──────────────────────────────────────────────────────────────
 const GAMES = [
   {
@@ -260,66 +336,6 @@ function GamePlayer({ game, onClose }: { game: Game | null; onClose: () => void 
         title={game.title}
       />
     </div>
-  );
-}
-
-// ── ScatterTitle — GAMESTASH letters scatter apart on scroll ──────────────
-function ScatterTitle({ scrollY }: { scrollY: number }) {
-  const scatter = useRef<{ x: number; y: number; r: number; s: number }[]>([]);
-  if (scatter.current.length === 0) {
-    // Pre-compute stable scatter vectors per letter: index 0-3 = GAME, 4-8 = STASH
-    const spread = [
-      { x: -340, y: -180, r: -52, s: 0.15 },
-      { x: -120, y: -290, r:  38, s: 0.20 },
-      { x:  80,  y: -260, r: -28, s: 0.18 },
-      { x:  260, y: -140, r:  62, s: 0.22 },
-      { x: -280, y:  200, r:  44, s: 0.12 },
-      { x: -80,  y:  310, r: -56, s: 0.20 },
-      { x:  120, y:  280, r:  34, s: 0.15 },
-      { x:  300, y:  160, r: -48, s: 0.18 },
-      { x:  420, y: -60,  r:  70, s: 0.16 },
-    ];
-    scatter.current = spread;
-  }
-
-  // scrollY 0→320: scatter begins; eased progress 0→1
-  const raw = Math.min(1, scrollY / 320);
-  const t   = raw < 0.5 ? 2 * raw * raw : 1 - Math.pow(-2 * raw + 2, 2) / 2;
-
-  const words = [
-    { text: "GAME",  style: { color: "var(--foreground)" } },
-    { text: "STASH", style: { WebkitTextStroke: "2px var(--neon)", color: "transparent", filter: "drop-shadow(0 0 20px var(--neon))" } },
-  ] as const;
-
-  return (
-    <h1
-      className="text-[clamp(4rem,11vw,10rem)] font-bold leading-none tracking-tighter mb-6"
-      style={{ fontFamily: "'Space Grotesk', sans-serif", willChange: "transform" }}
-      aria-label="GAMESTASH"
-    >
-      {words.map((w, wi) => (
-        <span key={w.text} className="glitch-wrap block" style={w.style as React.CSSProperties}>
-          {w.text.split("").map((ch, ci) => {
-            const idx = wi * 4 + ci;
-            const sv  = scatter.current[idx] ?? { x: 0, y: 0, r: 0, s: 0 };
-            return (
-              <span
-                key={ci}
-                aria-hidden
-                style={{
-                  display: "inline-block",
-                  transform: `translate(${sv.x * t}px, ${sv.y * t}px) rotate(${sv.r * t}deg) scale(${1 - (1 - sv.s) * t})`,
-                  opacity: Math.max(0, 1 - t * 1.4),
-                  willChange: "transform, opacity",
-                }}
-              >
-                {ch}
-              </span>
-            );
-          })}
-        </span>
-      ))}
-    </h1>
   );
 }
 
@@ -712,7 +728,7 @@ export default function Home() {
                   <div className="h-px w-12" style={{ background: "linear-gradient(90deg, var(--neon), transparent)", boxShadow: "0 0 6px var(--neon)" }} />
                 </div>
 
-                <ScatterTitle scrollY={scrollY} />
+                <FloatTitle />
 
                 <MagneticText strength={4} radius={300} tag="p" className="font-mono-cyber text-sm md:text-base mb-12 max-w-lg" style={{ color: "var(--text-dim)" }}>
                   <Typewriter text="13 classic titles. Zero latency. Pure nostalgia." delay={900} />
@@ -819,12 +835,11 @@ export default function Home() {
           />
 
           {/* ══ LIBRARY ═══════════════════════════════════════════════════ */}
-          <section id="library" className="pt-20 pb-24 px-6 md:px-10 lg:px-16" style={{ background: "var(--background)" }}>
-            <div className="max-w-screen-xl mx-auto">
-              {/* Section header */}
+          <section id="library" className="pt-20 pb-12" style={{ background: "var(--background)" }}>
+            {/* Header — constrained */}
+            <div className="px-6 md:px-10 lg:px-16 max-w-screen-xl mx-auto mb-12">
               <div
                 ref={libraryReveal.ref}
-                className="mb-10"
                 style={{
                   opacity: libraryReveal.visible ? 1 : 0,
                   transform: libraryReveal.visible ? "translateY(0)" : "translateY(32px)",
@@ -836,7 +851,6 @@ export default function Home() {
                   <div className="h-px w-6" style={{ background: "var(--neon)", boxShadow: "0 0 6px var(--neon)" }} />
                   <TextScramble text="// Game Library" className="font-mono-cyber text-[10px] tracking-[0.4em] uppercase" style={{ color: "var(--neon)" }} />
                 </div>
-
                 <h2
                   className="text-4xl md:text-6xl font-bold tracking-tighter leading-none mb-4 overflow-hidden"
                   style={{ fontFamily: "'Space Grotesk', sans-serif" }}
@@ -845,81 +859,170 @@ export default function Home() {
                   <br />
                   <SplitReveal text="One Place." style={{ WebkitTextStroke: "1.5px var(--text-muted)" as string, color: "transparent" }} />
                 </h2>
-
                 <p className="font-mono-cyber text-sm max-w-md" style={{ color: "var(--text-dim)" }}>
-                  Spin to select a cartridge, click it to insert, then hit Play.
+                  Hover &amp; scroll to browse · Click the active card to play instantly.
                 </p>
               </div>
-
-              {/* Cartridge carousel */}
-              <CartridgeCarousel
-                games={GAMES.map(g => ({ id: g.id, title: g.title, platform: g.platform, year: g.year, hue: g.hue }))}
-                onPlay={(game) => { const g = GAMES.find(x => x.id === game.id); if (g) handlePlay(g); }}
-              />
             </div>
+
+            {/* Carousel — full width */}
+            <CartridgeCarousel
+              games={GAMES.map(g => ({ id: g.id, title: g.title, platform: g.platform, year: g.year, hue: g.hue }))}
+              onPlay={(game) => { const g = GAMES.find(x => x.id === game.id); if (g) handlePlay(g); }}
+            />
           </section>
 
-          {/* ══ STATS + FOOTER ═══════════════════════════════════════════ */}
-          <footer style={{ borderTop: "1px solid var(--border)", background: "var(--background)" }}>
-            {/* Stats strip */}
+          {/* ══ FOOTER ═══════════════════════════════════════════════════ */}
+          <footer style={{ background: "var(--background)" }}>
+
+            {/* ── Stats — oversized editorial numbers ── */}
             <div
               ref={platformReveal.ref}
-              className="grid grid-cols-2 md:grid-cols-4 gap-px"
               style={{
-                background: "var(--border)",
                 opacity: platformReveal.visible ? 1 : 0,
-                transform: platformReveal.visible ? "translateY(0)" : "translateY(24px)",
-                transition: "opacity 0.65s ease, transform 0.65s cubic-bezier(0.16,1,0.3,1)",
+                transform: platformReveal.visible ? "translateY(0)" : "translateY(40px)",
+                transition: "opacity 0.8s ease, transform 0.8s cubic-bezier(0.16,1,0.3,1)",
+                borderTop: "1px solid var(--border)",
               }}
             >
-              {([
-                { num: "13", label: "Classic Games", hue: 195 },
-                { num: "7",  label: "Platforms",     hue: 280 },
-                { num: "100%", label: "Browser-Based", hue: 320 },
-                { num: "0ms",  label: "No Downloads",  hue: 55  },
-              ] as const).map(({ num, label, hue }) => (
-                <div key={label} className="flex flex-col items-center justify-center py-10 gap-1.5" style={{ background: "var(--background)" }}>
-                  <span
-                    className="font-bold leading-none"
+              <div className="grid grid-cols-2 md:grid-cols-4">
+                {([
+                  { num: "13",   label: "Classic Games",  hue: 195 },
+                  { num: "7",    label: "Platforms",       hue: 280 },
+                  { num: "100%", label: "Browser Based",   hue: 320 },
+                  { num: "0ms",  label: "No Downloads",    hue: 55  },
+                ] as const).map(({ num, label, hue }, i) => (
+                  <div
+                    key={label}
+                    className="group relative flex flex-col items-center justify-center py-14 gap-3 overflow-hidden"
                     style={{
-                      fontFamily: "'Space Grotesk'", fontSize: "clamp(2rem,5vw,3.25rem)",
-                      color: `oklch(0.88 0.22 ${hue})`,
-                      textShadow: `0 0 28px oklch(0.65 0.18 ${hue} / 0.7)`,
+                      borderRight: i < 3 ? "1px solid var(--border)" : undefined,
+                      borderBottom: i < 2 ? "1px solid var(--border)" : undefined,
                     }}
-                  >{num}</span>
-                  <span className="font-mono-cyber text-[8px] tracking-[0.35em] uppercase" style={{ color: "var(--text-muted)" }}>{label}</span>
-                </div>
-              ))}
+                  >
+                    {/* Hover bg glow */}
+                    <div className="absolute inset-0 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-500"
+                      style={{ background: `radial-gradient(ellipse at 50% 80%, oklch(0.65 0.22 ${hue} / 0.08) 0%, transparent 70%)` }} />
+                    {/* Number */}
+                    <span
+                      className="relative font-bold leading-none group-hover:scale-105 transition-transform duration-300"
+                      style={{
+                        fontFamily: "'Space Grotesk'",
+                        fontSize: "clamp(3rem,6.5vw,5rem)",
+                        background: `linear-gradient(135deg, oklch(0.93 0.24 ${hue}), oklch(0.68 0.20 ${hue}))`,
+                        WebkitBackgroundClip: "text",
+                        WebkitTextFillColor: "transparent",
+                        backgroundClip: "text",
+                        filter: `drop-shadow(0 0 32px oklch(0.65 0.18 ${hue} / 0.5))`,
+                      }}
+                    >
+                      {num}
+                    </span>
+                    {/* Label */}
+                    <span className="font-mono-cyber text-[8px] tracking-[0.4em] uppercase" style={{ color: "var(--text-muted)" }}>
+                      {label}
+                    </span>
+                    {/* Bottom accent on hover */}
+                    <div className="absolute bottom-0 left-0 right-0 h-px opacity-0 group-hover:opacity-100 transition-opacity duration-400"
+                      style={{ background: `linear-gradient(90deg, transparent, oklch(0.65 0.22 ${hue}), transparent)`, boxShadow: `0 0 8px oklch(0.65 0.22 ${hue})` }} />
+                  </div>
+                ))}
+              </div>
             </div>
 
-            {/* Bottom bar */}
-            <div className="px-8 md:px-12 py-7" style={{ borderTop: "1px solid var(--border)" }}>
-              <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
-                <div className="flex items-center gap-4">
-                  <span className="font-pixel text-[11px] neon-text" style={{ animation: "neon-pulse 4s ease-in-out infinite" }}>GAMESTASH</span>
-                  <span className="font-mono-cyber text-[9px] tracking-[0.28em] uppercase" style={{ color: "var(--text-muted)" }}>© 2026</span>
+            {/* ── Neon divider ── */}
+            <div style={{ height: 1, background: "linear-gradient(90deg, transparent 0%, var(--neon) 25%, var(--neon-2) 50%, var(--neon-3) 75%, transparent 100%)", opacity: 0.28 }} />
+
+            {/* ── Main footer body ── */}
+            <div className="px-8 md:px-14 py-14">
+              <div className="max-w-7xl mx-auto">
+                {/* Three-column grid */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-12 mb-12">
+
+                  {/* Brand */}
+                  <div className="flex flex-col gap-4">
+                    <span className="font-pixel text-[13px] neon-text" style={{ animation: "neon-pulse 4s ease-in-out infinite", lineHeight: 2 }}>GAMESTASH</span>
+                    <p className="font-mono-cyber text-[9px] tracking-[0.22em] uppercase leading-relaxed" style={{ color: "var(--text-muted)", maxWidth: 200 }}>
+                      The definitive retro gaming vault. 13 classics, zero installs.
+                    </p>
+                    <div className="flex items-center gap-2 mt-1">
+                      <span className="w-1.5 h-1.5 rounded-full" style={{ background: "var(--neon)", boxShadow: "0 0 6px var(--neon)", animation: "neon-pulse 2s ease-in-out infinite" }} />
+                      <span className="font-mono-cyber text-[8px] tracking-widest uppercase" style={{ color: "var(--text-muted)" }}>All Systems Online</span>
+                    </div>
+                  </div>
+
+                  {/* Nav links */}
+                  <div className="flex flex-col gap-3">
+                    <span className="font-mono-cyber text-[8px] tracking-[0.4em] uppercase mb-2" style={{ color: "var(--text-muted)" }}>Navigation</span>
+                    {[
+                      { label: "Browse Library", href: "#library" },
+                      { label: "Privacy Policy", href: "#" },
+                      { label: "Terms of Use",   href: "#" },
+                      { label: "GitHub",         href: "#" },
+                    ].map(({ label, href }) => (
+                      <a
+                        key={label}
+                        href={href}
+                        className="relative w-fit font-mono-cyber text-[10px] tracking-[0.18em] uppercase group"
+                        style={{ color: "var(--text-dim)", cursor: "none" }}
+                        onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = "var(--neon)"; }}
+                        onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = "var(--text-dim)"; }}
+                      >
+                        <span className="group-hover:translate-x-1.5 inline-block transition-transform duration-200">{label}</span>
+                        <span className="absolute -bottom-0.5 left-0 h-px bg-[var(--neon)] scale-x-0 group-hover:scale-x-100 origin-left transition-transform duration-300" style={{ boxShadow: "0 0 4px var(--neon)" }} />
+                      </a>
+                    ))}
+                  </div>
+
+                  {/* Admin CTA */}
+                  <div className="flex flex-col gap-4 md:items-end">
+                    <span className="font-mono-cyber text-[8px] tracking-[0.4em] uppercase mb-2" style={{ color: "var(--text-muted)" }}>Admin</span>
+                    <a
+                      href="/Luke-s-games01-main/admin.html"
+                      className="relative overflow-hidden flex items-center gap-2.5 px-6 py-3 font-mono-cyber text-[10px] tracking-[0.28em] uppercase border group w-fit"
+                      style={{
+                        borderColor: "var(--neon-2)",
+                        color: "var(--neon-2)",
+                        background: "oklch(0.78 0.22 280 / 0.06)",
+                        cursor: "none",
+                        transition: "transform 0.2s, box-shadow 0.25s",
+                      }}
+                      onMouseEnter={e => {
+                        const el = e.currentTarget as HTMLElement;
+                        el.style.background = "oklch(0.78 0.22 280 / 0.14)";
+                        el.style.boxShadow  = "0 0 28px oklch(0.78 0.22 280 / 0.45), 0 0 60px oklch(0.78 0.22 280 / 0.12)";
+                        el.style.transform  = "translateY(-3px)";
+                      }}
+                      onMouseLeave={e => {
+                        const el = e.currentTarget as HTMLElement;
+                        el.style.background = "oklch(0.78 0.22 280 / 0.06)";
+                        el.style.boxShadow  = "none";
+                        el.style.transform  = "translateY(0)";
+                      }}
+                    >
+                      <span className="text-sm">⚙</span>
+                      <span>Admin Panel</span>
+                      {/* Sweep on hover */}
+                      <span className="absolute inset-0 translate-x-[-101%] group-hover:translate-x-0 transition-transform duration-300" style={{ background: "oklch(0.78 0.22 280 / 0.10)" }} />
+                    </a>
+                    <p className="font-mono-cyber text-[8px] tracking-[0.18em] uppercase leading-relaxed md:text-right" style={{ color: "var(--text-muted)", maxWidth: 180 }}>
+                      Manage games, update covers, sync to GitHub.
+                    </p>
+                  </div>
                 </div>
 
-                <div className="flex items-center gap-5 flex-wrap justify-center">
-                  {(["PRIVACY", "TERMS", "GITHUB"] as const).map((label) => (
-                    <a key={label} href="#" className="font-mono-cyber text-[9px] tracking-[0.22em] uppercase transition-colors duration-200"
-                      style={{ color: "var(--text-muted)", cursor: "none" }}
-                      onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = "var(--neon)"; }}
-                      onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = "var(--text-muted)"; }}
-                    >{label}</a>
-                  ))}
-                  <a
-                    href="/Luke-s-games01-main/admin.html"
-                    className="font-mono-cyber text-[9px] tracking-[0.22em] uppercase border px-2 py-0.5 transition-all duration-200"
-                    style={{ color: "var(--neon-2)", borderColor: "var(--neon-2)", background: "oklch(0.78 0.22 280 / 0.06)", cursor: "none" }}
-                    onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = "oklch(0.78 0.22 280 / 0.16)"; (e.currentTarget as HTMLElement).style.boxShadow = "0 0 12px oklch(0.78 0.22 280 / 0.4)"; }}
-                    onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = "oklch(0.78 0.22 280 / 0.06)"; (e.currentTarget as HTMLElement).style.boxShadow = "none"; }}
-                  >⚙ ADMIN</a>
-                </div>
+                {/* Divider */}
+                <div style={{ height: 1, background: "var(--border)", marginBottom: "1.5rem" }} />
 
-                <div className="flex items-center gap-2 font-mono-cyber text-[9px] tracking-widest uppercase" style={{ color: "var(--text-muted)" }}>
-                  <span className="w-1.5 h-1.5 rounded-full" style={{ background: "var(--neon)", boxShadow: "0 0 6px var(--neon)", animation: "neon-pulse 2s ease-in-out infinite" }} />
-                  All Systems Online
+                {/* Copyright row */}
+                <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
+                  <span className="font-mono-cyber text-[8px] tracking-[0.28em] uppercase" style={{ color: "var(--text-muted)" }}>
+                    © 2026 GameStash — All original games belong to their respective owners.
+                  </span>
+                  <div className="flex items-center gap-1.5">
+                    <div className="w-px h-3" style={{ background: "var(--border)" }} />
+                    <span className="font-mono-cyber text-[8px] tracking-[0.2em] uppercase" style={{ color: "var(--text-muted)" }}>Built with ♥ for retro gamers</span>
+                  </div>
                 </div>
               </div>
             </div>
