@@ -371,6 +371,7 @@ export function CartridgeCarousel({ games, onPlay }: { games: CarouselGame[]; on
   const angleRef                        = useRef(0);
   const [insertedGame, setInsertedGame] = useState<CarouselGame | null>(null);
   const [inFlight, setInFlight]         = useState<string | null>(null);
+  const playTimer                       = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [flyCart, setFlyCart]           = useState<{ game: CarouselGame; sx: number; sy: number; dx: number; dy: number } | null>(null);
   const [ejectCart, setEjectCart]       = useState<{ game: CarouselGame; sx: number; sy: number; ex: number; ey: number } | null>(null);
   const cartEls   = useRef<(HTMLDivElement | null)[]>([]);
@@ -459,11 +460,14 @@ export function CartridgeCarousel({ games, onPlay }: { games: CarouselGame[]; on
       setInFlight(null);
       setFlyCart(null);
       setTargetIdx(i => (i + 1) % TOTAL);
+      // auto-launch after console boot animation (BOOTING → LOADING → title)
+      playTimer.current = setTimeout(() => onPlay(game), 1100);
     }, 920);
   }, [games, inFlight, insertedGame, TOTAL]);
 
   const handleEject = useCallback(() => {
     if (!insertedGame) return;
+    if (playTimer.current) { clearTimeout(playTimer.current); playTimer.current = null; }
     const conE = consoleEl.current;
     const wrap = wrapEl.current;
     const ei   = games.findIndex(g => g.id === insertedGame.id);
@@ -582,33 +586,7 @@ export function CartridgeCarousel({ games, onPlay }: { games: CarouselGame[]; on
           <Console insertedGame={insertedGame} onEject={handleEject} />
         </div>
 
-        {/* Play button */}
-        {insertedGame && (
-          <div style={{ display: "flex", justifyContent: "center", marginTop: 16 }}>
-            <button
-              onClick={() => onPlay(insertedGame)}
-              style={{
-                fontFamily: "'Press Start 2P'", fontSize: 8, letterSpacing: "0.18em",
-                color: "oklch(0.04 0.005 195)",
-                background: gc(insertedGame.hue),
-                border: "none", padding: "12px 32px",
-                cursor: "pointer",
-                boxShadow: `0 0 28px ${gc(insertedGame.hue)}99, 0 0 70px ${gc(insertedGame.hue)}33`,
-                borderRadius: 2, transition: "all 0.22s",
-              }}
-              onMouseEnter={e => {
-                (e.currentTarget as HTMLElement).style.boxShadow = `0 0 48px ${gc(insertedGame.hue)}cc, 0 0 100px ${gc(insertedGame.hue)}44`;
-                (e.currentTarget as HTMLElement).style.transform = "translateY(-2px) scale(1.05)";
-              }}
-              onMouseLeave={e => {
-                (e.currentTarget as HTMLElement).style.boxShadow = `0 0 28px ${gc(insertedGame.hue)}99, 0 0 70px ${gc(insertedGame.hue)}33`;
-                (e.currentTarget as HTMLElement).style.transform = "none";
-              }}
-            >
-              ▶ PLAY {insertedGame.title.slice(0, 12).toUpperCase()}
-            </button>
-          </div>
-        )}
+        {/* Auto-launches after console boot — no button needed */}
       </div>
 
       {/* Fly-in animation */}
