@@ -210,18 +210,18 @@ function CartInsertOverlay({ game, onDone }: { game: Game | null; onDone: (g: Ga
         }}>
           <div style={{
             width: 108, height: 128, flexShrink: 0,
-            background: `linear-gradient(160deg, oklch(0.17 0.08 ${game.hue}), oklch(0.10 0.05 ${game.hue}))`,
-            border: `1px solid ${neon}55`,
+            background: `linear-gradient(160deg, oklch(0.30 0.16 ${game.hue}), oklch(0.20 0.12 ${game.hue}))`,
+            border: `1px solid ${neon}88`,
             borderRadius: "5px 5px 2px 2px",
-            boxShadow: `0 0 24px ${neon}44, inset 0 1px 0 rgba(255,255,255,0.12)`,
+            boxShadow: `0 0 32px ${neon}66, inset 0 1px 0 rgba(255,255,255,0.18)`,
             display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 7, padding: 10,
             transform: phase >= 2 ? "translateY(0)" : "translateY(-160px)",
             transition: "transform 0.52s cubic-bezier(0.5,0,0.5,1) 0.04s",
           }}>
             <div style={{
               width: "100%", flex: 1,
-              background: `linear-gradient(135deg, oklch(0.13 0.06 ${game.hue}), oklch(0.08 0.04 ${game.hue}))`,
-              border: `1px solid ${neon}33`, borderRadius: 2,
+              background: `linear-gradient(135deg, oklch(0.22 0.10 ${game.hue}), oklch(0.14 0.07 ${game.hue}))`,
+              border: `1px solid ${neon}55`, borderRadius: 2,
               display: "flex", alignItems: "center", justifyContent: "center", padding: 4,
             }}>
               <span style={{
@@ -244,7 +244,7 @@ function CartInsertOverlay({ game, onDone }: { game: Game | null; onDone: (g: Ga
 
         {/* Console body */}
         <div style={{
-          background: `linear-gradient(160deg, oklch(0.09 0.04 ${game.hue}), oklch(0.05 0.02 ${game.hue}))`,
+          background: `linear-gradient(160deg, oklch(0.16 0.07 ${game.hue}), oklch(0.10 0.04 ${game.hue}))`,
           border: `1px solid ${isOn ? `${neon}44` : "rgba(255,255,255,0.06)"}`,
           borderRadius: 10,
           padding: "18px 22px 22px",
@@ -770,10 +770,7 @@ export default function Home() {
 
       <main className="text-white overflow-x-hidden" style={{ background: "var(--background)" }}>
 
-        {/* ── Sticky hero wrapper ─────────────────────────────────────────── */}
-        {/* The hero stays sticky while library slides over it from below    */}
-        <div style={{ position: "relative", height: "100vh", zIndex: 1 }}>
-          <section ref={heroRef} className="sticky top-0 h-screen overflow-hidden circuit-bg">
+        <section ref={heroRef} className="relative h-screen overflow-hidden circuit-bg" style={{ zIndex: 1 }}>
 
             {/* Content fades on scroll */}
             <div
@@ -961,9 +958,8 @@ export default function Home() {
               style={{ background: "radial-gradient(ellipse 85% 65% at 50% 45%, transparent 35%, oklch(0.04 0.005 195 / 0.75) 100%)" }}
             />
           </section>
-        </div>
 
-        {/* ── Sliding content — library + vault + footer ─────────────────── */}
+        {/* ── Library + vault + footer ───────────────────────────────────── */}
         <div style={{ position: "relative", zIndex: 2 }}>
           {/* Fade bridge from hero into library */}
           <div
