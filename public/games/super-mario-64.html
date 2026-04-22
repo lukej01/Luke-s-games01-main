@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Super Mario 64</title>
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+  <style>
+    body { overflow: hidden; background: #000; margin: 0; padding: 0; color: #000; }
+    #startButton {
+      display: block; width: 160px; height: 40px;
+      background-color: #4CAF50; color: white;
+      text-align: center; font-size: 16px;
+      margin: 40px auto; padding: 10px 20px;
+      border: none; border-radius: 8px; cursor: pointer;
+      font-family: 'Press Start 2P', cursive;
+      box-shadow: 0 0 10px 2px #000;
+    }
+    #startButton:hover { background-color: #43a047; }
+    #game { display: none; }
+  </style>
+</head>
+<body>
+  <div style="width: 100vw; height: 100vh; max-width: 100%;">
+    <div id="game"></div>
+    <button id="startButton">PLAY</button>
+  </div>
+  <script>
+    document.getElementById("startButton").addEventListener("click", function() {
+      document.getElementById("game").style.display = "block";
+      document.getElementById("startButton").style.display = "none";
+      EJS_player = "#game";
+      EJS_core = "parallel_n64";
+      EJS_color = "#000000";
+      EJS_startOnLoaded = true;
+      EJS_pathtodata = "https://cdn.emulatorjs.org/stable/data/";
+      EJS_gameUrl = "https://cdn.jsdelivr.net/gh/bubbls/clsm64@139e09e38eb3e7783095eee30fdf75b18ee59e02/Super%20Mario%2064%20(USA).zip";
+      EJS_defaultOptions = { vsync: "disabled" };
+      var script = document.createElement("script");
+      script.src = "https://cdn.emulatorjs.org/stable/data/loader.js";
+      document.body.appendChild(script);
+    });
+  </script>
+</body>
+</html>
