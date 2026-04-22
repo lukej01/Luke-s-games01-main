@@ -4,8 +4,9 @@
 # next.js build cache (never commit)
 /.next/
 
-# old build output dirs
+# build output dirs (intermediate - contents are copied to root after build)
 /out/
+/docs/
 /build
 
 # misc
