@@ -718,15 +718,6 @@ function Typewriter({ text, delay = 0 }: { text: string; delay?: number }) {
 }
 
 // ── Main Page ───────────────────────────────────────────────────────────────
-const PLATFORMS = [
-  { id: "NES",  label: "Nintendo",       games: 2, hue: 15  },
-  { id: "SNES", label: "Super Nintendo", games: 1, hue: 40  },
-  { id: "N64",  label: "Nintendo 64",    games: 3, hue: 280 },
-  { id: "GEN",  label: "Sega Genesis",   games: 1, hue: 220 },
-  { id: "PS1",  label: "PlayStation",    games: 3, hue: 320 },
-  { id: "DS",   label: "Nintendo DS",    games: 3, hue: 195 },
-  { id: "PC",   label: "Browser",        games: 1, hue: 55  },
-];
 
 export default function Home() {
   const [scrollY, setScrollY] = useState(0);
@@ -997,151 +988,68 @@ export default function Home() {
             </div>
           </section>
 
-          {/* ══ PLATFORM SHOWCASE ═════════════════════════════════════════ */}
-          <section
-            className="relative py-24 px-8 md:px-12 lg:px-20 overflow-hidden"
-            style={{ borderTop: "1px solid var(--border)", background: "var(--background)" }}
-          >
-            {/* Ambient glows */}
-            <div className="absolute inset-0 pointer-events-none" style={{
-              background: "radial-gradient(ellipse 60% 50% at 20% 50%, oklch(0.88 0.22 195 / 0.04) 0%, transparent 70%)",
-            }} />
-            <div className="absolute inset-0 pointer-events-none" style={{
-              background: "radial-gradient(ellipse 50% 50% at 80% 50%, oklch(0.78 0.22 280 / 0.04) 0%, transparent 70%)",
-            }} />
-
+          {/* ══ STATS + FOOTER ═══════════════════════════════════════════ */}
+          <footer style={{ borderTop: "1px solid var(--border)", background: "var(--background)" }}>
+            {/* Stats strip */}
             <div
               ref={platformReveal.ref}
-              className="max-w-screen-xl mx-auto"
+              className="grid grid-cols-2 md:grid-cols-4 gap-px"
+              style={{
+                background: "var(--border)",
+                opacity: platformReveal.visible ? 1 : 0,
+                transform: platformReveal.visible ? "translateY(0)" : "translateY(24px)",
+                transition: "opacity 0.65s ease, transform 0.65s cubic-bezier(0.16,1,0.3,1)",
+              }}
             >
-              {/* Section header */}
-              <div
-                className="mb-14 text-center"
-                style={{
-                  opacity: platformReveal.visible ? 1 : 0,
-                  transform: platformReveal.visible ? "translateY(0)" : "translateY(40px)",
-                  transition: "opacity 0.7s ease, transform 0.7s cubic-bezier(0.16,1,0.3,1)",
-                }}
-              >
-                <div className="flex items-center justify-center gap-3 mb-4">
-                  <div className="h-px w-10" style={{ background: "linear-gradient(90deg, transparent, var(--neon))", boxShadow: "0 0 6px var(--neon)" }} />
-                  <TextScramble text="// Platform Archive" className="font-mono-cyber text-[10px] tracking-[0.4em] uppercase" style={{ color: "var(--neon)" }} />
-                  <div className="h-px w-10" style={{ background: "linear-gradient(90deg, var(--neon), transparent)", boxShadow: "0 0 6px var(--neon)" }} />
+              {([
+                { num: "13", label: "Classic Games", hue: 195 },
+                { num: "7",  label: "Platforms",     hue: 280 },
+                { num: "100%", label: "Browser-Based", hue: 320 },
+                { num: "0ms",  label: "No Downloads",  hue: 55  },
+              ] as const).map(({ num, label, hue }) => (
+                <div key={label} className="flex flex-col items-center justify-center py-10 gap-1.5" style={{ background: "var(--background)" }}>
+                  <span
+                    className="font-bold leading-none"
+                    style={{
+                      fontFamily: "'Space Grotesk'", fontSize: "clamp(2rem,5vw,3.25rem)",
+                      color: `oklch(0.88 0.22 ${hue})`,
+                      textShadow: `0 0 28px oklch(0.65 0.18 ${hue} / 0.7)`,
+                    }}
+                  >{num}</span>
+                  <span className="font-mono-cyber text-[8px] tracking-[0.35em] uppercase" style={{ color: "var(--text-muted)" }}>{label}</span>
                 </div>
-                <h2 className="text-4xl md:text-6xl font-bold tracking-tighter leading-none" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
-                  <SplitReveal text="7 Platforms." />
-                  <br />
-                  <SplitReveal text="One Vault." style={{ WebkitTextStroke: "1.5px var(--neon)" as string, color: "transparent" }} />
-                </h2>
-              </div>
-
-              {/* Platform grid */}
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-7 gap-3 mb-16">
-                {PLATFORMS.map((plat, i) => {
-                  const neon = `oklch(0.88 0.22 ${plat.hue})`;
-                  const neonDim = `oklch(0.55 0.18 ${plat.hue})`;
-                  return (
-                    <div
-                      key={plat.id}
-                      className="group relative flex flex-col items-center justify-center gap-2 border p-5 cursor-none"
-                      style={{
-                        borderColor: `oklch(0.22 0.06 ${plat.hue})`,
-                        background: `oklch(0.06 0.02 ${plat.hue})`,
-                        borderRadius: 4,
-                        opacity: platformReveal.visible ? 1 : 0,
-                        transform: platformReveal.visible ? "translateY(0) scale(1)" : "translateY(24px) scale(0.94)",
-                        transition: `opacity 0.55s ${i * 0.06}s ease, transform 0.55s ${i * 0.06}s cubic-bezier(0.16,1,0.3,1)`,
-                      }}
-                      onMouseEnter={e => {
-                        (e.currentTarget as HTMLElement).style.borderColor = `${neon}88`;
-                        (e.currentTarget as HTMLElement).style.background = `oklch(0.10 0.04 ${plat.hue})`;
-                        (e.currentTarget as HTMLElement).style.boxShadow = `0 0 24px ${neon}22, inset 0 0 16px ${neon}08`;
-                        (e.currentTarget as HTMLElement).style.transform = "translateY(-4px) scale(1.03)";
-                      }}
-                      onMouseLeave={e => {
-                        (e.currentTarget as HTMLElement).style.borderColor = `oklch(0.22 0.06 ${plat.hue})`;
-                        (e.currentTarget as HTMLElement).style.background = `oklch(0.06 0.02 ${plat.hue})`;
-                        (e.currentTarget as HTMLElement).style.boxShadow = "none";
-                        (e.currentTarget as HTMLElement).style.transform = "translateY(0) scale(1)";
-                      }}
-                    >
-                      <span style={{
-                        fontFamily: "'Press Start 2P'", fontSize: 10,
-                        color: neon, textShadow: `0 0 12px ${neon}88`,
-                        letterSpacing: "0.06em",
-                      }}>{plat.id}</span>
-                      <span style={{
-                        fontFamily: "Share Tech Mono", fontSize: 7,
-                        color: neonDim, letterSpacing: "0.12em", textAlign: "center",
-                      }}>{plat.label.toUpperCase()}</span>
-                      <span style={{
-                        fontFamily: "Share Tech Mono", fontSize: 6,
-                        color: `${neon}66`, letterSpacing: "0.08em",
-                      }}>{plat.games} {plat.games === 1 ? "GAME" : "GAMES"}</span>
-                    </div>
-                  );
-                })}
-              </div>
-
-              {/* Stats row */}
-              <div
-                className="grid grid-cols-2 md:grid-cols-4 gap-px border"
-                style={{
-                  borderColor: "var(--border)",
-                  background: "var(--border)",
-                  opacity: platformReveal.visible ? 1 : 0,
-                  transform: platformReveal.visible ? "translateY(0)" : "translateY(28px)",
-                  transition: "opacity 0.7s 0.3s ease, transform 0.7s 0.3s ease",
-                }}
-              >
-                {[
-                  { num: "13", label: "Classic Games", hue: 195 },
-                  { num: "7+", label: "Platforms", hue: 280 },
-                  { num: "100%", label: "Browser-Based", hue: 320 },
-                  { num: "0ms", label: "Download Time", hue: 55 },
-                ].map(({ num, label, hue }) => (
-                  <div key={label} className="flex flex-col items-center justify-center py-8 gap-1" style={{ background: "var(--background)" }}>
-                    <span className="text-3xl md:text-4xl font-bold" style={{ color: `oklch(0.88 0.22 ${hue})`, textShadow: `0 0 20px oklch(0.65 0.18 ${hue})`, fontFamily: "'Space Grotesk'" }}>{num}</span>
-                    <span className="font-mono-cyber text-[8px] tracking-[0.3em] uppercase" style={{ color: "var(--text-muted)" }}>{label}</span>
-                  </div>
-                ))}
-              </div>
+              ))}
             </div>
-          </section>
 
-          {/* ══ FOOTER ════════════════════════════════════════════════════ */}
-          <footer className="px-8 md:px-12 py-10" style={{ borderTop: "1px solid var(--border)" }}>
-            <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
-              <div className="flex flex-col gap-1">
-                <span className="font-pixel text-sm neon-text" style={{ animation: "neon-pulse 4s ease-in-out infinite" }}>
-                  GAMESTASH
-                </span>
-                <span className="font-mono-cyber text-[9px] tracking-[0.35em] uppercase" style={{ color: "var(--text-muted)" }}>
-                  © 2026 — Classic titles, rediscovered.
-                </span>
-              </div>
-              <div className="flex gap-6 flex-wrap">
-                {(["PRIVACY", "TERMS", "GITHUB"] as const).map((label) => (
-                  <TextScramble
-                    key={label}
-                    text={label}
-                    className="font-mono-cyber text-[10px] tracking-[0.25em] uppercase"
-                    style={{ color: "var(--text-muted)" } as React.CSSProperties}
-                  />
-                ))}
-                <a
-                  href="/Luke-s-games01-main/admin.html"
-                  className="font-mono-cyber text-[10px] tracking-[0.25em] uppercase border px-2.5 py-1 transition-all duration-200"
-                  style={{ color: "var(--neon-2)", borderColor: "var(--neon-2)", background: "oklch(0.78 0.22 280 / 0.06)", cursor: "none" }}
-                  onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = "oklch(0.78 0.22 280 / 0.16)"; (e.currentTarget as HTMLElement).style.boxShadow = "0 0 14px oklch(0.78 0.22 280 / 0.4)"; }}
-                  onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = "oklch(0.78 0.22 280 / 0.06)"; (e.currentTarget as HTMLElement).style.boxShadow = "none"; }}
-                >
-                  ⚙ ADMIN
-                </a>
-              </div>
-              <div className="flex items-center gap-2 font-mono-cyber text-[9px] tracking-widest uppercase" style={{ color: "var(--text-muted)" }}>
-                <span className="w-1.5 h-1.5 rounded-full" style={{ background: "var(--neon)", boxShadow: "0 0 6px var(--neon)", animation: "neon-pulse 2s ease-in-out infinite" }} />
-                All Systems Online
+            {/* Bottom bar */}
+            <div className="px-8 md:px-12 py-7" style={{ borderTop: "1px solid var(--border)" }}>
+              <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
+                <div className="flex items-center gap-4">
+                  <span className="font-pixel text-[11px] neon-text" style={{ animation: "neon-pulse 4s ease-in-out infinite" }}>GAMESTASH</span>
+                  <span className="font-mono-cyber text-[9px] tracking-[0.28em] uppercase" style={{ color: "var(--text-muted)" }}>© 2026</span>
+                </div>
+
+                <div className="flex items-center gap-5 flex-wrap justify-center">
+                  {(["PRIVACY", "TERMS", "GITHUB"] as const).map((label) => (
+                    <a key={label} href="#" className="font-mono-cyber text-[9px] tracking-[0.22em] uppercase transition-colors duration-200"
+                      style={{ color: "var(--text-muted)", cursor: "none" }}
+                      onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = "var(--neon)"; }}
+                      onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = "var(--text-muted)"; }}
+                    >{label}</a>
+                  ))}
+                  <a
+                    href="/Luke-s-games01-main/admin.html"
+                    className="font-mono-cyber text-[9px] tracking-[0.22em] uppercase border px-2 py-0.5 transition-all duration-200"
+                    style={{ color: "var(--neon-2)", borderColor: "var(--neon-2)", background: "oklch(0.78 0.22 280 / 0.06)", cursor: "none" }}
+                    onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = "oklch(0.78 0.22 280 / 0.16)"; (e.currentTarget as HTMLElement).style.boxShadow = "0 0 12px oklch(0.78 0.22 280 / 0.4)"; }}
+                    onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = "oklch(0.78 0.22 280 / 0.06)"; (e.currentTarget as HTMLElement).style.boxShadow = "none"; }}
+                  >⚙ ADMIN</a>
+                </div>
+
+                <div className="flex items-center gap-2 font-mono-cyber text-[9px] tracking-widest uppercase" style={{ color: "var(--text-muted)" }}>
+                  <span className="w-1.5 h-1.5 rounded-full" style={{ background: "var(--neon)", boxShadow: "0 0 6px var(--neon)", animation: "neon-pulse 2s ease-in-out infinite" }} />
+                  All Systems Online
+                </div>
               </div>
             </div>
           </footer>
