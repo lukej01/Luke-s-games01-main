@@ -5,6 +5,7 @@ import { HeroBackground } from "@/components/ui/hero-background";
 import { TextScramble } from "@/components/ui/text-scramble";
 import { CyberpunkCursor } from "@/components/ui/cyberpunk-cursor";
 import { MagneticText } from "@/components/ui/magnetic-text";
+import { CartridgeCarousel } from "@/components/ui/cartridge-carousel";
 
 // ── Game data ──────────────────────────────────────────────────────────────
 const GAMES = [
@@ -128,8 +129,6 @@ const GAMES = [
 ] as const;
 
 type Game = (typeof GAMES)[number];
-const PLATFORMS = ["ALL", "N64", "SNES", "NES", "GEN", "PS1", "GBA", "DS"] as const;
-type Platform = (typeof PLATFORMS)[number];
 
 const BASE = "/Luke-s-games01-main";
 
@@ -720,16 +719,12 @@ function Typewriter({ text, delay = 0 }: { text: string; delay?: number }) {
 
 // ── Main Page ───────────────────────────────────────────────────────────────
 export default function Home() {
-  const [filter, setFilter] = useState<Platform>("ALL");
   const [scrollY, setScrollY] = useState(0);
   const [scrollProgress, setScrollProgress] = useState(0);
-  const [insertingGame, setInsertingGame] = useState<Game | null>(null);
   const [playingGame, setPlayingGame] = useState<Game | null>(null);
   const libraryReveal = useReveal(0.03);
   const vaultReveal = useReveal(0.2);
   const heroRef = useRef<HTMLElement>(null);
-
-  const filtered = filter === "ALL" ? GAMES : GAMES.filter((g) => g.platform === filter);
 
   useEffect(() => {
     const onScroll = () => {
@@ -744,12 +739,6 @@ export default function Home() {
 
   const closePlayer = useCallback(() => setPlayingGame(null), []);
 
-  // Cart animation done → open the actual game player
-  const onInsertDone = useCallback((g: Game) => {
-    setInsertingGame(null);
-    setPlayingGame(g);
-  }, []);
-
   // Hero content fades as library slides over it
   const heroOpacity = Math.max(0, 1 - scrollY / 360);
   const heroParallax = scrollY * 0.28;
@@ -758,7 +747,6 @@ export default function Home() {
     <>
       <CyberpunkCursor />
       <HeroBackground />
-      <CartInsertOverlay game={insertingGame} onDone={onInsertDone} />
       <GamePlayer game={playingGame} onClose={closePlayer} />
       {/* Scroll progress bar */}
       <div aria-hidden="true" style={{
@@ -985,66 +973,15 @@ export default function Home() {
                 </h2>
 
                 <p className="font-mono-cyber text-sm max-w-md" style={{ color: "var(--text-dim)" }}>
-                  Select a platform or browse the full collection. Click any title to launch.
+                  Spin to select a cartridge, click it to insert, then hit Play.
                 </p>
               </div>
 
-              {/* Platform filter */}
-              <div
-                className="flex flex-wrap gap-2 mb-8"
-                style={{ opacity: libraryReveal.visible ? 1 : 0, transition: "opacity 0.7s 0.15s ease" }}
-              >
-                {PLATFORMS.map((p) => (
-                  <button
-                    key={p}
-                    data-hover
-                    onClick={() => setFilter(p)}
-                    className="px-4 py-1.5 font-mono-cyber text-[10px] tracking-[0.3em] uppercase border transition-all duration-200"
-                    style={{
-                      borderColor: filter === p ? "var(--neon)" : "var(--border)",
-                      color: filter === p ? "var(--background)" : "var(--text-dim)",
-                      background: filter === p ? "var(--neon)" : "transparent",
-                      boxShadow: filter === p ? "0 0 16px oklch(0.88 0.22 195 / 0.35)" : "none",
-                      cursor: "none",
-                    }}
-                    onMouseEnter={(e) => {
-                      if (filter !== p) {
-                        (e.currentTarget as HTMLButtonElement).style.borderColor = "var(--neon)";
-                        (e.currentTarget as HTMLButtonElement).style.color = "var(--neon)";
-                      }
-                    }}
-                    onMouseLeave={(e) => {
-                      if (filter !== p) {
-                        (e.currentTarget as HTMLButtonElement).style.borderColor = "var(--border)";
-                        (e.currentTarget as HTMLButtonElement).style.color = "var(--text-dim)";
-                      }
-                    }}
-                  >
-                    {p}
-                  </button>
-                ))}
-                <span className="ml-auto font-mono-cyber text-[10px] tracking-widest self-center" style={{ color: "var(--text-muted)" }}>
-                  {filtered.length} titles
-                </span>
-              </div>
-
-              {/* Divider */}
-              <div className="mb-8 h-px w-full" style={{ background: "linear-gradient(90deg, var(--border-glow), transparent)" }} />
-
-              {/* Game grid */}
-              <div
-                className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-5 gap-3"
-                style={{ perspective: "1200px" }}
-              >
-                {filtered.map((game, i) => (
-                  <GameCard
-                    key={game.id}
-                    game={game}
-                    index={i}
-                    onClick={() => setInsertingGame(game)}
-                  />
-                ))}
-              </div>
+              {/* Cartridge carousel */}
+              <CartridgeCarousel
+                games={GAMES.map(g => ({ id: g.id, title: g.title, platform: g.platform, year: g.year, hue: g.hue }))}
+                onPlay={(game) => setPlayingGame(GAMES.find(g => g.id === game.id)!)}
+              />
             </div>
           </section>
 
