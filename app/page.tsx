@@ -718,12 +718,23 @@ function Typewriter({ text, delay = 0 }: { text: string; delay?: number }) {
 }
 
 // ── Main Page ───────────────────────────────────────────────────────────────
+const PLATFORMS = [
+  { id: "NES",  label: "Nintendo",       games: 2, hue: 15  },
+  { id: "SNES", label: "Super Nintendo", games: 1, hue: 40  },
+  { id: "N64",  label: "Nintendo 64",    games: 3, hue: 280 },
+  { id: "GEN",  label: "Sega Genesis",   games: 1, hue: 220 },
+  { id: "PS1",  label: "PlayStation",    games: 3, hue: 320 },
+  { id: "DS",   label: "Nintendo DS",    games: 3, hue: 195 },
+  { id: "PC",   label: "Browser",        games: 1, hue: 55  },
+];
+
 export default function Home() {
   const [scrollY, setScrollY] = useState(0);
   const [scrollProgress, setScrollProgress] = useState(0);
+  const [insertingGame, setInsertingGame] = useState<Game | null>(null);
   const [playingGame, setPlayingGame] = useState<Game | null>(null);
   const libraryReveal = useReveal(0.03);
-  const vaultReveal = useReveal(0.2);
+  const platformReveal = useReveal(0.12);
   const heroRef = useRef<HTMLElement>(null);
 
   useEffect(() => {
@@ -738,6 +749,9 @@ export default function Home() {
   }, []);
 
   const closePlayer = useCallback(() => setPlayingGame(null), []);
+  const handlePlay = useCallback((game: Game) => {
+    setInsertingGame(game);
+  }, []);
 
   // Hero content fades as library slides over it
   const heroOpacity = Math.max(0, 1 - scrollY / 360);
@@ -747,6 +761,7 @@ export default function Home() {
     <>
       <CyberpunkCursor />
       <HeroBackground />
+      <CartInsertOverlay game={insertingGame} onDone={(g) => { setInsertingGame(null); setPlayingGame(g); }} />
       <GamePlayer game={playingGame} onClose={closePlayer} />
       {/* Scroll progress bar */}
       <div aria-hidden="true" style={{
@@ -977,99 +992,126 @@ export default function Home() {
               {/* Cartridge carousel */}
               <CartridgeCarousel
                 games={GAMES.map(g => ({ id: g.id, title: g.title, platform: g.platform, year: g.year, hue: g.hue }))}
-                onPlay={(game) => setPlayingGame(GAMES.find(g => g.id === game.id)!)}
+                onPlay={(game) => { const g = GAMES.find(x => x.id === game.id); if (g) handlePlay(g); }}
               />
             </div>
           </section>
 
-          {/* ══ VAULT BANNER ══════════════════════════════════════════════ */}
+          {/* ══ PLATFORM SHOWCASE ═════════════════════════════════════════ */}
           <section
-            className="relative py-28 px-8 md:px-12 lg:px-20 overflow-hidden circuit-bg"
-            style={{ borderTop: "1px solid var(--border)", borderBottom: "1px solid var(--border)" }}
+            className="relative py-24 px-8 md:px-12 lg:px-20 overflow-hidden"
+            style={{ borderTop: "1px solid var(--border)", background: "var(--background)" }}
           >
-            <div
-              className="absolute top-1/2 left-1/4 w-[400px] h-[400px] rounded-full pointer-events-none -translate-y-1/2"
-              style={{ background: "radial-gradient(circle, oklch(0.88 0.22 195 / 0.06) 0%, transparent 70%)", filter: "blur(60px)" }}
-            />
-            <div
-              className="absolute top-1/2 right-1/4 w-[300px] h-[300px] rounded-full pointer-events-none -translate-y-1/2"
-              style={{ background: "radial-gradient(circle, oklch(0.78 0.22 280 / 0.06) 0%, transparent 70%)", filter: "blur(60px)" }}
-            />
+            {/* Ambient glows */}
+            <div className="absolute inset-0 pointer-events-none" style={{
+              background: "radial-gradient(ellipse 60% 50% at 20% 50%, oklch(0.88 0.22 195 / 0.04) 0%, transparent 70%)",
+            }} />
+            <div className="absolute inset-0 pointer-events-none" style={{
+              background: "radial-gradient(ellipse 50% 50% at 80% 50%, oklch(0.78 0.22 280 / 0.04) 0%, transparent 70%)",
+            }} />
 
             <div
-              ref={vaultReveal.ref}
-              className="max-w-7xl mx-auto relative z-10"
-              style={{
-                opacity: vaultReveal.visible ? 1 : 0,
-                transform: vaultReveal.visible ? "translateY(0)" : "translateY(32px)",
-                transition: "opacity 0.8s ease, transform 0.8s ease",
-              }}
+              ref={platformReveal.ref}
+              className="max-w-screen-xl mx-auto"
             >
+              {/* Section header */}
               <div
-                className="absolute -top-8 left-0 font-bold pointer-events-none select-none leading-none"
+                className="mb-14 text-center"
                 style={{
-                  fontSize: "clamp(80px, 18vw, 220px)",
-                  fontFamily: "'Space Grotesk', sans-serif",
-                  WebkitTextStroke: "1px oklch(0.88 0.22 195 / 0.06)",
-                  color: "transparent",
-                  letterSpacing: "-0.04em",
+                  opacity: platformReveal.visible ? 1 : 0,
+                  transform: platformReveal.visible ? "translateY(0)" : "translateY(40px)",
+                  transition: "opacity 0.7s ease, transform 0.7s cubic-bezier(0.16,1,0.3,1)",
                 }}
               >
-                VAULT
+                <div className="flex items-center justify-center gap-3 mb-4">
+                  <div className="h-px w-10" style={{ background: "linear-gradient(90deg, transparent, var(--neon))", boxShadow: "0 0 6px var(--neon)" }} />
+                  <TextScramble text="// Platform Archive" className="font-mono-cyber text-[10px] tracking-[0.4em] uppercase" style={{ color: "var(--neon)" }} />
+                  <div className="h-px w-10" style={{ background: "linear-gradient(90deg, var(--neon), transparent)", boxShadow: "0 0 6px var(--neon)" }} />
+                </div>
+                <h2 className="text-4xl md:text-6xl font-bold tracking-tighter leading-none" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
+                  <SplitReveal text="7 Platforms." />
+                  <br />
+                  <SplitReveal text="One Vault." style={{ WebkitTextStroke: "1.5px var(--neon)" as string, color: "transparent" }} />
+                </h2>
               </div>
 
-              <div className="relative flex flex-col lg:flex-row items-start lg:items-end justify-between gap-12">
-                <div>
-                  <div className="flex items-center gap-3 mb-6">
-                    <div className="h-px w-6" style={{ background: "var(--neon-2)", boxShadow: "0 0 6px var(--neon-2)" }} />
-                    <TextScramble text="// The Vault" className="font-mono-cyber text-[10px] tracking-[0.4em] uppercase" style={{ color: "var(--neon-2)" }} />
-                  </div>
-                  <h2
-                    className="text-5xl md:text-7xl lg:text-8xl font-bold leading-none tracking-tighter"
-                    style={{ fontFamily: "'Space Grotesk', sans-serif" }}
-                  >
-                    <MagneticText strength={6} tag="span" className="block" style={{ color: "var(--foreground)" }}>No downloads.</MagneticText>
-                    <MagneticText strength={6} tag="span" className="block" style={{ color: "var(--neon-2)", textShadow: "0 0 20px var(--neon-2), 0 0 60px var(--neon-2-dim)" }}>No installs.</MagneticText>
-                    <MagneticText strength={6} tag="span" className="block" style={{ WebkitTextStroke: "1.5px var(--text-muted)", color: "transparent" }}>Just play.</MagneticText>
-                  </h2>
-                </div>
-
-                <div
-                  className="flex flex-col gap-0 border p-8 min-w-[260px]"
-                  style={{
-                    borderColor: "var(--border-glow)",
-                    background: "var(--surface)",
-                    boxShadow: "0 0 30px oklch(0.88 0.22 195 / 0.1)",
-                    animation: "neon-border-breathe 4s ease-in-out infinite",
-                  }}
-                >
-                  {[
-                    { num: "13", label: "Classic Games" },
-                    { num: "7+", label: "Platforms" },
-                    { num: "100%", label: "Browser-Based" },
-                    { num: "0ms", label: "Download Time" },
-                  ].map(({ num, label }, i) => (
+              {/* Platform grid */}
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-7 gap-3 mb-16">
+                {PLATFORMS.map((plat, i) => {
+                  const neon = `oklch(0.88 0.22 ${plat.hue})`;
+                  const neonDim = `oklch(0.55 0.18 ${plat.hue})`;
+                  return (
                     <div
-                      key={label}
-                      className="flex items-center justify-between py-3"
-                      style={{ borderBottom: i < 3 ? "1px solid var(--border)" : "none" }}
+                      key={plat.id}
+                      className="group relative flex flex-col items-center justify-center gap-2 border p-5 cursor-none"
+                      style={{
+                        borderColor: `oklch(0.22 0.06 ${plat.hue})`,
+                        background: `oklch(0.06 0.02 ${plat.hue})`,
+                        borderRadius: 4,
+                        opacity: platformReveal.visible ? 1 : 0,
+                        transform: platformReveal.visible ? "translateY(0) scale(1)" : "translateY(24px) scale(0.94)",
+                        transition: `opacity 0.55s ${i * 0.06}s ease, transform 0.55s ${i * 0.06}s cubic-bezier(0.16,1,0.3,1)`,
+                      }}
+                      onMouseEnter={e => {
+                        (e.currentTarget as HTMLElement).style.borderColor = `${neon}88`;
+                        (e.currentTarget as HTMLElement).style.background = `oklch(0.10 0.04 ${plat.hue})`;
+                        (e.currentTarget as HTMLElement).style.boxShadow = `0 0 24px ${neon}22, inset 0 0 16px ${neon}08`;
+                        (e.currentTarget as HTMLElement).style.transform = "translateY(-4px) scale(1.03)";
+                      }}
+                      onMouseLeave={e => {
+                        (e.currentTarget as HTMLElement).style.borderColor = `oklch(0.22 0.06 ${plat.hue})`;
+                        (e.currentTarget as HTMLElement).style.background = `oklch(0.06 0.02 ${plat.hue})`;
+                        (e.currentTarget as HTMLElement).style.boxShadow = "none";
+                        (e.currentTarget as HTMLElement).style.transform = "translateY(0) scale(1)";
+                      }}
                     >
-                      <span className="font-mono-cyber text-[10px] tracking-widest uppercase" style={{ color: "var(--text-dim)" }}>
-                        {label}
-                      </span>
-                      <span className="text-2xl font-bold" style={{ color: "var(--neon)", textShadow: "0 0 12px var(--neon-dim)" }}>
-                        {num}
-                      </span>
+                      <span style={{
+                        fontFamily: "'Press Start 2P'", fontSize: 10,
+                        color: neon, textShadow: `0 0 12px ${neon}88`,
+                        letterSpacing: "0.06em",
+                      }}>{plat.id}</span>
+                      <span style={{
+                        fontFamily: "Share Tech Mono", fontSize: 7,
+                        color: neonDim, letterSpacing: "0.12em", textAlign: "center",
+                      }}>{plat.label.toUpperCase()}</span>
+                      <span style={{
+                        fontFamily: "Share Tech Mono", fontSize: 6,
+                        color: `${neon}66`, letterSpacing: "0.08em",
+                      }}>{plat.games} {plat.games === 1 ? "GAME" : "GAMES"}</span>
                     </div>
-                  ))}
-                </div>
+                  );
+                })}
+              </div>
+
+              {/* Stats row */}
+              <div
+                className="grid grid-cols-2 md:grid-cols-4 gap-px border"
+                style={{
+                  borderColor: "var(--border)",
+                  background: "var(--border)",
+                  opacity: platformReveal.visible ? 1 : 0,
+                  transform: platformReveal.visible ? "translateY(0)" : "translateY(28px)",
+                  transition: "opacity 0.7s 0.3s ease, transform 0.7s 0.3s ease",
+                }}
+              >
+                {[
+                  { num: "13", label: "Classic Games", hue: 195 },
+                  { num: "7+", label: "Platforms", hue: 280 },
+                  { num: "100%", label: "Browser-Based", hue: 320 },
+                  { num: "0ms", label: "Download Time", hue: 55 },
+                ].map(({ num, label, hue }) => (
+                  <div key={label} className="flex flex-col items-center justify-center py-8 gap-1" style={{ background: "var(--background)" }}>
+                    <span className="text-3xl md:text-4xl font-bold" style={{ color: `oklch(0.88 0.22 ${hue})`, textShadow: `0 0 20px oklch(0.65 0.18 ${hue})`, fontFamily: "'Space Grotesk'" }}>{num}</span>
+                    <span className="font-mono-cyber text-[8px] tracking-[0.3em] uppercase" style={{ color: "var(--text-muted)" }}>{label}</span>
+                  </div>
+                ))}
               </div>
             </div>
           </section>
 
           {/* ══ FOOTER ════════════════════════════════════════════════════ */}
-          <footer className="px-8 md:px-12 py-12" style={{ borderTop: "1px solid var(--border)" }}>
-            <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-start md:items-center justify-between gap-8">
+          <footer className="px-8 md:px-12 py-10" style={{ borderTop: "1px solid var(--border)" }}>
+            <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
               <div className="flex flex-col gap-1">
                 <span className="font-pixel text-sm neon-text" style={{ animation: "neon-pulse 4s ease-in-out infinite" }}>
                   GAMESTASH
@@ -1078,7 +1120,7 @@ export default function Home() {
                   © 2026 — Classic titles, rediscovered.
                 </span>
               </div>
-              <div className="flex gap-8">
+              <div className="flex gap-6 flex-wrap">
                 {(["PRIVACY", "TERMS", "GITHUB"] as const).map((label) => (
                   <TextScramble
                     key={label}
@@ -1087,6 +1129,15 @@ export default function Home() {
                     style={{ color: "var(--text-muted)" } as React.CSSProperties}
                   />
                 ))}
+                <a
+                  href="/Luke-s-games01-main/admin.html"
+                  className="font-mono-cyber text-[10px] tracking-[0.25em] uppercase border px-2.5 py-1 transition-all duration-200"
+                  style={{ color: "var(--neon-2)", borderColor: "var(--neon-2)", background: "oklch(0.78 0.22 280 / 0.06)", cursor: "none" }}
+                  onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = "oklch(0.78 0.22 280 / 0.16)"; (e.currentTarget as HTMLElement).style.boxShadow = "0 0 14px oklch(0.78 0.22 280 / 0.4)"; }}
+                  onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = "oklch(0.78 0.22 280 / 0.06)"; (e.currentTarget as HTMLElement).style.boxShadow = "none"; }}
+                >
+                  ⚙ ADMIN
+                </a>
               </div>
               <div className="flex items-center gap-2 font-mono-cyber text-[9px] tracking-widest uppercase" style={{ color: "var(--text-muted)" }}>
                 <span className="w-1.5 h-1.5 rounded-full" style={{ background: "var(--neon)", boxShadow: "0 0 6px var(--neon)", animation: "neon-pulse 2s ease-in-out infinite" }} />
