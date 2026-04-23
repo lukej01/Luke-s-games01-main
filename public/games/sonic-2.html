@@ -1,30 +1,32 @@
 <!DOCTYPE html>
 <html>
-<head>
-  <meta charset="UTF-8">
-  <title>Sonic the Hedgehog 2</title>
-  <style>
-    body, html { margin: 0; padding: 0; width: 100%; height: 100%; background: #000; overflow: hidden; }
-    #game { width: 100%; height: 100%; }
-    #status { position: fixed; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; pointer-events: none; }
-    #status span { font-family: monospace; font-size: 13px; letter-spacing: 0.2em; }
-  </style>
+<head><meta charset="UTF-8"><title>Sonic the Hedgehog 2</title>
+<style>
+  body,html{margin:0;padding:0;width:100%;height:100%;background:#000;overflow:hidden}
+  #game{width:100%;height:100%}
+  #status{position:fixed;inset:0;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;pointer-events:none}
+  #status span{font-family:monospace;font-size:13px;letter-spacing:.2em}
+</style>
 </head>
 <body>
-  <div id="game"></div>
-  <div id="status">
-    <span style="color:#0ff">LOADING…</span>
-    <span id="err" style="display:none;color:#f55">Emulator failed — try refreshing</span>
-  </div>
-  <script>
-    EJS_player = "#game";
-    EJS_core = "segaMD";
-    EJS_color = "#0064ff";
-    EJS_startOnLoaded = true;
-    EJS_pathtodata = "https://cdn.jsdelivr.net/npm/emulatorjs/data/";
-    EJS_gameUrl = "https://cdn.jsdelivr.net/gh/a456pur/seraph@ae2fcc6d6a9cd051654fcc0519080db1f79cf2a7/games/sonicthehedgehog2/Sonic%20The%20Hedgehog%202%20(World).md";
-    EJS_onGameStart = function() { var s = document.getElementById('status'); if (s) s.remove(); };
-  </script>
-  <script src="https://cdn.jsdelivr.net/npm/emulatorjs/data/loader.js" onerror="document.getElementById('status').querySelector('span').style.display='none';document.getElementById('err').style.display='block'"></script>
+<script>
+if(typeof SharedArrayBuffer==='undefined'&&'serviceWorker'in navigator)
+  navigator.serviceWorker.register('/Luke-s-games01-main/coi-serviceworker.js',{scope:'/Luke-s-games01-main/'}).then(function(r){
+    if(r.active){location.reload();return;}
+    var s=r.installing||r.waiting;s&&s.addEventListener('statechange',function(e){if(e.target.state==='activated')location.reload();});
+  });
+</script>
+<div id="game"></div>
+<div id="status">
+  <span style="color:#0ff">LOADING…</span>
+  <span id="err" style="display:none;color:#f55">Emulator failed — try refreshing</span>
+</div>
+<script>
+  EJS_player="#game";EJS_core="segaMD";EJS_color="#0064ff";EJS_startOnLoaded=true;
+  EJS_pathtodata="https://cdn.jsdelivr.net/npm/emulatorjs/data/";
+  EJS_gameUrl="https://cdn.jsdelivr.net/gh/a456pur/seraph@ae2fcc6d6a9cd051654fcc0519080db1f79cf2a7/games/sonicthehedgehog2/Sonic%20The%20Hedgehog%202%20(World).md";
+  EJS_onGameStart=function(){var s=document.getElementById('status');if(s)s.remove();};
+</script>
+<script src="https://cdn.jsdelivr.net/npm/emulatorjs/data/loader.js" onerror="document.getElementById('status').querySelector('span').style.display='none';document.getElementById('err').style.display='block'"></script>
 </body>
 </html>
