@@ -7,7 +7,7 @@
     window.gameconfig = {
       name: "Paper Mario (USA)",
       url: "https://cdn.jsdelivr.net/gh/bubbls/ugss@69e5df0bdfad91580779ec98ca18841e753145fd/Paper%20Mario%20(USA)%20(2)/Paper%20Mario%20(USA).z64",
-      core: "n64",
+      core: "parallel_n64",
       min: 1,
       max: 3,
     };
@@ -41,14 +41,7 @@
   </style>
 </head>
 <body>
-<script>
-if(typeof SharedArrayBuffer==="undefined"&&"serviceWorker" in navigator)
-  navigator.serviceWorker.register("/Luke-s-games01-main/coi-serviceworker.js",{scope:"/Luke-s-games01-main/"}).then(function(r){
-    if(r.active){location.reload();return;}
-    var s=r.installing||r.waiting;if(s)s.addEventListener("statechange",function(e){if(e.target.state==="activated")location.reload();});
-  });
-</script>
-  <div id="game-container">
+<div id="game-container">
     <div id="game"></div>
     <div id="loading-progress">Loading: 0/0</div>
     <div id="first-time">First-time loading may take longer…</div>
