@@ -271,13 +271,18 @@ function GamePlayer({ game, onClose }: { game: Game | null; onClose: () => void 
   useEffect(() => {
     if (game) {
       document.body.style.overflow = "hidden";
+      document.dispatchEvent(new Event("lenis:stop"));
       const id = requestAnimationFrame(() => setMounted(true));
       return () => cancelAnimationFrame(id);
     } else {
       setMounted(false);
       document.body.style.overflow = "";
+      document.dispatchEvent(new Event("lenis:start"));
     }
-    return () => { document.body.style.overflow = ""; };
+    return () => {
+      document.body.style.overflow = "";
+      document.dispatchEvent(new Event("lenis:start"));
+    };
   }, [game]);
 
   useEffect(() => {
