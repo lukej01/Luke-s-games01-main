@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useLayoutEffect, useRef, useCallback } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { TextScramble } from "@/components/ui/text-scramble";
 gsap.registerPlugin(ScrollTrigger);
 
 // ── Card dimensions ──────────────────────────────────────────────────────────
@@ -380,16 +381,15 @@ export function CartridgeCarousel({
   // useLayoutEffect ensures hidden state is set before first paint
   useLayoutEffect(() => {
     const refs = cardFlyRefs.current.filter(Boolean) as HTMLDivElement[];
-    if (refs.length > 0) gsap.set(refs, { opacity: 0, y: 80, scale: 0.82 });
+    if (refs.length > 0) gsap.set(refs, { opacity: 0, y: 220, scale: 0.45 });
   }, []);
 
   useEffect(() => {
     const el = outerRef.current;
     if (!el) return;
-    const refs = cardFlyRefs.current.filter(Boolean) as HTMLDivElement[];
     const trigger = ScrollTrigger.create({
       trigger: el,
-      start: "top 82%",
+      start: "top 80%",
       once: true,
       onEnter: () => {
         if (gsapDone.current) return;
@@ -398,14 +398,13 @@ export function CartridgeCarousel({
         if (!live.length) return;
         gsap.to(live, {
           opacity: 1, y: 0, scale: 1,
-          duration: 0.88,
-          stagger: { each: 0.055, from: "center" },
-          ease: "back.out(1.6)",
+          duration: 1.15,
+          stagger: { each: 0.078, from: "center" },
+          ease: "expo.out",
           clearProps: "all",
         });
       },
     });
-    // Immediately check in case already in view (direct #library nav)
     ScrollTrigger.refresh();
     return () => trigger.kill();
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -486,15 +485,15 @@ export function CartridgeCarousel({
         ref={wrapRef}
         style={{
           width: "100%",
-          height: CH + 82,
+          height: CH + 100,
           position: "relative",
           overflow: "hidden",
           cursor: "none",
         }}
       >
-        {/* Fade edges — wide gradual masks */}
-        <div style={{ position: "absolute", top: 0, left: 0, bottom: 0, width: 160, background: "linear-gradient(to right, var(--background) 0%, transparent 100%)", zIndex: 10, pointerEvents: "none" }} />
-        <div style={{ position: "absolute", top: 0, right: 0, bottom: 0, width: 160, background: "linear-gradient(to left, var(--background) 0%, transparent 100%)", zIndex: 10, pointerEvents: "none" }} />
+        {/* Fade edges */}
+        <div style={{ position: "absolute", top: 0, left: 0, bottom: 0, width: 130, background: "linear-gradient(to right, var(--background) 0%, transparent 100%)", zIndex: 10, pointerEvents: "none" }} />
+        <div style={{ position: "absolute", top: 0, right: 0, bottom: 0, width: 130, background: "linear-gradient(to left, var(--background) 0%, transparent 100%)", zIndex: 10, pointerEvents: "none" }} />
 
         <div
           ref={trackRef}
@@ -502,7 +501,7 @@ export function CartridgeCarousel({
             display: "flex",
             gap: GAP,
             position: "absolute",
-            top: 28,
+            top: 40,
             left: 0,
             willChange: "transform",
           }}
@@ -553,12 +552,12 @@ export function CartridgeCarousel({
           {String(activeIdx + 1).padStart(2, "0")} / {String(TOTAL).padStart(2, "0")}
         </div>
       </div>
-      <div style={{ fontFamily: "Share Tech Mono", fontSize: 8, color: "oklch(0.88 0.22 195 / 0.25)", letterSpacing: "0.22em", marginTop: 5, textAlign: "center", zIndex: 1 }}>
-        HOVER + SCROLL TO BROWSE  ·  CLICK TO PLAY
+      <div style={{ marginTop: 5, textAlign: "center", zIndex: 1 }}>
+        <TextScramble text="HOVER + SCROLL TO BROWSE  ·  CLICK TO PLAY" style={{ fontFamily: "Share Tech Mono", fontSize: 8, color: "oklch(0.88 0.22 195 / 0.30)", letterSpacing: "0.22em" }} />
       </div>
 
       {/* ── Console ── */}
-      <div style={{ marginTop: 32, zIndex: 5, width: "100%", display: "flex", justifyContent: "center" }}>
+      <div style={{ marginTop: 18, zIndex: 5, width: "100%", display: "flex", justifyContent: "center" }}>
         <div ref={consoleEl} style={{ width: CXW, flexShrink: 0 }}>
           <Console insertedGame={insertedGame} onEject={handleEject} />
         </div>
