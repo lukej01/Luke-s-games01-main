@@ -8,10 +8,12 @@ export function TextScramble({
   text,
   className = "",
   style,
+  autoRun = false,
 }: {
   text: string;
   className?: string;
   style?: React.CSSProperties;
+  autoRun?: boolean;
 }) {
   const [display, setDisplay] = useState(text);
   const rafRef  = useRef(0);
@@ -46,6 +48,12 @@ export function TextScramble({
   }, [tick]);
 
   useEffect(() => () => cancelAnimationFrame(rafRef.current), []);
+
+  useEffect(() => {
+    if (!autoRun) return;
+    const t = setTimeout(run, 150);
+    return () => clearTimeout(t);
+  }, [autoRun, run]);
 
   return (
     <span
