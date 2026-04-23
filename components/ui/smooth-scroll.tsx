@@ -22,9 +22,16 @@ export function SmoothScroll() {
     gsap.ticker.add(raf);
     gsap.ticker.lagSmoothing(0);
 
+    const stop  = () => lenis.stop();
+    const start = () => lenis.start();
+    document.addEventListener("lenis:stop",  stop);
+    document.addEventListener("lenis:start", start);
+
     return () => {
       lenis.off("scroll", onScroll);
       gsap.ticker.remove(raf);
+      document.removeEventListener("lenis:stop",  stop);
+      document.removeEventListener("lenis:start", start);
       lenis.destroy();
     };
   }, []);
