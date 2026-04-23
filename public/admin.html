@@ -100,6 +100,72 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 .inp-mono{font-family:monospace;font-size:.82rem;letter-spacing:.3px}
 
 @media(max-width:600px){.fg{grid-template-columns:1fr}.top-inner,.wrap{padding-left:14px;padding-right:14px}}
+
+/* ── DARK OLED OVERRIDE ── */
+@import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Press+Start+2P&display=swap');
+:root{
+  --bg:oklch(0.04 0.005 195);
+  --white:oklch(0.075 0.018 195);
+  --text:oklch(0.90 0.04 195);
+  --text2:oklch(0.62 0.08 195);
+  --text3:oklch(0.40 0.05 195);
+  --border:oklch(0.17 0.05 195);
+  --blue:oklch(0.88 0.22 195);
+  --blue-d:oklch(0.72 0.20 195);
+  --blue-l:oklch(0.08 0.03 195);
+  --blue-m:oklch(0.28 0.10 195);
+  --red:#f87171;--red-l:oklch(0.07 0.02 15);
+  --green:#34d399;--green-l:oklch(0.07 0.02 150);
+  --shadow:0 1px 6px rgba(0,0,0,0.5);
+}
+body{background:var(--bg);cursor:default}
+/* Auth */
+.auth-box{border-color:oklch(0.22 0.09 195);box-shadow:0 0 80px oklch(0.88 0.22 195 / 0.07),0 32px 80px rgba(0,0,0,0.65)}
+.auth-logo{font-family:'Share Tech Mono',monospace;letter-spacing:0.1em;color:oklch(0.88 0.22 195)}
+.auth-logo span{color:oklch(0.78 0.22 280)}
+.auth-sub{color:var(--text3)}
+.auth-input{background:oklch(0.065 0.015 195);color:var(--text);border-color:var(--border)}
+.auth-input:focus{border-color:var(--blue);box-shadow:0 0 0 3px oklch(0.88 0.22 195 / 0.12)}
+.auth-btn{background:var(--blue);color:oklch(0.04 0.005 195);box-shadow:0 0 24px oklch(0.88 0.22 195 / 0.35)}
+.auth-btn:hover{background:var(--blue-d);box-shadow:0 0 36px oklch(0.88 0.22 195 / 0.5)}
+/* Header */
+.top{background:oklch(0.055 0.015 195);border-bottom-color:oklch(0.18 0.06 195)}
+.top-logo{font-family:'Share Tech Mono',monospace;letter-spacing:0.08em;color:oklch(0.88 0.22 195)}
+.top-logo span{color:oklch(0.78 0.22 280)}
+.top-logo-tag{color:var(--text3)}
+/* Cards + table */
+.card{background:var(--white);border-color:var(--border)}
+.card-head{border-bottom-color:var(--border);background:oklch(0.065 0.015 195)}
+.card-title{font-family:'Share Tech Mono',monospace;letter-spacing:0.06em;color:var(--blue)}
+.tbl th{background:oklch(0.06 0.016 195);color:var(--text3);border-bottom-color:var(--border)}
+.tbl td{border-bottom-color:oklch(0.13 0.04 195)}
+.tbl tr:hover td{background:oklch(0.09 0.025 195)}
+.tbl-cover{border-color:var(--border)}
+.tbl-title{color:var(--text)}
+.tbl-id{color:var(--text3)}
+/* Inputs */
+.inp,.sel{background:oklch(0.065 0.015 195);border-color:var(--border);color:var(--text)}
+.inp:focus,.sel:focus{border-color:var(--blue);box-shadow:0 0 0 3px oklch(0.88 0.22 195 / 0.12)}
+.lbl{color:var(--text2)}
+.hint{color:var(--text3)}
+/* Buttons */
+.btn-p{background:var(--blue);color:oklch(0.04 0.005 195)}
+.btn-p:hover{background:var(--blue-d)}
+.btn-s{background:var(--white);border-color:var(--border);color:var(--text2)}
+.btn-s:hover{background:oklch(0.09 0.025 195)}
+.tbtn{background:var(--white);border-color:var(--border);color:var(--text2)}
+.tbtn:hover{background:var(--blue-l);border-color:oklch(0.30 0.10 195);color:var(--blue)}
+.tbla{background:var(--white);border-color:var(--border);color:var(--text2)}
+.tbla:hover{background:var(--blue-l);border-color:oklch(0.30 0.10 195);color:var(--blue)}
+/* Modal */
+.modal-bg{background:rgba(0,0,0,0.75)}
+.modal{background:oklch(0.07 0.018 195);border:1px solid oklch(0.20 0.07 195);box-shadow:0 24px 80px rgba(0,0,0,0.7)}
+.modal-title{color:var(--blue)}
+/* Toast */
+.toast{background:oklch(0.10 0.03 195);border:1px solid oklch(0.22 0.08 195);color:var(--text)}
+/* Badge pills */
+.src-base{background:var(--blue-l);color:var(--blue)}
+.src-added{background:var(--green-l);color:var(--green)}
 </style>
 </head>
 <body>

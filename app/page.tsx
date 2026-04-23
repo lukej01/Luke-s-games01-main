@@ -657,9 +657,9 @@ export default function Home() {
       setScrollY(sy);
       const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
       if (maxScroll > 0) setScrollProgress((sy / maxScroll) * 100);
-      // Drive letter scatter: starts at 15% of hero height, done at 60%
+      // Drive letter scatter: starts at 3% of hero height, done at 48%
       const heroH = heroRef.current?.offsetHeight ?? window.innerHeight;
-      _heroScroll.v = Math.min(1, Math.max(0, (sy - heroH * 0.15) / (heroH * 0.42)));
+      _heroScroll.v = Math.min(1, Math.max(0, (sy - heroH * 0.03) / (heroH * 0.44)));
     };
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
@@ -872,7 +872,7 @@ export default function Home() {
           />
 
           {/* ══ LIBRARY ═══════════════════════════════════════════════════ */}
-          <section id="library" className="pt-20 pb-12" style={{ background: "var(--background)" }}>
+          <section id="library" className="pt-20 pb-32" style={{ background: "var(--background)" }}>
             {/* Header — constrained */}
             <div className="px-6 md:px-10 lg:px-16 max-w-screen-xl mx-auto mb-12">
               <div
@@ -931,7 +931,7 @@ export default function Home() {
                 ] as const).map(({ num, label, hue }, i) => (
                   <div
                     key={label}
-                    className="group relative flex flex-col items-center justify-center py-14 gap-3 overflow-hidden"
+                    className="group relative flex flex-col items-center justify-center py-20 gap-4 overflow-hidden"
                     style={{
                       borderRight: i < 3 ? "1px solid var(--border)" : undefined,
                       borderBottom: i < 2 ? "1px solid var(--border)" : undefined,

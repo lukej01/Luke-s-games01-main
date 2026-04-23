@@ -1,7 +1,9 @@
 "use client";
 
-import React, { useState, useEffect, useRef, useCallback } from "react";
+import React, { useState, useEffect, useLayoutEffect, useRef, useCallback } from "react";
 import gsap from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
+gsap.registerPlugin(ScrollTrigger);
 
 // ── Card dimensions ──────────────────────────────────────────────────────────
 const CW   = 152;
@@ -374,31 +376,39 @@ export function CartridgeCarousel({
     return () => { window.removeEventListener("touchstart", ts); window.removeEventListener("touchmove", tm); };
   }, []);
 
-  // ── GSAP fly-in on viewport entry (middle copy only) ──────────────────
-  useEffect(() => {
+  // ── GSAP ScrollTrigger fly-in — hide first, animate in on scroll ─────
+  // useLayoutEffect ensures hidden state is set before first paint
+  useLayoutEffect(() => {
     const refs = cardFlyRefs.current.filter(Boolean) as HTMLDivElement[];
-    if (refs.length > 0) gsap.set(refs, { opacity: 0, y: 90, scale: 0.75 });
+    if (refs.length > 0) gsap.set(refs, { opacity: 0, y: 80, scale: 0.82 });
   }, []);
 
   useEffect(() => {
     const el = outerRef.current;
     if (!el) return;
-    const obs = new IntersectionObserver(([entry]) => {
-      if (entry.isIntersecting && !gsapDone.current) {
+    const refs = cardFlyRefs.current.filter(Boolean) as HTMLDivElement[];
+    const trigger = ScrollTrigger.create({
+      trigger: el,
+      start: "top 82%",
+      once: true,
+      onEnter: () => {
+        if (gsapDone.current) return;
         gsapDone.current = true;
-        const refs = cardFlyRefs.current.filter(Boolean) as HTMLDivElement[];
-        if (refs.length === 0) return;
-        gsap.to(refs, {
+        const live = cardFlyRefs.current.filter(Boolean) as HTMLDivElement[];
+        if (!live.length) return;
+        gsap.to(live, {
           opacity: 1, y: 0, scale: 1,
-          duration: 0.78,
-          stagger: { each: 0.05, from: "center" },
-          ease: "back.out(1.5)",
+          duration: 0.88,
+          stagger: { each: 0.055, from: "center" },
+          ease: "back.out(1.6)",
           clearProps: "all",
         });
-      }
-    }, { threshold: 0.08 });
-    obs.observe(el);
-    return () => obs.disconnect();
+      },
+    });
+    // Immediately check in case already in view (direct #library nav)
+    ScrollTrigger.refresh();
+    return () => trigger.kill();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // ── Insert into console ───────────────────────────────────────────────
@@ -471,29 +481,20 @@ export function CartridgeCarousel({
   return (
     <div ref={outerRef} style={{ position: "relative", width: "100%", display: "flex", flexDirection: "column", alignItems: "center" }}>
 
-      {/* Background halo for depth */}
-      <div aria-hidden style={{
-        position: "absolute", left: "50%", top: 0, transform: "translateX(-50%)",
-        width: "90%", height: CH + 120,
-        background: "radial-gradient(ellipse 70% 100% at 50% 35%, oklch(0.88 0.22 195 / 0.06) 0%, transparent 75%)",
-        pointerEvents: "none", zIndex: 0,
-      }} />
-
       {/* ── Flat scroll track ── */}
       <div
         ref={wrapRef}
         style={{
           width: "100%",
-          height: CH + 72,
+          height: CH + 82,
           position: "relative",
           overflow: "hidden",
           cursor: "none",
-          zIndex: 1,
         }}
       >
-        {/* Fade edges */}
-        <div style={{ position: "absolute", top: 0, left: 0, bottom: 0, width: 100, background: "linear-gradient(to right, var(--background), transparent)", zIndex: 10, pointerEvents: "none" }} />
-        <div style={{ position: "absolute", top: 0, right: 0, bottom: 0, width: 100, background: "linear-gradient(to left, var(--background), transparent)", zIndex: 10, pointerEvents: "none" }} />
+        {/* Fade edges — wide gradual masks */}
+        <div style={{ position: "absolute", top: 0, left: 0, bottom: 0, width: 160, background: "linear-gradient(to right, var(--background) 0%, transparent 100%)", zIndex: 10, pointerEvents: "none" }} />
+        <div style={{ position: "absolute", top: 0, right: 0, bottom: 0, width: 160, background: "linear-gradient(to left, var(--background) 0%, transparent 100%)", zIndex: 10, pointerEvents: "none" }} />
 
         <div
           ref={trackRef}
@@ -556,18 +557,10 @@ export function CartridgeCarousel({
         HOVER + SCROLL TO BROWSE  ·  CLICK TO PLAY
       </div>
 
-      {/* ── Console — with panel surround ── */}
-      <div style={{ marginTop: 28, zIndex: 5, width: "100%", display: "flex", justifyContent: "center" }}>
-        <div style={{
-          padding: "20px 28px 24px",
-          background: "oklch(0.07 0.022 195 / 0.55)",
-          border: "1px solid oklch(0.22 0.08 195 / 0.6)",
-          borderRadius: 16,
-          boxShadow: "0 0 50px oklch(0.88 0.22 195 / 0.06), inset 0 1px 0 oklch(0.88 0.22 195 / 0.07)",
-        }}>
-          <div ref={consoleEl} style={{ width: CXW, flexShrink: 0 }}>
-            <Console insertedGame={insertedGame} onEject={handleEject} />
-          </div>
+      {/* ── Console ── */}
+      <div style={{ marginTop: 32, zIndex: 5, width: "100%", display: "flex", justifyContent: "center" }}>
+        <div ref={consoleEl} style={{ width: CXW, flexShrink: 0 }}>
+          <Console insertedGame={insertedGame} onEject={handleEject} />
         </div>
       </div>
 
