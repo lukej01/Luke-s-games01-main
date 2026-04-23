@@ -7,7 +7,7 @@ import { CyberpunkCursor } from "@/components/ui/cyberpunk-cursor";
 import { MagneticText } from "@/components/ui/magnetic-text";
 import { CartridgeCarousel } from "@/components/ui/cartridge-carousel";
 
-// ── Module-level mouse tracker for FloatLetter ─────────────────────────────
+// ── Module-level mouse tracker + hero scroll fraction ──────────────────────
 const _hm = { x: -9999, y: -9999 };
 let _hmReady = false;
 function _hmAttach() {
@@ -15,9 +15,23 @@ function _hmAttach() {
   _hmReady = true;
   window.addEventListener("mousemove", e => { _hm.x = e.clientX; _hm.y = e.clientY; }, { passive: true });
 }
+const _heroScroll = { v: 0 }; // 0 = hero visible, 1 = hero gone (letters scattered)
 
-// ── FloatLetter — floating + cursor anti-gravity per character ─────────────
-function FloatLetter({ char, phase, amp }: { char: string; phase: number; amp: number }) {
+// ── Scatter directions per letter (G A M E S T A S H) ─────────────────────
+const SCATTER_DIRS = [
+  { sx: -200, sy: -140, r: -25 }, // G
+  { sx:  -90, sy: -195, r:  14 }, // A
+  { sx:  -10, sy: -225, r:  -7 }, // M
+  { sx:   95, sy: -162, r:  22 }, // E
+  { sx:  172, sy: -102, r: -17 }, // S
+  { sx:  225, sy: -132, r:  24 }, // T
+  { sx:  132, sy:   58, r: -12 }, // A
+  { sx:   58, sy:  115, r:  20 }, // S
+  { sx:  178, sy:   88, r: -24 }, // H
+];
+
+// ── FloatLetter — floating + cursor anti-gravity + scroll scatter ──────────
+function FloatLetter({ char, phase, amp, si }: { char: string; phase: number; amp: number; si: number }) {
   const ref = useRef<HTMLSpanElement>(null);
   const s   = useRef({ px: 0, py: 0, t: phase });
 
@@ -26,8 +40,9 @@ function FloatLetter({ char, phase, amp }: { char: string; phase: number; amp: n
     const el = ref.current;
     if (!el) return;
     let raf: number;
+    const sc = SCATTER_DIRS[si] ?? { sx: 0, sy: 0, r: 0 };
     const tick = () => {
-      s.current.t += 0.011;
+      s.current.t += 0.006;
       const fy = Math.sin(s.current.t) * amp;
       const rect = el.getBoundingClientRect();
       const cx = rect.left + rect.width  * 0.5;
@@ -36,19 +51,25 @@ function FloatLetter({ char, phase, amp }: { char: string; phase: number; amp: n
       const dy = _hm.y - cy;
       const d  = Math.sqrt(dx * dx + dy * dy);
       let tx = 0, ty = 0;
-      if (d < 200 && d > 1) {
-        const f = Math.pow((200 - d) / 200, 2) * 26;
+      if (d < 160 && d > 1) {
+        const f = Math.pow((160 - d) / 160, 2) * 14;
         tx = -(dx / d) * f;
         ty = -(dy / d) * f;
       }
       s.current.px += (tx - s.current.px) * 0.07;
       s.current.py += (ty - s.current.py) * 0.07;
-      el.style.transform = `translate(${s.current.px.toFixed(2)}px,${(s.current.py + fy).toFixed(2)}px)`;
+      // Scroll scatter — smooth-step easing
+      const sv = _heroScroll.v;
+      const ease = sv * sv * (3 - 2 * sv);
+      const scx = sc.sx * ease;
+      const scy = sc.sy * ease;
+      const rot = sc.r * ease;
+      el.style.transform = `translate(${(s.current.px + scx).toFixed(2)}px,${(s.current.py + fy + scy).toFixed(2)}px) rotate(${rot.toFixed(2)}deg)`;
       raf = requestAnimationFrame(tick);
     };
     raf = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(raf);
-  }, [phase, amp]);
+  }, [phase, amp, si]);
 
   return (
     <span ref={ref} aria-hidden style={{ display: "inline-block", willChange: "transform" }}>
@@ -57,7 +78,7 @@ function FloatLetter({ char, phase, amp }: { char: string; phase: number; amp: n
   );
 }
 
-// ── FloatTitle — GAMESTASH with per-letter anti-gravity ───────────────────
+// ── FloatTitle — GAMESTASH with per-letter anti-gravity + scroll scatter ───
 function FloatTitle() {
   return (
     <h1
@@ -67,7 +88,7 @@ function FloatTitle() {
     >
       <span className="glitch-wrap block" style={{ color: "var(--foreground)" }}>
         {"GAME".split("").map((ch, i) => (
-          <FloatLetter key={i} char={ch} phase={i * 0.9} amp={7 + i * 0.8} />
+          <FloatLetter key={i} char={ch} phase={i * 0.9} amp={3 + i * 0.4} si={i} />
         ))}
       </span>
       <span className="glitch-wrap block" style={{
@@ -76,7 +97,7 @@ function FloatTitle() {
         filter: "drop-shadow(0 0 24px var(--neon))",
       }}>
         {"STASH".split("").map((ch, i) => (
-          <FloatLetter key={i} char={ch} phase={3.6 + i * 0.85} amp={6 + i * 1.1} />
+          <FloatLetter key={i} char={ch} phase={3.6 + i * 0.85} amp={2.5 + i * 0.5} si={i + 4} />
         ))}
       </span>
     </h1>
@@ -92,6 +113,7 @@ const GAMES = [
     genre: "Platform",
     year: "1996",
     hue: 280,
+    coverImage: "https://upload.wikimedia.org/wikipedia/en/thumb/e/e9/Super_Mario_64.png/250px-Super_Mario_64.png",
     desc: "The 3D platformer that redefined gaming. Guide Mario through 15 worlds inside Bowser's castle, collecting Power Stars in groundbreaking 64-bit freedom.",
   },
   {
@@ -101,6 +123,7 @@ const GAMES = [
     genre: "Adventure",
     year: "1998",
     hue: 195,
+    coverImage: "https://upload.wikimedia.org/wikipedia/en/5/57/The_Legend_of_Zelda_Ocarina_of_Time.jpg",
     desc: "An epic time-travelling quest through Hyrule. Wield the Master Sword across past and future to defeat Ganondorf's creeping darkness.",
   },
   {
@@ -110,6 +133,7 @@ const GAMES = [
     genre: "RPG",
     year: "2001",
     hue: 150,
+    coverImage: "https://upload.wikimedia.org/wikipedia/en/thumb/6/61/Papermario.jpg/250px-Papermario.jpg",
     desc: "A flat-folded adventure through the Mushroom Kingdom. Build a party of unique companions and battle with badges in this beloved RPG.",
   },
   {
@@ -119,6 +143,7 @@ const GAMES = [
     genre: "Platform",
     year: "1990",
     hue: 40,
+    coverImage: "https://upload.wikimedia.org/wikipedia/en/3/32/Super_Mario_World_Coverart.png",
     desc: "The SNES launch masterpiece. Explore Dinosaur Land with Yoshi, uncover hidden exits, and conquer Bowser's seven worlds.",
   },
   {
@@ -128,6 +153,7 @@ const GAMES = [
     genre: "Platform",
     year: "1988",
     hue: 25,
+    coverImage: "https://upload.wikimedia.org/wikipedia/en/a/a5/Super_Mario_Bros._3_coverart.png",
     desc: "The peak of NES platforming. Eight diverse worlds, transforming suits, and Bowser's Koopalings await in this timeless classic.",
   },
   {
@@ -137,6 +163,7 @@ const GAMES = [
     genre: "Fighting",
     year: "1987",
     hue: 15,
+    coverImage: "https://upload.wikimedia.org/wikipedia/en/thumb/c/c8/Mike_Tyson%27s_Punch-Out%21%21_NES_Box.jpg/250px-Mike_Tyson%27s_Punch-Out%21%21_NES_Box.jpg",
     desc: "Rise through the ranks as Little Mac. Study opponent patterns and time your punches to dethrone the legendary Mike Tyson.",
   },
   {
@@ -146,6 +173,7 @@ const GAMES = [
     genre: "Platform",
     year: "1992",
     hue: 220,
+    coverImage: "https://upload.wikimedia.org/wikipedia/en/thumb/0/0c/Sonic_2_US_Cover.jpg/250px-Sonic_2_US_Cover.jpg",
     desc: "Blazing speed across Chemical Plant and beyond. Team up with Tails to blast through Robotnik's forces at supersonic velocity.",
   },
   {
@@ -155,6 +183,7 @@ const GAMES = [
     genre: "Racing",
     year: "1999",
     hue: 320,
+    coverImage: "https://m.media-amazon.com/images/I/51egYoaJo-L._SX342_SY445_QL70_FMwebp_.jpg",
     desc: "The Real Driving Simulator. Over 650 cars across arcade and simulation modes across dozens of meticulously recreated circuits.",
   },
   {
@@ -164,6 +193,7 @@ const GAMES = [
     genre: "Sports",
     year: "2002",
     hue: 55,
+    coverImage: "https://upload.wikimedia.org/wikipedia/en/thumb/b/bc/NBA_Live_2003_cover.jpg/250px-NBA_Live_2003_cover.jpg",
     desc: "Hit the hardwood with the full 2002-03 NBA rosters. Freestyle dribbling, dynamic dunks, and franchise mode define this era.",
   },
   {
@@ -173,6 +203,7 @@ const GAMES = [
     genre: "Sports",
     year: "2001",
     hue: 60,
+    coverImage: "https://upload.wikimedia.org/wikipedia/en/thumb/a/a0/Madden_NFL_2002_Coverart.png/250px-Madden_NFL_2002_Coverart.png",
     desc: "The greatest football sim of its era. Full NFL rosters, franchise mode, and the playcalling depth that made Madden legendary.",
   },
   {
@@ -182,6 +213,7 @@ const GAMES = [
     genre: "Action",
     year: "2008",
     hue: 240,
+    coverImage: "https://m.media-amazon.com/images/I/517zan+v3eL._SY445_SX342_QL70_FMwebp_.jpg",
     desc: "Gotham City in LEGO form. Play as Batman, Robin, or the villains across 30 story levels in this co-op action adventure.",
   },
   {
@@ -191,6 +223,7 @@ const GAMES = [
     genre: "Action",
     year: "2012",
     hue: 245,
+    coverImage: "https://upload.wikimedia.org/wikipedia/en/thumb/4/43/Legobatman2.jpg/250px-Legobatman2.jpg",
     desc: "The Dark Knight meets the Justice League. Superman joins the fight as Lex Luthor and the Joker threaten Gotham.",
   },
   {
@@ -200,6 +233,7 @@ const GAMES = [
     genre: "Action",
     year: "2005",
     hue: 50,
+    coverImage: "https://upload.wikimedia.org/wikipedia/en/thumb/5/56/Lego_Star_Wars-The_Complete_Saga.jpg/250px-Lego_Star_Wars-The_Complete_Saga.jpg",
     desc: "Relive the prequel trilogy in brick form. Over 50 playable characters, force powers, and lightsaber battles in miniature.",
   },
 ] as const;
@@ -623,6 +657,9 @@ export default function Home() {
       setScrollY(sy);
       const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
       if (maxScroll > 0) setScrollProgress((sy / maxScroll) * 100);
+      // Drive letter scatter: starts at 15% of hero height, done at 60%
+      const heroH = heroRef.current?.offsetHeight ?? window.innerHeight;
+      _heroScroll.v = Math.min(1, Math.max(0, (sy - heroH * 0.15) / (heroH * 0.42)));
     };
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
@@ -661,7 +698,7 @@ export default function Home() {
               style={{ opacity: heroOpacity, willChange: "opacity" }}
             >
               {/* Nav */}
-              <nav className="relative flex items-center justify-between px-8 md:px-12 pt-8 pointer-events-none">
+              <nav className="relative flex items-center justify-between px-8 md:px-12 pt-11 pointer-events-none">
                 <div className="hidden md:flex items-center gap-7 pointer-events-auto">
                   {[
                     { label: "GAMES", href: "#library" },
@@ -684,7 +721,7 @@ export default function Home() {
 
                 {/* Centered logo */}
                 <div className="absolute left-1/2 -translate-x-1/2 pointer-events-auto flex flex-col items-center gap-0.5">
-                  <MagneticText strength={9} radius={160} tag="span" className="font-pixel text-[11px] neon-text tracking-widest" style={{ animation: "neon-flicker 9s ease-in-out infinite", display: "inline-block" }}>
+                  <MagneticText strength={9} radius={160} tag="span" className="font-pixel text-[11px] neon-text tracking-widest" style={{ display: "inline-block" }}>
                     GAMESTASH
                   </MagneticText>
                   <div className="h-px w-full" style={{ background: "linear-gradient(90deg, transparent, var(--neon), transparent)", boxShadow: "0 0 6px var(--neon)" }} />
@@ -867,7 +904,7 @@ export default function Home() {
 
             {/* Carousel — full width */}
             <CartridgeCarousel
-              games={GAMES.map(g => ({ id: g.id, title: g.title, platform: g.platform, year: g.year, hue: g.hue }))}
+              games={GAMES.map(g => ({ id: g.id, title: g.title, platform: g.platform, year: g.year, hue: g.hue, coverImage: g.coverImage }))}
               onPlay={(game) => { const g = GAMES.find(x => x.id === game.id); if (g) handlePlay(g); }}
             />
           </section>
