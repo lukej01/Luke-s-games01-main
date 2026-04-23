@@ -329,7 +329,7 @@ function GamePlayer({ game, onClose }: { game: Game | null; onClose: () => void 
             className="font-pixel text-[8px] tracking-widest"
             style={{ color: neon, textShadow: `0 0 10px ${neon}` }}
           >
-            {game.title.toUpperCase()}
+            <TextScramble text={game.title.toUpperCase()} autoRun />
           </span>
           <div className="flex items-center gap-2">
             <span

@@ -22,7 +22,7 @@ export function TextScramble({
 
   const tick = useCallback(
     (ts: number) => {
-      const p = Math.min(1, (ts - t0.current) / (text.replace(/ /g, "").length * 52));
+      const p = Math.min(1, (ts - t0.current) / (text.replace(/ /g, "").length * 75));
       const reveal = Math.floor(p * text.length);
       let out = "";
       for (let i = 0; i < text.length; i++) {
