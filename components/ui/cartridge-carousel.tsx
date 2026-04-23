@@ -287,7 +287,7 @@ export function CartridgeCarousel({
   const cardFlyRefs = useRef<(HTMLDivElement | null)[]>([]);
   const consoleEl   = useRef<HTMLDivElement>(null);
   const outerRef    = useRef<HTMLDivElement>(null);
-  const gsapDone    = useRef(false);
+
 
   const [adminImages, setAdminImages] = useState<Record<string, string>>({});
   useEffect(() => {
@@ -387,24 +387,43 @@ export function CartridgeCarousel({
   useEffect(() => {
     const el = outerRef.current;
     if (!el) return;
+
+    const getCards = () => cardFlyRefs.current.filter(Boolean) as HTMLDivElement[];
+
+    const animIn = () => {
+      const cards = getCards();
+      if (!cards.length) return;
+      gsap.killTweensOf(cards);
+      gsap.to(cards, {
+        opacity: 1, y: 0, scale: 1,
+        duration: 1.15,
+        stagger: { each: 0.078, from: "center" },
+        ease: "expo.out",
+      });
+    };
+
+    const animOut = (dirY: number, dirScale: number, fromEdge: "start" | "end") => {
+      const cards = getCards();
+      if (!cards.length) return;
+      gsap.killTweensOf(cards);
+      gsap.to(cards, {
+        opacity: 0, y: dirY, scale: dirScale,
+        duration: 0.5,
+        stagger: { each: 0.04, from: fromEdge },
+        ease: "power2.in",
+      });
+    };
+
     const trigger = ScrollTrigger.create({
       trigger: el,
       start: "top 80%",
-      once: true,
-      onEnter: () => {
-        if (gsapDone.current) return;
-        gsapDone.current = true;
-        const live = cardFlyRefs.current.filter(Boolean) as HTMLDivElement[];
-        if (!live.length) return;
-        gsap.to(live, {
-          opacity: 1, y: 0, scale: 1,
-          duration: 1.15,
-          stagger: { each: 0.078, from: "center" },
-          ease: "expo.out",
-          clearProps: "all",
-        });
-      },
+      end: "bottom 20%",
+      onEnter:      () => animIn(),
+      onLeave:      () => animOut(-80, 0.88, "start"),
+      onEnterBack:  () => animIn(),
+      onLeaveBack:  () => animOut(220, 0.45, "end"),
     });
+
     ScrollTrigger.refresh();
     return () => trigger.kill();
   // eslint-disable-next-line react-hooks/exhaustive-deps

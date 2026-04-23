@@ -60,6 +60,7 @@ export function TextScramble({
       className={className}
       style={{ ...style, fontVariantNumeric: "tabular-nums" }}
       onMouseEnter={run}
+      onMouseMove={run}
     >
       {display}
     </span>

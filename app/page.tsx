@@ -913,7 +913,8 @@ export default function Home() {
           <footer style={{ background: "var(--background)" }}>
 
             {/* ── Neon section divider ── */}
-            <div aria-hidden style={{ height: 1, background: "linear-gradient(90deg, transparent 0%, var(--neon) 30%, var(--neon-2) 55%, var(--neon-3) 75%, transparent 100%)", opacity: 0.35 }} />
+            <div aria-hidden style={{ height: "2px", background: "linear-gradient(90deg, transparent 0%, var(--neon) 25%, var(--neon-2) 50%, var(--neon-3) 75%, transparent 100%)", boxShadow: "0 0 28px var(--neon), 0 0 60px oklch(0.88 0.22 195 / 0.25)", opacity: 0.7 }} />
+            <div aria-hidden style={{ height: "56px", background: "linear-gradient(180deg, oklch(0.88 0.22 195 / 0.07) 0%, transparent 100%)" }} />
 
             {/* ── Stats — oversized editorial numbers ── */}
             <div
@@ -933,7 +934,7 @@ export default function Home() {
                 ] as const).map(({ num, label, hue }, i) => (
                   <div
                     key={label}
-                    className="group relative flex flex-col items-center justify-center py-20 gap-4 overflow-hidden"
+                    className="group relative flex flex-col items-center justify-center py-24 gap-4 overflow-hidden"
                     style={{
                       borderRight: i < 3 ? "1px solid var(--border)" : undefined,
                       borderBottom: i < 2 ? "1px solid var(--border)" : undefined,
