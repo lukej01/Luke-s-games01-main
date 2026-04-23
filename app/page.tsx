@@ -761,7 +761,7 @@ export default function Home() {
               <div className="flex-1 flex flex-col items-center justify-center text-center px-8 md:px-12 lg:px-20">
                 <div className="mb-7 flex items-center gap-3">
                   <div className="h-px w-12" style={{ background: "linear-gradient(90deg, transparent, var(--neon))", boxShadow: "0 0 6px var(--neon)" }} />
-                  <TextScramble text="// Classic Vault v2.0" className="font-mono-cyber text-[10px] tracking-[0.45em] uppercase" style={{ color: "var(--neon)" }} />
+                  <TextScramble text="// Classic Vault v2.0" autoRun className="font-mono-cyber text-[10px] tracking-[0.45em] uppercase" style={{ color: "var(--neon)" }} />
                   <div className="h-px w-12" style={{ background: "linear-gradient(90deg, var(--neon), transparent)", boxShadow: "0 0 6px var(--neon)" }} />
                 </div>
 
@@ -872,7 +872,7 @@ export default function Home() {
           />
 
           {/* ══ LIBRARY ═══════════════════════════════════════════════════ */}
-          <section id="library" className="pt-20 pb-32" style={{ background: "var(--background)" }}>
+          <section id="library" className="pt-20 pb-56" style={{ background: "var(--background)" }}>
             {/* Header — constrained */}
             <div className="px-6 md:px-10 lg:px-16 max-w-screen-xl mx-auto mb-12">
               <div

@@ -433,7 +433,7 @@ export function CartridgeCarousel({
       setInsertedGame(game);
       setInFlight(null);
       setFlyCart(null);
-      playTimer.current = setTimeout(() => onPlay(game), 1100);
+      playTimer.current = setTimeout(() => onPlay(game), 300);
     }, 920);
   }, [games, inFlight, insertedGame, onPlay]);
 
