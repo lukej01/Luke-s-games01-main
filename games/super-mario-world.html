@@ -6,18 +6,25 @@
   <style>
     body, html { margin: 0; padding: 0; width: 100%; height: 100%; background: #000; overflow: hidden; }
     #game { width: 100%; height: 100%; }
+    #status { position: fixed; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; pointer-events: none; }
+    #status span { font-family: monospace; font-size: 13px; letter-spacing: 0.2em; }
   </style>
 </head>
 <body>
   <div id="game"></div>
+  <div id="status">
+    <span style="color:#0ff">LOADING…</span>
+    <span id="err" style="display:none;color:#f55">Emulator failed — try refreshing</span>
+  </div>
   <script>
     EJS_player = "#game";
     EJS_core = "snes9x";
     EJS_color = "#0064ff";
     EJS_startOnLoaded = true;
-    EJS_pathtodata = "https://cdn.emulatorjs.org/stable/data/";
+    EJS_pathtodata = "https://cdn.jsdelivr.net/npm/emulatorjs/data/";
     EJS_gameUrl = "https://cdn.jsdelivr.net/gh/bubbls/UGS-file-encryption@d8359714213990e929bd5fc43895c2be2a21999c/Super%20Mario%20World%20(USA)%20(patched).sfc";
+    EJS_onGameStart = function() { var s = document.getElementById('status'); if (s) s.remove(); };
   </script>
-  <script src="https://cdn.emulatorjs.org/stable/data/loader.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/emulatorjs/data/loader.js" onerror="document.getElementById('status').querySelector('span').style.display='none';document.getElementById('err').style.display='block'"></script>
 </body>
 </html>
