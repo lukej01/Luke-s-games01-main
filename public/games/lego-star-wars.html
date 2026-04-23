@@ -44,14 +44,7 @@
   </style>
 </head>
 <body>
-<script>
-if(typeof SharedArrayBuffer==="undefined"&&"serviceWorker" in navigator)
-  navigator.serviceWorker.register("/Luke-s-games01-main/coi-serviceworker.js",{scope:"/Luke-s-games01-main/"}).then(function(r){
-    if(r.active){location.reload();return;}
-    var s=r.installing||r.waiting;if(s)s.addEventListener("statechange",function(e){if(e.target.state==="activated")location.reload();});
-  });
-</script>
-  <div id="game-container">
+<div id="game-container">
     <div id="game"></div>
     <div id="loading-progress">Loading: 0/0</div>
     <div id="first-time">First-time loading may take longer…</div>
@@ -66,9 +59,9 @@ if(typeof SharedArrayBuffer==="undefined"&&"serviceWorker" in navigator)
       var ft = document.getElementById("first-time"); if (ft) ft.remove();
       EJS_player = "#game"; EJS_core = window.gameconfig.core; EJS_gameName = window.gameconfig.name;
       EJS_color = "#0064ff"; EJS_startOnLoaded = true;
-      EJS_pathtodata = "https://cdn.jsdelivr.net/npm/emulatorjs/data/";
+      EJS_pathtodata = "https://cdn.emulatorjs.org/stable/data/";
       EJS_gameUrl = gameUrl;
-      var s = document.createElement("script"); s.src = "https://cdn.jsdelivr.net/npm/emulatorjs/data/loader.js"; document.body.appendChild(s);
+      var s = document.createElement("script"); s.src = "https://cdn.emulatorjs.org/stable/data/loader.js"; document.body.appendChild(s);
     }).catch(err => {
       console.error(err);
       var e = document.getElementById("error-msg"); e.textContent = "Error loading game. Check your connection and try refreshing."; e.style.display = "block";
