@@ -710,7 +710,7 @@ export default function Home() {
                       className="relative font-mono-cyber text-[11px] tracking-[0.25em] uppercase group"
                       style={{ color: "var(--text-dim)", cursor: "none" }}
                     >
-                      <span className="group-hover:text-[var(--neon)] transition-colors duration-200">{label}</span>
+                      <TextScramble text={label} className="group-hover:text-[var(--neon)] transition-colors duration-200" />
                       <span
                         className="absolute -bottom-0.5 left-0 h-px bg-[var(--neon)] scale-x-0 group-hover:scale-x-100 origin-left transition-transform duration-300"
                         style={{ boxShadow: "0 0 6px var(--neon)" }}
@@ -720,7 +720,7 @@ export default function Home() {
                 </div>
 
                 {/* Centered logo */}
-                <div className="absolute left-1/2 -translate-x-1/2 pointer-events-auto flex flex-col items-center gap-0.5">
+                <div className="absolute left-1/2 -translate-x-1/2 mt-3 pointer-events-auto flex flex-col items-center gap-0.5">
                   <MagneticText strength={9} radius={160} tag="span" className="font-pixel text-[11px] neon-text tracking-widest" style={{ display: "inline-block" }}>
                     GAMESTASH
                   </MagneticText>
@@ -735,7 +735,7 @@ export default function Home() {
                       className="relative font-mono-cyber text-[11px] tracking-[0.25em] uppercase group"
                       style={{ color: "var(--text-dim)", cursor: "none" }}
                     >
-                      <span className="group-hover:text-[var(--neon)] transition-colors duration-200">{link}</span>
+                      <TextScramble text={link} className="group-hover:text-[var(--neon)] transition-colors duration-200" />
                       <span
                         className="absolute -bottom-0.5 left-0 h-px bg-[var(--neon)] scale-x-0 group-hover:scale-x-100 origin-left transition-transform duration-300"
                         style={{ boxShadow: "0 0 6px var(--neon)" }}
@@ -912,6 +912,9 @@ export default function Home() {
           {/* ══ FOOTER ═══════════════════════════════════════════════════ */}
           <footer style={{ background: "var(--background)" }}>
 
+            {/* ── Neon section divider ── */}
+            <div aria-hidden style={{ height: 1, background: "linear-gradient(90deg, transparent 0%, var(--neon) 30%, var(--neon-2) 55%, var(--neon-3) 75%, transparent 100%)", opacity: 0.35 }} />
+
             {/* ── Stats — oversized editorial numbers ── */}
             <div
               ref={platformReveal.ref}
@@ -919,7 +922,6 @@ export default function Home() {
                 opacity: platformReveal.visible ? 1 : 0,
                 transform: platformReveal.visible ? "translateY(0)" : "translateY(40px)",
                 transition: "opacity 0.8s ease, transform 0.8s cubic-bezier(0.16,1,0.3,1)",
-                borderTop: "1px solid var(--border)",
               }}
             >
               <div className="grid grid-cols-2 md:grid-cols-4">
@@ -956,9 +958,7 @@ export default function Home() {
                       {num}
                     </span>
                     {/* Label */}
-                    <span className="font-mono-cyber text-[8px] tracking-[0.4em] uppercase" style={{ color: "var(--text-muted)" }}>
-                      {label}
-                    </span>
+                    <TextScramble text={label} className="font-mono-cyber text-[8px] tracking-[0.4em] uppercase" style={{ color: "var(--text-muted)" }} />
                     {/* Bottom accent on hover */}
                     <div className="absolute bottom-0 left-0 right-0 h-px opacity-0 group-hover:opacity-100 transition-opacity duration-400"
                       style={{ background: `linear-gradient(90deg, transparent, oklch(0.65 0.22 ${hue}), transparent)`, boxShadow: `0 0 8px oklch(0.65 0.22 ${hue})` }} />
