@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useRef, useCallback } from "react";
+import gsap from "gsap";
 import { HeroBackground } from "@/components/ui/hero-background";
 import { TextScramble } from "@/components/ui/text-scramble";
 import { CyberpunkCursor } from "@/components/ui/cyberpunk-cursor";
@@ -75,6 +76,51 @@ function FloatLetter({ char, phase, amp, si }: { char: string; phase: number; am
     <span ref={ref} aria-hidden style={{ display: "inline-block", willChange: "transform" }}>
       {char}
     </span>
+  );
+}
+
+// ── Preloader Sequence ───────────────────────────────────────────────────────
+function Preloader() {
+  const [progress, setProgress] = useState(0);
+  const [done, setDone] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    let p = 0;
+    const interval = setInterval(() => {
+      p += Math.floor(Math.random() * 15) + 5;
+      if (p >= 100) {
+        p = 100;
+        clearInterval(interval);
+        setTimeout(() => {
+          gsap.to(containerRef.current, {
+            yPercent: -100,
+            duration: 1.1,
+            ease: "expo.inOut",
+            onComplete: () => setDone(true),
+          });
+        }, 500);
+      }
+      setProgress(p);
+    }, 100);
+    return () => clearInterval(interval);
+  }, []);
+
+  if (done) return null;
+
+  return (
+    <div ref={containerRef} className="fixed inset-0 z-[9999] flex flex-col items-center justify-center bg-[var(--background)]">
+      <div className="absolute inset-0 pointer-events-none crt-fx" />
+      <div className="font-mono-cyber text-[var(--neon)] text-6xl tracking-widest neon-text">
+        {progress}%
+      </div>
+      <div className="mt-6 font-mono-cyber text-[10px] uppercase tracking-[0.5em] text-[var(--neon-dim)] animate-pulse">
+        Initializing Vault Sequence
+      </div>
+      <div className="absolute bottom-16 left-1/2 -translate-x-1/2 w-64 h-[2px] bg-[var(--surface-3)] overflow-hidden">
+        <div className="h-full bg-[var(--neon)] transition-all duration-75" style={{ width: `${progress}%`, boxShadow: "0 0 10px var(--neon)" }} />
+      </div>
+    </div>
   );
 }
 
@@ -473,6 +519,7 @@ export default function Home() {
 
   return (
     <>
+      <Preloader />
       <CyberpunkCursor />
       <HeroBackground />
       <GamePlayer game={playingGame} onClose={closePlayer} />
@@ -518,7 +565,7 @@ export default function Home() {
 
                 {/* Centered logo */}
                 <div className="absolute left-1/2 -translate-x-1/2 mt-3 pointer-events-auto flex flex-col items-center gap-0.5">
-                  <MagneticText strength={9} radius={160} tag="span" className="font-pixel text-[11px] neon-text tracking-widest" style={{ display: "inline-block" }}>
+                  <MagneticText strength={9} radius={160} tag="span" className="font-pixel text-[11px] tracking-widest neon-text" style={{ display: "inline-block" }}>
                     GAMESTASH
                   </MagneticText>
                   <div className="h-px w-full" style={{ background: "linear-gradient(90deg, transparent, var(--neon), transparent)", boxShadow: "0 0 6px var(--neon)" }} />
@@ -665,7 +712,13 @@ export default function Home() {
           />
           <div
             className="absolute top-0 left-0 right-0 pointer-events-none"
-            style={{ height: "1px", background: "linear-gradient(90deg, transparent, var(--neon-dim), transparent)", boxShadow: "0 0 12px var(--neon-dim)", zIndex: 11, opacity: 0.35 }}
+            style={{
+              height: "1px",
+              background: "linear-gradient(90deg, transparent, var(--neon), transparent)",
+              boxShadow: "0 0 12px var(--neon-dim)",
+              zIndex: 11,
+              opacity: 0.8,
+            }}
           />
 
           {/* ══ LIBRARY ═══════════════════════════════════════════════════ */}

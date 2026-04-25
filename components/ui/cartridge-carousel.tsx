@@ -34,95 +34,144 @@ export interface CarouselGame {
 function Card3D({ game, isActive }: { game: CarouselGame; isActive: boolean }) {
   const c  = gc(game.hue);
   const cd = gcd(game.hue);
+  const cardRef = useRef<HTMLDivElement>(null);
+
+  // 3D Tilt Physics
+  useEffect(() => {
+    if (!cardRef.current) return;
+    const el = cardRef.current;
+    
+    const xTo = gsap.quickTo(el, "rotationY", { ease: "power3", duration: 0.5 });
+    const yTo = gsap.quickTo(el, "rotationX", { ease: "power3", duration: 0.5 });
+    const glareTo = gsap.quickTo(el.querySelector('.glare'), "opacity", { ease: "power3", duration: 0.5 });
+    
+    const handleMove = (e: MouseEvent) => {
+      const rect = el.getBoundingClientRect();
+      const px = (e.clientX - rect.left) / rect.width; // 0 to 1
+      const py = (e.clientY - rect.top) / rect.height; // 0 to 1
+      const rx = (py - 0.5) * -25; // Max tilt degree
+      const ry = (px - 0.5) * 25;
+      xTo(ry);
+      yTo(rx);
+      glareTo(Math.max(0, 0.4 - py * 0.4 + px * 0.2));
+    };
+    
+    const handleLeave = () => {
+      xTo(0);
+      yTo(0);
+      glareTo(0);
+    };
+    
+    el.addEventListener("mousemove", handleMove);
+    el.addEventListener("mouseleave", handleLeave);
+    
+    return () => {
+      el.removeEventListener("mousemove", handleMove);
+      el.removeEventListener("mouseleave", handleLeave);
+    };
+  }, []);
 
   return (
-    <div style={{
-      width: CW, height: CH,
-      background: "oklch(0.072 0.018 195)",
-      border: `1px solid ${isActive ? c + "66" : "oklch(0.22 0.07 195)"}`,
-      borderRadius: 6,
-      display: "flex", flexDirection: "column",
-      overflow: "hidden",
-      boxShadow: isActive
-        ? `0 0 0 1.5px ${c}55, 0 0 0 4px ${c}18, 0 28px 80px rgba(0,0,0,0.95), 0 0 90px ${c}35`
-        : "0 8px 32px rgba(0,0,0,0.75), 0 0 0 1px oklch(0.16 0.05 195)",
-      transition: "border-color 0.3s, box-shadow 0.3s",
-      position: "relative",
-    }}>
-      {/* Cover art */}
-      <div style={{
-        flex: 1,
-        background: game.coverImage
-          ? `url(${game.coverImage}) center/cover no-repeat`
-          : `linear-gradient(145deg, oklch(0.13 0.06 ${game.hue}), oklch(0.08 0.03 ${game.hue}))`,
-        position: "relative",
+    <div style={{ perspective: 1200, width: CW, height: CH }}>
+      <div ref={cardRef} style={{
+        width: CW, height: CH,
+        background: "oklch(0.072 0.018 195)",
+        border: `1px solid ${isActive ? c + "66" : "oklch(0.22 0.07 195)"}`,
+        borderRadius: 6,
+        display: "flex", flexDirection: "column",
         overflow: "hidden",
+        boxShadow: isActive
+          ? `0 0 0 1.5px ${c}55, 0 0 0 4px ${c}18, 0 28px 80px rgba(0,0,0,0.95), 0 0 90px ${c}35`
+          : "0 8px 32px rgba(0,0,0,0.75), 0 0 0 1px oklch(0.16 0.05 195)",
+        transition: "border-color 0.3s, box-shadow 0.3s",
+        position: "relative",
+        transformStyle: "preserve-3d",
+        willChange: "transform",
       }}>
-        <div style={{ position: "absolute", inset: 0, pointerEvents: "none",
-          backgroundImage: `linear-gradient(${c}07 1px, transparent 1px), linear-gradient(90deg, ${c}07 1px, transparent 1px)`,
-          backgroundSize: "14px 14px" }} />
-        <div style={{ position: "absolute", inset: 0, pointerEvents: "none",
-          backgroundImage: "repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(0,0,0,0.10) 3px, rgba(0,0,0,0.10) 4px)" }} />
-        <div style={{ position: "absolute", inset: 0, pointerEvents: "none",
-          background: "radial-gradient(ellipse at center, transparent 25%, rgba(0,0,0,0.65) 100%)" }} />
-        {!game.coverImage && (
-          <div style={{
-            position: "absolute", inset: 0,
-            display: "flex", alignItems: "center", justifyContent: "center",
-            fontFamily: "'Press Start 2P'", fontSize: 11,
-            color: `${c}18`, letterSpacing: "0.08em", userSelect: "none",
-          }}>{game.platform}</div>
-        )}
-        <div style={{ position: "absolute", top: 6, left: 6, fontFamily: "Share Tech Mono", fontSize: 7,
-          color: c, letterSpacing: "0.14em", background: `${c}18`, border: `1px solid ${c}44`,
-          padding: "2px 6px", borderRadius: 2 }}>{game.platform}</div>
-        <div style={{ position: "absolute", top: 6, right: 6, fontFamily: "Share Tech Mono",
-          fontSize: 7, color: cd, letterSpacing: "0.1em" }}>{game.year}</div>
-        {isActive && <>
-          <div style={{ position: "absolute", top: 4, left: 4, width: 8, height: 8, border: `1.5px solid ${c}99`, borderRight: "none", borderBottom: "none" }} />
-          <div style={{ position: "absolute", top: 4, right: 4, width: 8, height: 8, border: `1.5px solid ${c}99`, borderLeft: "none", borderBottom: "none" }} />
-          <div style={{ position: "absolute", bottom: 4, left: 4, width: 8, height: 8, border: `1.5px solid ${c}99`, borderRight: "none", borderTop: "none" }} />
-          <div style={{ position: "absolute", bottom: 4, right: 4, width: 8, height: 8, border: `1.5px solid ${c}99`, borderLeft: "none", borderTop: "none" }} />
-        </>}
-      </div>
-
-      {/* Info strip */}
-      <div style={{
-        padding: "7px 10px 8px",
-        borderTop: `1px solid ${isActive ? c + "33" : "oklch(0.16 0.05 195)"}`,
-        background: "oklch(0.058 0.014 195)",
-        transition: "border-color 0.3s",
-      }}>
-        <div style={{
-          fontFamily: "'Press Start 2P'", fontSize: 5,
-          color: isActive ? c : "oklch(0.55 0.12 195)",
-          textShadow: isActive ? `0 0 10px ${c}` : "none",
-          lineHeight: 1.9, letterSpacing: "0.04em",
-          textAlign: "center",
-          transition: "color 0.3s, text-shadow 0.3s",
-          wordBreak: "break-word",
-          overflow: "hidden",
-          maxHeight: "2.5em",
-        }}>{game.title.toUpperCase()}</div>
-        <div style={{ display: "flex", gap: 3, justifyContent: "center", marginTop: 6 }}>
-          {Array.from({ length: 10 }, (_, i) => (
-            <div key={i} style={{
-              width: 3, height: 6,
-              background: `oklch(${isActive ? "0.42" : "0.28"} 0.09 ${game.hue + 20})`,
-              borderRadius: "0 0 1px 1px",
-              transition: "background 0.3s",
-            }} />
-          ))}
-        </div>
-      </div>
-
-      {isActive && (
-        <div style={{
-          position: "absolute", left: 0, right: 0, height: 2, pointerEvents: "none",
-          background: `linear-gradient(90deg, transparent, ${c}99, transparent)`,
-          animation: "scanline-drop 2s linear infinite", opacity: 0.7,
+        {/* Dynamic glare element */}
+        <div className="glare" style={{
+          position: "absolute", inset: 0, zIndex: 10, pointerEvents: "none",
+          background: "linear-gradient(105deg, transparent 20%, rgba(255,255,255,0.4) 25%, transparent 30%)",
+          opacity: 0,
         }} />
-      )}
+
+        {/* Cover art */}
+        <div style={{
+          flex: 1,
+          background: game.coverImage
+            ? `url(${game.coverImage}) center/cover no-repeat`
+            : `linear-gradient(145deg, oklch(0.13 0.06 ${game.hue}), oklch(0.08 0.03 ${game.hue}))`,
+          position: "relative",
+          overflow: "hidden",
+          transform: "translateZ(0)", // Force hardware accel layer
+        }}>
+          <div style={{ position: "absolute", inset: 0, pointerEvents: "none",
+            backgroundImage: `linear-gradient(${c}07 1px, transparent 1px), linear-gradient(90deg, ${c}07 1px, transparent 1px)`,
+            backgroundSize: "14px 14px" }} />
+          <div style={{ position: "absolute", inset: 0, pointerEvents: "none",
+            backgroundImage: "repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(0,0,0,0.10) 3px, rgba(0,0,0,0.10) 4px)" }} />
+          <div style={{ position: "absolute", inset: 0, pointerEvents: "none",
+            background: "radial-gradient(ellipse at center, transparent 25%, rgba(0,0,0,0.65) 100%)" }} />
+          {!game.coverImage && (
+            <div style={{
+              position: "absolute", inset: 0,
+              display: "flex", alignItems: "center", justifyContent: "center",
+              fontFamily: "'Press Start 2P'", fontSize: 11,
+              color: `${c}18`, letterSpacing: "0.08em", userSelect: "none",
+            }}>{game.platform}</div>
+          )}
+          <div style={{ position: "absolute", top: 6, left: 6, fontFamily: "Share Tech Mono", fontSize: 7,
+            color: c, letterSpacing: "0.14em", background: `${c}18`, border: `1px solid ${c}44`,
+            padding: "2px 6px", borderRadius: 2 }}>{game.platform}</div>
+          <div style={{ position: "absolute", top: 6, right: 6, fontFamily: "Share Tech Mono",
+            fontSize: 7, color: cd, letterSpacing: "0.1em" }}>{game.year}</div>
+          {isActive && <>
+            <div style={{ position: "absolute", top: 4, left: 4, width: 8, height: 8, border: `1.5px solid ${c}99`, borderRight: "none", borderBottom: "none" }} />
+            <div style={{ position: "absolute", top: 4, right: 4, width: 8, height: 8, border: `1.5px solid ${c}99`, borderLeft: "none", borderBottom: "none" }} />
+            <div style={{ position: "absolute", bottom: 4, left: 4, width: 8, height: 8, border: `1.5px solid ${c}99`, borderRight: "none", borderTop: "none" }} />
+            <div style={{ position: "absolute", bottom: 4, right: 4, width: 8, height: 8, border: `1.5px solid ${c}99`, borderLeft: "none", borderTop: "none" }} />
+          </>}
+        </div>
+
+        {/* Info strip */}
+        <div style={{
+          padding: "7px 10px 8px",
+          borderTop: `1px solid ${isActive ? c + "33" : "oklch(0.16 0.05 195)"}`,
+          background: "oklch(0.058 0.014 195)",
+          transition: "border-color 0.3s",
+        }}>
+          <div style={{
+            fontFamily: "'Press Start 2P'", fontSize: 5,
+            color: isActive ? c : "oklch(0.55 0.12 195)",
+            textShadow: isActive ? `0 0 10px ${c}` : "none",
+            lineHeight: 1.9, letterSpacing: "0.04em",
+            textAlign: "center",
+            transition: "color 0.3s, text-shadow 0.3s",
+            wordBreak: "break-word",
+            overflow: "hidden",
+            maxHeight: "2.5em",
+          }}>{game.title.toUpperCase()}</div>
+          <div style={{ display: "flex", gap: 3, justifyContent: "center", marginTop: 6 }}>
+            {Array.from({ length: 10 }, (_, i) => (
+              <div key={i} style={{
+                width: 3, height: 6,
+                background: `oklch(${isActive ? "0.42" : "0.28"} 0.09 ${game.hue + 20})`,
+                borderRadius: "0 0 1px 1px",
+                transition: "background 0.3s",
+              }} />
+            ))}
+          </div>
+        </div>
+
+        {isActive && (
+          <div style={{
+            position: "absolute", left: 0, right: 0, height: 2, pointerEvents: "none",
+            background: `linear-gradient(90deg, transparent, ${c}99, transparent)`,
+            animation: "scanline-drop 2s linear infinite", opacity: 0.7,
+            zIndex: 11,
+          }} />
+        )}
+      </div>
     </div>
   );
 }
