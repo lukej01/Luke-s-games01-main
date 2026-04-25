@@ -538,7 +538,7 @@ export function CartridgeCarousel({
             return (
               <div
                 key={`${triIdx}`}
-                ref={el => { if (isMid) cardFlyRefs.current[gameIdx] = el; }}
+                ref={el => { cardFlyRefs.current[triIdx] = el; }}
               >
                 <div
                   ref={el => { if (isMid) cartEls.current[gameIdx] = el; }}

@@ -405,217 +405,6 @@ function SplitReveal({ text, className, style }: { text: string; className?: str
   );
 }
 
-// ── GameCard — retro box art cover ─────────────────────────────────────────
-function GameCard({
-  game,
-  index,
-  onClick,
-}: {
-  game: Game;
-  index: number;
-  onClick: () => void;
-}) {
-  const [hovered, setHovered] = useState(false);
-  const [tilt, setTilt] = useState({ x: 0, y: 0 });
-  const { ref, visible } = useReveal(0.04);
-
-  const neon    = `oklch(0.85 0.22 ${game.hue})`;
-  const neonDim = `oklch(0.55 0.18 ${game.hue})`;
-  const bg      = `oklch(0.10 0.06 ${game.hue})`;
-
-  const onMouseMove = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
-    const rect = e.currentTarget.getBoundingClientRect();
-    const nx = ((e.clientX - rect.left) / rect.width - 0.5) * 2;
-    const ny = ((e.clientY - rect.top)  / rect.height - 0.5) * 2;
-    setTilt({ x: nx * 8, y: -ny * 8 });
-  }, []);
-
-  const handleMouseLeave = useCallback(() => {
-    setHovered(false);
-    setTilt({ x: 0, y: 0 });
-  }, []);
-
-  // stagger delay: wave pattern across grid
-  const delay = (index % 5) * 0.055 + Math.floor(index / 5) * 0.04;
-
-  return (
-    <div ref={ref}>
-    <div
-      role="button"
-      tabIndex={0}
-      aria-label={`Play ${game.title}`}
-      onMouseEnter={() => setHovered(true)}
-      onMouseMove={onMouseMove}
-      onMouseLeave={handleMouseLeave}
-      onClick={onClick}
-      onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") onClick(); }}
-      style={{
-        opacity: visible ? 1 : 0,
-        transform: visible
-          ? hovered
-            ? `translateY(-10px) scale(1.04) rotateY(${tilt.x}deg) rotateX(${tilt.y}deg)`
-            : "translateY(0) scale(1) rotateX(0deg)"
-          : "translateY(64px) scale(0.86) rotateX(14deg)",
-        transition: visible
-          ? `opacity 0.6s ${delay}s ease, transform 0.42s cubic-bezier(0.16,1,0.3,1), box-shadow 0.3s`
-          : `opacity 0.6s ${delay}s ease, transform 0.7s ${delay}s cubic-bezier(0.16,1,0.3,1)`,
-        boxShadow: hovered
-          ? `0 28px 70px ${neon}44, 0 0 0 1px ${neon}88, 0 0 40px ${neon}18`
-          : `0 0 0 1px oklch(0.18 0.05 195)`,
-        cursor: "none",
-        overflow: "hidden",
-        background: "oklch(0.065 0.02 195)",
-        borderRadius: "2px",
-      }}
-    >
-      {/* Cover art — landscape 4:3 */}
-      <div
-        className="relative overflow-hidden"
-        style={{
-          aspectRatio: "4/3",
-          background: `linear-gradient(145deg, ${bg} 0%, oklch(0.06 0.04 ${game.hue}) 55%, oklch(0.04 0.015 ${game.hue}) 100%)`,
-        }}
-      >
-        {/* Grid overlay */}
-        <div
-          className="absolute inset-0 pointer-events-none"
-          style={{
-            backgroundImage: `linear-gradient(${neon}0a 1px, transparent 1px), linear-gradient(90deg, ${neon}0a 1px, transparent 1px)`,
-            backgroundSize: "20px 20px",
-          }}
-        />
-
-        {/* CRT scanlines */}
-        <div
-          className="absolute inset-0 pointer-events-none"
-          style={{
-            backgroundImage: "repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(0,0,0,0.13) 3px, rgba(0,0,0,0.13) 4px)",
-          }}
-        />
-
-        {/* Vignette */}
-        <div
-          className="absolute inset-0 pointer-events-none"
-          style={{ background: "radial-gradient(ellipse at center, transparent 30%, rgba(0,0,0,0.72) 100%)" }}
-        />
-
-        {/* Platform watermark */}
-        <div
-          className="absolute inset-0 flex items-center justify-center font-pixel select-none pointer-events-none"
-          style={{ fontSize: "clamp(24px, 7vw, 44px)", color: `${neon}0d`, letterSpacing: "0.3em" }}
-        >
-          {game.platform}
-        </div>
-
-        {/* Game title */}
-        <div className="absolute inset-0 flex items-center justify-center p-3">
-          <p
-            className="font-pixel text-center leading-loose"
-            style={{
-              fontSize: "clamp(0.38rem, 1.1vw, 0.60rem)",
-              color: neon,
-              textShadow: `0 0 10px ${neon}cc, 0 0 28px ${neonDim}88`,
-              letterSpacing: "0.06em",
-              wordBreak: "break-word",
-            }}
-          >
-            {game.title.toUpperCase()}
-          </p>
-        </div>
-
-        {/* Platform badge */}
-        <div
-          className="absolute top-1.5 left-1.5 font-mono-cyber text-[7px] tracking-widest px-1.5 py-0.5 border"
-          style={{ color: neon, borderColor: `${neon}55`, background: `${neon}14` }}
-        >
-          {game.platform}
-        </div>
-
-        {/* Year */}
-        <div className="absolute top-1.5 right-1.5 font-mono-cyber text-[7px] tracking-widest" style={{ color: neonDim }}>
-          {game.year}
-        </div>
-
-        {/* Genre */}
-        <div className="absolute bottom-1.5 left-1.5 font-mono-cyber text-[7px] tracking-[0.2em]" style={{ color: neonDim, opacity: 0.75 }}>
-          {game.genre.toUpperCase()}
-        </div>
-
-        {/* Hover play overlay */}
-        <div
-          className="absolute inset-0 flex items-center justify-center"
-          style={{
-            background: hovered ? "rgba(0,0,0,0.5)" : "transparent",
-            backdropFilter: hovered ? "blur(2px)" : "none",
-            opacity: hovered ? 1 : 0,
-            transition: "all 0.3s ease",
-          }}
-        >
-          <div
-            className="w-12 h-12 rounded-full flex items-center justify-center border-2"
-            style={{
-              borderColor: neon,
-              background: `${neon}22`,
-              boxShadow: `0 0 28px ${neon}66, 0 0 70px ${neonDim}33`,
-              transform: hovered ? "scale(1)" : "scale(0.4)",
-              transition: "transform 0.35s cubic-bezier(0.16,1,0.3,1)",
-            }}
-          >
-            <span className="text-xl ml-0.5" style={{ color: neon }}>▶</span>
-          </div>
-        </div>
-
-        {/* Scan sweep */}
-        {hovered && (
-          <div
-            style={{
-              position: "absolute",
-              left: 0,
-              right: 0,
-              height: "2px",
-              background: `linear-gradient(90deg, transparent, ${neon}, transparent)`,
-              animation: "scanline-drop 1.5s linear infinite",
-              opacity: 0.8,
-            }}
-          />
-        )}
-      </div>
-
-      {/* Footer */}
-      <div
-        className="px-2.5 py-2 flex items-center justify-between"
-        style={{ borderTop: `1px solid ${neon}22` }}
-      >
-        <span
-          className="font-pixel truncate pr-2"
-          style={{
-            fontSize: "5.5px",
-            letterSpacing: "0.05em",
-            color: hovered ? neon : "oklch(0.60 0.04 195)",
-            textShadow: hovered ? `0 0 8px ${neon}` : "none",
-            transition: "color 0.3s, text-shadow 0.3s",
-            maxWidth: "80%",
-          }}
-        >
-          {game.title.toUpperCase()}
-        </span>
-        <span
-          className="font-mono-cyber text-[8px] shrink-0"
-          style={{
-            color: neon,
-            opacity: hovered ? 1 : 0,
-            transform: hovered ? "translateX(0)" : "translateX(6px)",
-            transition: "opacity 0.25s, transform 0.3s cubic-bezier(0.16,1,0.3,1)",
-          }}
-        >
-          ▶
-        </span>
-      </div>
-    </div>
-    </div>
-  );
-}
-
 // ── Typewriter ──────────────────────────────────────────────────────────────
 function Typewriter({ text, delay = 0 }: { text: string; delay?: number }) {
   const [displayed, setDisplayed] = useState("");
@@ -915,160 +704,123 @@ export default function Home() {
           </section>
 
           {/* ══ FOOTER ═══════════════════════════════════════════════════ */}
-          <footer style={{ background: "var(--background)" }}>
-
-            {/* ── Neon section divider ── */}
-            <div aria-hidden style={{ height: "2px", background: "linear-gradient(90deg, transparent 0%, var(--neon) 25%, var(--neon-2) 50%, var(--neon-3) 75%, transparent 100%)", boxShadow: "0 0 28px var(--neon), 0 0 60px oklch(0.88 0.22 195 / 0.25)", opacity: 0.7 }} />
-            <div aria-hidden style={{ height: "56px", background: "linear-gradient(180deg, oklch(0.88 0.22 195 / 0.07) 0%, transparent 100%)" }} />
-
-            {/* ── Stats — oversized editorial numbers ── */}
-            <div
+          <footer className="relative overflow-hidden" style={{ background: "var(--background)", paddingTop: "8rem", paddingBottom: "3rem" }}>
+            
+            {/* ── Stats Row ── */}
+            <div 
               ref={platformReveal.ref}
+              className="max-w-screen-2xl mx-auto px-6 md:px-12 mb-32"
               style={{
                 opacity: platformReveal.visible ? 1 : 0,
-                transform: platformReveal.visible ? "translateY(0)" : "translateY(40px)",
-                transition: "opacity 0.8s ease, transform 0.8s cubic-bezier(0.16,1,0.3,1)",
+                transform: platformReveal.visible ? "translateY(0)" : "translateY(60px)",
+                transition: "opacity 1s ease, transform 1s cubic-bezier(0.16,1,0.3,1)",
               }}
             >
-              <div className="grid grid-cols-2 md:grid-cols-4">
-                {([
+              <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-12 border-t border-b py-16" style={{ borderColor: "oklch(0.20 0.05 195 / 0.5)" }}>
+                {[
                   { num: "13",   label: "Classic Games",  hue: 195 },
-                  { num: "7",    label: "Platforms",       hue: 280 },
+                  { num: "07",    label: "Platforms",       hue: 280 },
                   { num: "100%", label: "Browser Based",   hue: 320 },
                   { num: "0ms",  label: "No Downloads",    hue: 55  },
-                ] as const).map(({ num, label, hue }, i) => (
-                  <div
-                    key={label}
-                    className="group relative flex flex-col items-center justify-center py-24 gap-4 overflow-hidden"
-                    style={{
-                      borderRight: i < 3 ? "1px solid var(--border)" : undefined,
-                      borderBottom: i < 2 ? "1px solid var(--border)" : undefined,
-                    }}
-                  >
-                    {/* Hover bg glow */}
-                    <div className="absolute inset-0 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-500"
-                      style={{ background: `radial-gradient(ellipse at 50% 80%, oklch(0.65 0.22 ${hue} / 0.08) 0%, transparent 70%)` }} />
-                    {/* Number */}
-                    <span
-                      className="relative font-bold leading-none group-hover:scale-105 transition-transform duration-300"
+                ].map(({ num, label, hue }, i) => (
+                  <div key={label} className="group flex flex-col gap-2 relative">
+                    <span 
+                      className="font-bold leading-none tracking-tighter"
                       style={{
                         fontFamily: "'Space Grotesk'",
-                        fontSize: "clamp(3rem,6.5vw,5rem)",
-                        background: `linear-gradient(135deg, oklch(0.93 0.24 ${hue}), oklch(0.68 0.20 ${hue}))`,
-                        WebkitBackgroundClip: "text",
-                        WebkitTextFillColor: "transparent",
-                        backgroundClip: "text",
-                        filter: `drop-shadow(0 0 32px oklch(0.65 0.18 ${hue} / 0.5))`,
+                        fontSize: "clamp(3.5rem, 6vw, 6.5rem)",
+                        color: `oklch(0.90 0.20 ${hue})`,
+                        textShadow: `0 0 40px oklch(0.65 0.18 ${hue} / 0.4)`,
+                        transition: "transform 0.4s cubic-bezier(0.16,1,0.3,1)",
                       }}
+                      onMouseEnter={e => { (e.currentTarget as HTMLElement).style.transform = "translateY(-4px) scale(1.02)"; }}
+                      onMouseLeave={e => { (e.currentTarget as HTMLElement).style.transform = "translateY(0) scale(1)"; }}
                     >
                       {num}
                     </span>
-                    {/* Label */}
-                    <TextScramble text={label} className="font-mono-cyber text-[8px] tracking-[0.4em] uppercase" style={{ color: "var(--text-muted)" }} />
-                    {/* Bottom accent on hover */}
-                    <div className="absolute bottom-0 left-0 right-0 h-px opacity-0 group-hover:opacity-100 transition-opacity duration-400"
-                      style={{ background: `linear-gradient(90deg, transparent, oklch(0.65 0.22 ${hue}), transparent)`, boxShadow: `0 0 8px oklch(0.65 0.22 ${hue})` }} />
+                    <TextScramble text={label} className="font-mono-cyber text-[10px] tracking-[0.3em] uppercase" style={{ color: "var(--text-muted)" }} />
                   </div>
                 ))}
               </div>
             </div>
 
-            {/* ── Neon divider ── */}
-            <div style={{ height: 1, background: "linear-gradient(90deg, transparent 0%, var(--neon) 25%, var(--neon-2) 50%, var(--neon-3) 75%, transparent 100%)", opacity: 0.28 }} />
+            {/* ── Massive Brand Title ── */}
+            <div className="w-full overflow-hidden flex justify-center items-center mb-24 pointer-events-none select-none">
+               <h2 
+                 className="font-bold leading-none tracking-tighter whitespace-nowrap"
+                 style={{
+                   fontFamily: "'Space Grotesk'",
+                   fontSize: "clamp(6rem, 15vw, 19rem)",
+                   color: "transparent",
+                   WebkitTextStroke: "1.5px oklch(0.30 0.08 195)",
+                   opacity: 0.35
+                 }}
+               >
+                 GAMESTASH
+               </h2>
+            </div>
 
-            {/* ── Main footer body ── */}
-            <div className="px-8 md:px-14 py-14">
-              <div className="max-w-7xl mx-auto">
-                {/* Three-column grid */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-12 mb-12">
-
-                  {/* Brand */}
-                  <div className="flex flex-col gap-4">
-                    <span className="font-pixel text-[13px] neon-text" style={{ animation: "neon-pulse 4s ease-in-out infinite", lineHeight: 2 }}>GAMESTASH</span>
-                    <p className="font-mono-cyber text-[9px] tracking-[0.22em] uppercase leading-relaxed" style={{ color: "var(--text-muted)", maxWidth: 200 }}>
-                      The definitive retro gaming vault. 13 classics, zero installs.
-                    </p>
-                    <div className="flex items-center gap-2 mt-1">
-                      <span className="w-1.5 h-1.5 rounded-full" style={{ background: "var(--neon)", boxShadow: "0 0 6px var(--neon)", animation: "neon-pulse 2s ease-in-out infinite" }} />
-                      <span className="font-mono-cyber text-[8px] tracking-widest uppercase" style={{ color: "var(--text-muted)" }}>All Systems Online</span>
-                    </div>
-                  </div>
-
-                  {/* Nav links */}
-                  <div className="flex flex-col gap-3">
-                    <span className="font-mono-cyber text-[8px] tracking-[0.4em] uppercase mb-2" style={{ color: "var(--text-muted)" }}>Navigation</span>
-                    {[
-                      { label: "Browse Library", href: "#library" },
-                      { label: "Privacy Policy", href: "#" },
-                      { label: "Terms of Use",   href: "#" },
-                      { label: "GitHub",         href: "#" },
-                    ].map(({ label, href }) => (
+            {/* ── Bottom Nav & Admin ── */}
+            <div className="max-w-screen-2xl mx-auto px-6 md:px-12 flex flex-col md:flex-row justify-between items-end gap-16">
+               <div className="flex flex-col gap-8">
+                 <div className="flex flex-wrap gap-8 md:gap-12">
+                   {[
+                     { label: "Library", href: "#library" },
+                     { label: "GitHub", href: "#" },
+                     { label: "Terms", href: "#" }
+                   ].map(({ label, href }) => (
                       <a
                         key={label}
                         href={href}
-                        className="relative w-fit font-mono-cyber text-[10px] tracking-[0.18em] uppercase group"
+                        className="relative font-mono-cyber text-[11px] tracking-[0.25em] uppercase group"
                         style={{ color: "var(--text-dim)", cursor: "none" }}
                         onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = "var(--neon)"; }}
                         onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = "var(--text-dim)"; }}
                       >
-                        <span className="group-hover:translate-x-1.5 inline-block transition-transform duration-200">{label}</span>
-                        <span className="absolute -bottom-0.5 left-0 h-px bg-[var(--neon)] scale-x-0 group-hover:scale-x-100 origin-left transition-transform duration-300" style={{ boxShadow: "0 0 4px var(--neon)" }} />
+                        <span className="relative z-10 group-hover:translate-x-1 inline-block transition-transform duration-300">{label}</span>
+                        <span className="absolute -bottom-1.5 left-0 w-full h-[1px] bg-[var(--neon)] scale-x-0 group-hover:scale-x-100 origin-left transition-transform duration-500 cubic-bezier(0.16,1,0.3,1)" />
                       </a>
-                    ))}
-                  </div>
-
-                  {/* Admin CTA */}
-                  <div className="flex flex-col gap-4 md:items-end">
-                    <span className="font-mono-cyber text-[8px] tracking-[0.4em] uppercase mb-2" style={{ color: "var(--text-muted)" }}>Admin</span>
-                    <a
-                      href="/Luke-s-games01-main/admin.html"
-                      className="relative overflow-hidden flex items-center gap-2.5 px-6 py-3 font-mono-cyber text-[10px] tracking-[0.28em] uppercase border group w-fit"
-                      style={{
-                        borderColor: "var(--neon-2)",
-                        color: "var(--neon-2)",
-                        background: "oklch(0.78 0.22 280 / 0.06)",
-                        cursor: "none",
-                        transition: "transform 0.2s, box-shadow 0.25s",
-                      }}
-                      onMouseEnter={e => {
-                        const el = e.currentTarget as HTMLElement;
-                        el.style.background = "oklch(0.78 0.22 280 / 0.14)";
-                        el.style.boxShadow  = "0 0 28px oklch(0.78 0.22 280 / 0.45), 0 0 60px oklch(0.78 0.22 280 / 0.12)";
-                        el.style.transform  = "translateY(-3px)";
-                      }}
-                      onMouseLeave={e => {
-                        const el = e.currentTarget as HTMLElement;
-                        el.style.background = "oklch(0.78 0.22 280 / 0.06)";
-                        el.style.boxShadow  = "none";
-                        el.style.transform  = "translateY(0)";
-                      }}
-                    >
-                      <span className="text-sm">⚙</span>
-                      <span>Admin Panel</span>
-                      {/* Sweep on hover */}
-                      <span className="absolute inset-0 translate-x-[-101%] group-hover:translate-x-0 transition-transform duration-300" style={{ background: "oklch(0.78 0.22 280 / 0.10)" }} />
-                    </a>
-                    <p className="font-mono-cyber text-[8px] tracking-[0.18em] uppercase leading-relaxed md:text-right" style={{ color: "var(--text-muted)", maxWidth: 180 }}>
-                      Manage games, update covers, sync to GitHub.
-                    </p>
-                  </div>
-                </div>
-
-                {/* Divider */}
-                <div style={{ height: 1, background: "var(--border)", marginBottom: "1.5rem" }} />
-
-                {/* Copyright row */}
-                <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
-                  <span className="font-mono-cyber text-[8px] tracking-[0.28em] uppercase" style={{ color: "var(--text-muted)" }}>
-                    © 2026 GameStash — All original games belong to their respective owners.
+                   ))}
+                 </div>
+                 <span className="font-mono-cyber text-[9px] tracking-[0.2em] uppercase" style={{ color: "oklch(0.40 0.08 195)" }}>
+                    © 2026 GameStash. Built with ♥ for retro gamers.
+                 </span>
+               </div>
+               
+               <a
+                  href="/Luke-s-games01-main/admin.html"
+                  className="relative flex items-center justify-center gap-3 px-10 py-5 font-mono-cyber text-[10px] tracking-[0.35em] uppercase group overflow-hidden rounded-full border"
+                  style={{
+                    borderColor: "oklch(0.35 0.10 195)",
+                    background: "transparent",
+                    color: "var(--text-dim)",
+                    cursor: "none",
+                    transition: "all 0.5s cubic-bezier(0.16,1,0.3,1)",
+                    boxShadow: "0 0 0 oklch(0.78 0.22 280 / 0)"
+                  }}
+                  onMouseEnter={e => {
+                    const el = e.currentTarget as HTMLElement;
+                    el.style.borderColor = "var(--neon-2)";
+                    el.style.color = "var(--background)";
+                    el.style.boxShadow = "0 0 30px oklch(0.78 0.22 280 / 0.4)";
+                    el.style.transform = "translateY(-4px)";
+                  }}
+                  onMouseLeave={e => {
+                    const el = e.currentTarget as HTMLElement;
+                    el.style.borderColor = "oklch(0.35 0.10 195)";
+                    el.style.color = "var(--text-dim)";
+                    el.style.boxShadow = "0 0 0 oklch(0.78 0.22 280 / 0)";
+                    el.style.transform = "translateY(0)";
+                  }}
+                >
+                  <span className="absolute inset-0 bg-[var(--neon-2)] translate-y-[101%] group-hover:translate-y-0 transition-transform duration-500 cubic-bezier(0.16,1,0.3,1)" />
+                  <span className="relative z-10 flex items-center gap-2">
+                    <span className="text-[13px]">⚙</span>
+                    <span>Admin Vault</span>
                   </span>
-                  <div className="flex items-center gap-1.5">
-                    <div className="w-px h-3" style={{ background: "var(--border)" }} />
-                    <span className="font-mono-cyber text-[8px] tracking-[0.2em] uppercase" style={{ color: "var(--text-muted)" }}>Built with ♥ for retro gamers</span>
-                  </div>
-                </div>
-              </div>
+                </a>
             </div>
+
           </footer>
         </div>
       </main>
