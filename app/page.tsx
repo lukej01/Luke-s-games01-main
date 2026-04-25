@@ -124,29 +124,29 @@ function Preloader() {
   );
 }
 
-// ── FloatTitle — GAMESTASH with per-letter anti-gravity + scroll scatter ───
+// ── FloatTitle — GAMESTASH with raw, high-contrast aesthetics ───
 function FloatTitle() {
   return (
     <h1
-      className="text-[clamp(4rem,11vw,10rem)] font-bold leading-none tracking-tighter mb-6 relative z-10"
+      className="text-[clamp(4.5rem,12vw,11rem)] font-black leading-none tracking-tighter mb-6 relative z-10"
       style={{
         fontFamily: "'Space Grotesk', sans-serif",
-        textShadow: "-4px 0 0 rgba(0,255,255,0.6), 4px 0 0 rgba(255,0,255,0.6)",
+        textTransform: "uppercase",
+        color: "var(--neon)",
+        filter: "drop-shadow(0 0 40px var(--neon))",
+        WebkitTextStroke: "2.5px #fff",
+        textShadow: "8px 8px 0px rgba(255,255,255,0.1), -4px -4px 0px var(--background)",
       }}
       aria-label="GAMESTASH"
     >
-      <span className="glitch-wrap block" style={{ color: "var(--foreground)" }}>
+      <span className="block">
         {"GAME".split("").map((ch, i) => (
-          <FloatLetter key={i} char={ch} phase={i * 0.9} amp={3 + i * 0.4} si={i} />
+          <FloatLetter key={i} char={ch} phase={i * 0.9} amp={5 + i * 0.5} si={i} />
         ))}
       </span>
-      <span className="glitch-wrap block" style={{
-        WebkitTextStroke: "2px var(--neon)",
-        color: "transparent",
-        filter: "drop-shadow(0 0 24px var(--neon)) drop-shadow(-4px 0 12px rgba(0,255,255,0.5)) drop-shadow(4px 0 12px rgba(255,0,255,0.5))",
-      }}>
+      <span className="block" style={{ marginTop: "-0.1em" }}>
         {"STASH".split("").map((ch, i) => (
-          <FloatLetter key={i} char={ch} phase={3.6 + i * 0.85} amp={2.5 + i * 0.5} si={i + 4} />
+          <FloatLetter key={i} char={ch} phase={3.6 + i * 0.85} amp={4.5 + i * 0.6} si={i + 4} />
         ))}
       </span>
     </h1>
@@ -490,6 +490,7 @@ export default function Home() {
   const [scrollY, setScrollY] = useState(0);
   const [scrollProgress, setScrollProgress] = useState(0);
   const [playingGame, setPlayingGame] = useState<Game | null>(null);
+  const [isEjecting, setIsEjecting] = useState(false);
   const libraryReveal = useReveal(0.03);
   const platformReveal = useReveal(0.12);
   const heroRef = useRef<HTMLElement>(null);
@@ -508,8 +509,15 @@ export default function Home() {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
-  const closePlayer = useCallback(() => setPlayingGame(null), []);
+  const closePlayer = useCallback(() => {
+    setIsEjecting(true);
+    setTimeout(() => {
+      setPlayingGame(null);
+      setIsEjecting(false);
+    }, 1000);
+  }, []);
   const handlePlay = useCallback((game: Game) => {
+    setIsEjecting(false);
     setPlayingGame(game);
   }, []);
 
@@ -563,12 +571,19 @@ export default function Home() {
                   ))}
                 </div>
 
-                {/* Centered logo */}
+                {/* Centered logo — RAW & BRIGHT */}
                 <div className="absolute left-1/2 -translate-x-1/2 mt-3 pointer-events-auto flex flex-col items-center gap-0.5">
-                  <MagneticText strength={9} radius={160} tag="span" className="font-pixel text-[11px] tracking-widest neon-text" style={{ display: "inline-block" }}>
+                  <MagneticText strength={12} radius={200} tag="span" className="font-pixel text-[14px] tracking-[0.2em]" 
+                    style={{ 
+                      display: "inline-block", 
+                      color: "#fff", 
+                      background: "var(--neon)",
+                      padding: "2px 8px",
+                      boxShadow: "0 0 25px var(--neon), 0 0 50px var(--neon)",
+                      transform: "rotate(-1deg)"
+                    }}>
                     GAMESTASH
                   </MagneticText>
-                  <div className="h-px w-full" style={{ background: "linear-gradient(90deg, transparent, var(--neon), transparent)", boxShadow: "0 0 6px var(--neon)" }} />
                 </div>
 
                 <div className="hidden md:flex items-center gap-6 pointer-events-auto">
@@ -708,17 +723,7 @@ export default function Home() {
           {/* Fade bridge from hero into library */}
           <div
             className="absolute top-0 left-0 right-0 pointer-events-none"
-            style={{ height: "180px", background: "linear-gradient(to bottom, var(--background) 0%, oklch(0.04 0.005 195 / 0.7) 60%, transparent 100%)", zIndex: 10 }}
-          />
-          <div
-            className="absolute top-0 left-0 right-0 pointer-events-none"
-            style={{
-              height: "1px",
-              background: "linear-gradient(90deg, transparent, var(--neon), transparent)",
-              boxShadow: "0 0 12px var(--neon-dim)",
-              zIndex: 11,
-              opacity: 0.8,
-            }}
+            style={{ height: "180px", background: "linear-gradient(to bottom, var(--background) 0%, oklch(0.04 0.005 var(--hue) / 0.7) 60%, transparent 100%)", zIndex: 10 }}
           />
 
           {/* ══ LIBRARY ═══════════════════════════════════════════════════ */}
