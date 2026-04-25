@@ -127,24 +127,24 @@ function Preloader() {
 function FloatTitle() {
   return (
     <h1
-      className="text-[clamp(3rem,11vw,11.5rem)] font-bold leading-none tracking-tight mb-12 relative z-10 whitespace-nowrap"
+      className="text-[clamp(2.5rem,10vw,10rem)] font-bold leading-none tracking-tight mb-12 relative z-10 whitespace-nowrap"
       style={{
         fontFamily: "'Space Grotesk', sans-serif",
         textTransform: "uppercase",
-        color: "var(--foreground)",
-        textShadow: "-4px 0 0 rgba(0,255,255,0.6), 4px 0 0 rgba(255,0,255,0.6)",
+        textShadow: "-3px 0 0 rgba(0,255,255,0.4), 3px 0 0 rgba(255,0,255,0.4)",
       }}
       aria-label="GAMESTASH"
     >
-      {"GAMESTASH".split("").map((ch, i) => (
-        <FloatLetter 
-          key={i} 
-          char={ch} 
-          phase={i * 0.45} 
-          amp={2.5 + i * 0.15} 
-          si={i} 
-        />
-      ))}
+      <span className="inline-block" style={{ color: "#ffffff" }}>
+        {"GAME".split("").map((ch, i) => (
+          <FloatLetter key={i} char={ch} phase={i * 0.45} amp={2.5 + i * 0.15} si={i} />
+        ))}
+      </span>
+      <span className="inline-block" style={{ WebkitTextStroke: "2px var(--neon)", color: "transparent" }}>
+        {"STASH".split("").map((ch, i) => (
+          <FloatLetter key={i + 4} char={ch} phase={(i + 4) * 0.45} amp={2.5 + (i + 4) * 0.15} si={i + 4} />
+        ))}
+      </span>
     </h1>
   );
 }
