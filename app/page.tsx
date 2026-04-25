@@ -128,7 +128,7 @@ function Preloader() {
 function FloatTitle() {
   return (
     <h1
-      className="text-[clamp(4rem,11vw,10rem)] font-bold leading-none tracking-tighter mb-6 relative z-10"
+      className="text-[clamp(2.5rem,8vw,9rem)] font-bold leading-none tracking-tighter mb-10 relative z-10 whitespace-nowrap"
       style={{
         fontFamily: "'Space Grotesk', sans-serif",
         textTransform: "uppercase",
@@ -137,12 +137,12 @@ function FloatTitle() {
       }}
       aria-label="GAMESTASH"
     >
-      <span className="block">
+      <span className="inline-block">
         {"GAME".split("").map((ch, i) => (
           <FloatLetter key={i} char={ch} phase={i * 0.9} amp={3 + i * 0.4} si={i} />
         ))}
       </span>
-      <span className="block" style={{ marginTop: "-0.05em", color: "var(--neon)" }}>
+      <span className="inline-block" style={{ color: "var(--neon)", marginLeft: "0.05em" }}>
         {"STASH".split("").map((ch, i) => (
           <FloatLetter key={i} char={ch} phase={3.6 + i * 0.85} amp={2.5 + i * 0.5} si={i + 4} />
         ))}
