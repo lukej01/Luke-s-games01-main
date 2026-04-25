@@ -196,7 +196,7 @@ function Console({ insertedGame, isEjecting, onEject }: { insertedGame: Carousel
       <div style={{
         position: "absolute", top: 0, left: 0, width: CXW, height: 34,
         background: "linear-gradient(to bottom, oklch(0.12 0.04 195), oklch(0.075 0.025 195))",
-        border: "1px solid rgba(255,255,255,0.10)", borderBottom: "none",
+        border: "1px solid oklch(0.98 0.01 195 / 0.18)", borderBottom: "none",
         borderRadius: "10px 10px 0 0",
         display: "flex", alignItems: "center", justifyContent: "center", zIndex: 3,
       }}>
@@ -254,7 +254,7 @@ function Console({ insertedGame, isEjecting, onEject }: { insertedGame: Carousel
         position: "absolute", top: 0, left: 0, width: CXW, height: CXH,
         background: "linear-gradient(175deg, oklch(0.14 0.05 195), oklch(0.08 0.028 195))",
         borderRadius: "0 0 12px 12px",
-        border: "1px solid rgba(255,255,255,0.10)", borderTop: "none",
+        border: "1px solid oklch(0.98 0.01 195 / 0.18)", borderTop: "none",
         boxShadow: [
           "0 10px 0 oklch(0.03 0.005 195)",
           "0 20px 60px rgba(0,0,0,0.95)",

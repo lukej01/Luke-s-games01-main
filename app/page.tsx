@@ -804,8 +804,8 @@ export default function Home() {
                    fontFamily: "'Space Grotesk'",
                    fontSize: "clamp(6rem, 15vw, 19rem)",
                    color: "transparent",
-                   WebkitTextStroke: "1.5px oklch(0.30 0.08 195)",
-                   opacity: 0.35
+                   WebkitTextStroke: "1.5px oklch(0.98 0.01 195 / 0.15)",
+                   opacity: 0.6
                  }}
                >
                  GAMESTASH
