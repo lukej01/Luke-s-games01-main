@@ -771,18 +771,18 @@ export default function Home() {
               <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-12 border-t border-b py-16" style={{ borderColor: "oklch(0.20 0.05 195 / 0.5)" }}>
                 {[
                   { num: "13",   label: "Classic Games",  hue: 195 },
-                  { num: "07",    label: "Platforms",       hue: 280 },
-                  { num: "100%", label: "Browser Based",   hue: 320 },
+                  { num: "07",    label: "Platforms",       hue: 280, col: "oklch(0.97 0.01 0)" },
+                  { num: "100%", label: "Browser Based",   hue: 320, col: "oklch(0.97 0.01 0)" },
                   { num: "0ms",  label: "No Downloads",    hue: 55  },
-                ].map(({ num, label, hue }, i) => (
+                ].map(({ num, label, hue, col }: { num: string; label: string; hue: number; col?: string }, i) => (
                   <div key={label} className="group flex flex-col gap-2 relative">
-                    <span 
+                    <span
                       className="font-bold leading-none tracking-tighter"
                       style={{
                         fontFamily: "'Space Grotesk'",
                         fontSize: "clamp(3.5rem, 6vw, 6.5rem)",
-                        color: `oklch(0.90 0.20 ${hue})`,
-                        textShadow: `0 0 40px oklch(0.65 0.18 ${hue} / 0.4)`,
+                        color: col ?? `oklch(0.90 0.20 ${hue})`,
+                        textShadow: col ? `0 0 40px oklch(0.72 0.01 0 / 0.45)` : `0 0 40px oklch(0.65 0.18 ${hue} / 0.4)`,
                         transition: "transform 0.4s cubic-bezier(0.16,1,0.3,1)",
                       }}
                       onMouseEnter={e => { (e.currentTarget as HTMLElement).style.transform = "translateY(-4px) scale(1.02)"; }}
