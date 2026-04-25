@@ -84,8 +84,8 @@ export function CyberpunkCursor() {
       }
 
       if (click.current) {
-        dot.style.background = "oklch(0.96 0.22 320)";
-        dot.style.boxShadow  = "0 0 8px oklch(0.96 0.22 320), 0 0 18px oklch(0.78 0.22 320)";
+        dot.style.background = "oklch(0.98 0.01 0)";
+        dot.style.boxShadow  = "0 0 8px oklch(0.97 0.01 0), 0 0 20px oklch(0.85 0.00 0)";
       } else if (hoverEl.current) {
         dot.style.background = "oklch(0.95 0.22 195)";
         dot.style.boxShadow  = "0 0 10px oklch(0.88 0.22 195), 0 0 22px oklch(0.65 0.18 195)";
@@ -143,8 +143,8 @@ export function CyberpunkCursor() {
             ...base,
             width: 6,
             height: 6,
-            background: `oklch(0.88 0.22 ${195 + i * 7})`,
-            boxShadow: `0 0 4px oklch(0.88 0.22 ${195 + i * 7} / 0.6)`,
+            background: `oklch(${0.88 + i * 0.006} ${Math.max(0, 0.22 - i * 0.016).toFixed(3)} 195)`,
+            boxShadow: `0 0 4px oklch(${0.88 + i * 0.006} ${Math.max(0, 0.22 - i * 0.016).toFixed(3)} 195 / 0.6)`,
             zIndex: 99990 + (TRAIL - i),
           }}
         />
