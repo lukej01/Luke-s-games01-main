@@ -60,7 +60,7 @@ export function HeroBackground() {
           vy: (Math.random() - 0.5) * 0.35,
           size: Math.random() * 2.2 + 0.5,
           baseAlpha: Math.random() * 0.5 + 0.2,
-          hue: Math.random() > 0.72 ? 280 : 195,
+          hue: Math.random() > 0.72 ? 0 : 195,
           phase: Math.random() * Math.PI * 2,
         };
       });
@@ -97,7 +97,7 @@ export function HeroBackground() {
       const pulse = 0.010 + 0.004 * Math.sin(time * 0.6);
       const ag = ctx.createRadialGradient(W * 0.5, H * 0.42, 0, W * 0.5, H * 0.42, W * 0.52);
       ag.addColorStop(0,    `rgba(0,255,220,${pulse})`);
-      ag.addColorStop(0.55, `rgba(120,0,255,${pulse * 0.35})`);
+      ag.addColorStop(0.55, `rgba(200,200,220,${pulse * 0.22})`);
       ag.addColorStop(1,    "rgba(0,0,0,0)");
       ctx.fillStyle = ag; ctx.fillRect(0, 0, W, H);
 
@@ -153,7 +153,7 @@ export function HeroBackground() {
               ? `rgba(100,100,255,${alpha * 0.6})`
               : a.hue === 195
               ? `rgba(0,240,255,${alpha})`
-              : `rgba(170,0,255,${alpha * 0.55})`;
+              : `rgba(240,240,255,${alpha * 0.42})`;
             ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.stroke();
           }
         }
@@ -167,7 +167,7 @@ export function HeroBackground() {
         const alpha     = Math.min(p.baseAlpha + nearBoost + Math.min(spd * 0.08, 0.28) + 0.07 * Math.sin(time + p.phase), 0.95);
         const isCyan    = p.hue === 195;
 
-        ctx.fillStyle = isCyan ? `rgba(0,245,255,${alpha})` : `rgba(170,0,255,${alpha})`;
+        ctx.fillStyle = isCyan ? `rgba(0,245,255,${alpha})` : `rgba(255,255,255,${alpha})`;
         ctx.beginPath(); ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2); ctx.fill();
 
         if (p.size > 1.0 || nearBoost > 0.08) {
@@ -175,7 +175,7 @@ export function HeroBackground() {
           const glow = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, gr);
           glow.addColorStop(0, isCyan
             ? `rgba(0,245,255,${alpha * (0.22 + nearBoost * 0.38)})`
-            : `rgba(170,0,255,${alpha * (0.22 + nearBoost * 0.38)})`);
+            : `rgba(255,255,255,${alpha * (0.18 + nearBoost * 0.32)})`);
           glow.addColorStop(1, "rgba(0,0,0,0)");
           ctx.fillStyle = glow; ctx.beginPath(); ctx.arc(p.x, p.y, gr, 0, Math.PI * 2); ctx.fill();
         }

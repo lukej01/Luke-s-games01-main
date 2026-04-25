@@ -530,7 +530,7 @@ export default function Home() {
       <div aria-hidden="true" style={{
         position: "fixed", top: 0, left: 0, height: 2, zIndex: 9999, pointerEvents: "none",
         width: `${scrollProgress}%`,
-        background: "linear-gradient(90deg, var(--neon), oklch(0.78 0.22 280))",
+        background: "linear-gradient(90deg, var(--neon), oklch(0.97 0.01 0))",
         boxShadow: "0 0 10px var(--neon), 0 0 24px var(--neon-dim)",
         transition: "width 0.12s linear",
       }} />
@@ -654,7 +654,7 @@ export default function Home() {
                     onMouseEnter={(e) => {
                       (e.currentTarget as HTMLElement).style.borderColor = "var(--neon-2)";
                       (e.currentTarget as HTMLElement).style.color = "var(--neon-2)";
-                      (e.currentTarget as HTMLElement).style.boxShadow = "0 0 28px oklch(0.78 0.22 280 / 0.45)";
+                      (e.currentTarget as HTMLElement).style.boxShadow = "0 0 28px oklch(0.97 0.01 0 / 0.40)";
                       (e.currentTarget as HTMLElement).style.transform = "translateY(-3px)";
                     }}
                     onMouseLeave={(e) => {
@@ -848,20 +848,20 @@ export default function Home() {
                     color: "var(--text-dim)",
                     cursor: "none",
                     transition: "all 0.5s cubic-bezier(0.16,1,0.3,1)",
-                    boxShadow: "0 0 0 oklch(0.78 0.22 280 / 0)"
+                    boxShadow: "0 0 0 oklch(0.97 0.01 0 / 0)"
                   }}
                   onMouseEnter={e => {
                     const el = e.currentTarget as HTMLElement;
                     el.style.borderColor = "var(--neon-2)";
                     el.style.color = "var(--background)";
-                    el.style.boxShadow = "0 0 30px oklch(0.78 0.22 280 / 0.4)";
+                    el.style.boxShadow = "0 0 30px oklch(0.97 0.01 0 / 0.35)";
                     el.style.transform = "translateY(-4px)";
                   }}
                   onMouseLeave={e => {
                     const el = e.currentTarget as HTMLElement;
                     el.style.borderColor = "oklch(0.35 0.10 195)";
                     el.style.color = "var(--text-dim)";
-                    el.style.boxShadow = "0 0 0 oklch(0.78 0.22 280 / 0)";
+                    el.style.boxShadow = "0 0 0 oklch(0.97 0.01 0 / 0)";
                     el.style.transform = "translateY(0)";
                   }}
                 >
