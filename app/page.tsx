@@ -133,7 +133,7 @@ function FloatTitle() {
         fontFamily: "'Space Grotesk', sans-serif",
         textTransform: "uppercase",
         color: "var(--foreground)",
-        textShadow: "0 0 30px var(--neon-glow)",
+        textShadow: "-3px 0 0 rgba(0,255,255,0.5), 3px 0 0 rgba(255,0,255,0.5)",
       }}
       aria-label="GAMESTASH"
     >
