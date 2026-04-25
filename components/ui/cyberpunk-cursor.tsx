@@ -2,17 +2,18 @@
 
 import React, { useEffect, useRef } from "react";
 
-const TRAIL = 16; // longer tail
+const TRAIL = 16;
 
 export function CyberpunkCursor() {
   const dotRef    = useRef<HTMLDivElement>(null);
   const trailRefs = useRef<(HTMLDivElement | null)[]>([]);
   const mouse     = useRef({ x: -200, y: -200 });
+  const rawMouse  = useRef({ x: -200, y: -200 });
+  const hoverEl   = useRef<HTMLElement | null>(null);
   const trail     = useRef<Array<{ x: number; y: number }>>(
     Array.from({ length: TRAIL }, () => ({ x: -200, y: -200 }))
   );
   const raf   = useRef<number>(0);
-  const hover = useRef(false);
   const click = useRef(false);
 
   useEffect(() => {
@@ -20,56 +21,72 @@ export function CyberpunkCursor() {
     if (!dot) return;
 
     const onMove = (e: MouseEvent) => {
-      mouse.current = { x: e.clientX, y: e.clientY };
-      dot.style.transform = `translate(${e.clientX - 3}px, ${e.clientY - 3}px)`;
+      rawMouse.current = { x: e.clientX, y: e.clientY };
+      if (!hoverEl.current) {
+        mouse.current = { x: e.clientX, y: e.clientY };
+      }
     };
     const onDown = () => { click.current = true; };
     const onUp   = () => { click.current = false; };
-    const onEnter = () => { hover.current = true; };
-    const onLeave = () => { hover.current = false; };
+
+    const onEnter = (e: MouseEvent) => { hoverEl.current = e.currentTarget as HTMLElement; };
+    const onLeave = () => { hoverEl.current = null; };
 
     const attach = () => {
       document.querySelectorAll("a,button,[role='button'],.cursor-pointer,[data-hover]").forEach(el => {
-        el.removeEventListener("mouseenter", onEnter);
+        el.removeEventListener("mouseenter", onEnter as EventListener);
         el.removeEventListener("mouseleave", onLeave);
-        el.addEventListener("mouseenter", onEnter);
+        el.addEventListener("mouseenter", onEnter as EventListener);
         el.addEventListener("mouseleave", onLeave);
       });
     };
 
     const tick = () => {
-      const { x, y } = mouse.current;
+      if (hoverEl.current) {
+        const rect = hoverEl.current.getBoundingClientRect();
+        const cx = rect.left + rect.width / 2;
+        const cy = rect.top + rect.height / 2;
+        // Magnetic pull
+        const dx = rawMouse.current.x - cx;
+        const dy = rawMouse.current.y - cy;
+        // Spring towards center, but still slightly follow mouse
+        mouse.current.x += ((cx + dx * 0.15) - mouse.current.x) * 0.25;
+        mouse.current.y += ((cy + dy * 0.15) - mouse.current.y) * 0.25;
+      } else {
+        mouse.current.x += (rawMouse.current.x - mouse.current.x) * 0.35;
+        mouse.current.y += (rawMouse.current.y - mouse.current.y) * 0.35;
+      }
 
-      // Trail cascade — each step follows the prior with slightly decreasing lerp
-      // to create a stretched comet-tail effect
+      const { x, y } = mouse.current;
+      dot.style.transform = `translate(${x - 3}px, ${y - 3}px)`;
+
       trail.current[0] = {
-        x: trail.current[0].x + (x - trail.current[0].x) * 0.30,
-        y: trail.current[0].y + (y - trail.current[0].y) * 0.30,
+        x: trail.current[0].x + (x - trail.current[0].x) * 0.35,
+        y: trail.current[0].y + (y - trail.current[0].y) * 0.35,
       };
       for (let i = 1; i < TRAIL; i++) {
         const prev = trail.current[i - 1];
         trail.current[i] = {
-          x: trail.current[i].x + (prev.x - trail.current[i].x) * 0.44,
-          y: trail.current[i].y + (prev.y - trail.current[i].y) * 0.44,
+          x: trail.current[i].x + (prev.x - trail.current[i].x) * 0.45,
+          y: trail.current[i].y + (prev.y - trail.current[i].y) * 0.45,
         };
       }
 
       for (let i = 0; i < TRAIL; i++) {
         const el = trailRefs.current[i];
         if (!el) continue;
-        const t = 1 - i / TRAIL;          // 1 at head, 0 at tail
-        const sz = 1.2 + t * 4.2;          // shrinks toward tail end
+        const t = 1 - i / TRAIL;
+        const sz = 1.2 + t * 4.2;
         el.style.transform = `translate(${trail.current[i].x - sz * 0.5}px, ${trail.current[i].y - sz * 0.5}px)`;
         el.style.width  = `${sz}px`;
         el.style.height = `${sz}px`;
         el.style.opacity = String(t * t * (click.current ? 0.80 : 0.55));
       }
 
-      // Dot color
       if (click.current) {
         dot.style.background = "oklch(0.96 0.22 320)";
         dot.style.boxShadow  = "0 0 8px oklch(0.96 0.22 320), 0 0 18px oklch(0.78 0.22 320)";
-      } else if (hover.current) {
+      } else if (hoverEl.current) {
         dot.style.background = "oklch(0.95 0.22 195)";
         dot.style.boxShadow  = "0 0 10px oklch(0.88 0.22 195), 0 0 22px oklch(0.65 0.18 195)";
         dot.style.width = "7px";
@@ -117,7 +134,6 @@ export function CyberpunkCursor() {
 
   return (
     <>
-      {/* Comet tail — 16 particles fading to tail */}
       {Array.from({ length: TRAIL }, (_, i) => (
         <div
           key={i}
@@ -133,8 +149,6 @@ export function CyberpunkCursor() {
           }}
         />
       ))}
-
-      {/* Crisp dot */}
       <div
         ref={dotRef}
         aria-hidden="true"

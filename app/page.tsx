@@ -82,8 +82,11 @@ function FloatLetter({ char, phase, amp, si }: { char: string; phase: number; am
 function FloatTitle() {
   return (
     <h1
-      className="text-[clamp(4rem,11vw,10rem)] font-bold leading-none tracking-tighter mb-6"
-      style={{ fontFamily: "'Space Grotesk', sans-serif" }}
+      className="text-[clamp(4rem,11vw,10rem)] font-bold leading-none tracking-tighter mb-6 relative z-10"
+      style={{
+        fontFamily: "'Space Grotesk', sans-serif",
+        textShadow: "-4px 0 0 rgba(0,255,255,0.6), 4px 0 0 rgba(255,0,255,0.6)",
+      }}
       aria-label="GAMESTASH"
     >
       <span className="glitch-wrap block" style={{ color: "var(--foreground)" }}>
@@ -94,7 +97,7 @@ function FloatTitle() {
       <span className="glitch-wrap block" style={{
         WebkitTextStroke: "2px var(--neon)",
         color: "transparent",
-        filter: "drop-shadow(0 0 24px var(--neon))",
+        filter: "drop-shadow(0 0 24px var(--neon)) drop-shadow(-4px 0 12px rgba(0,255,255,0.5)) drop-shadow(4px 0 12px rgba(255,0,255,0.5))",
       }}>
         {"STASH".split("").map((ch, i) => (
           <FloatLetter key={i} char={ch} phase={3.6 + i * 0.85} amp={2.5 + i * 0.5} si={i + 4} />

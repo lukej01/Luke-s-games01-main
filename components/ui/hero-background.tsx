@@ -1,6 +1,10 @@
 "use client";
 
 import { useEffect } from "react";
+import gsap from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
+
+gsap.registerPlugin(ScrollTrigger);
 
 interface Particle {
   x: number; y: number;
@@ -186,11 +190,20 @@ export function HeroBackground() {
     resize();
     raf = requestAnimationFrame(draw);
 
+    const st = ScrollTrigger.create({
+      trigger: document.body,
+      start: "top top",
+      end: "+=1200",
+      scrub: true,
+      animation: gsap.to(canvas, { y: 500, opacity: 0, ease: "none" }),
+    });
+
     return () => {
       window.removeEventListener("resize", resize);
       window.removeEventListener("mousemove", onMouseMove);
-document.removeEventListener("mouseleave", onMouseLeave);
+      document.removeEventListener("mouseleave", onMouseLeave);
       cancelAnimationFrame(raf);
+      st.kill();
       if (canvas.parentNode) canvas.parentNode.removeChild(canvas);
     };
   }, []);
