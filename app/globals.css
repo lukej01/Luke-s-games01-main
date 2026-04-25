@@ -3,31 +3,31 @@
 
 :root {
   /* ── Custom bespoke hues ── */
-  --hue: 250;      /* Deep Cobalt */
-  --hue-2: 155;    /* Electric Emerald */
-  --hue-3: 15;     /* Sharp Orange/Red */
-  --hue-4: 85;     /* Acid Lime */
+  --hue: 215;      /* Titanium / Ice Blue */
+  --hue-2: 200;    /* Slate */
+  --hue-3: 30;     /* Warm Sand (subtle) */
+  --hue-4: 180;    /* Tealish Ice */
 
   /* ── Backgrounds ── */
   --background:   oklch(0.04 0.01 var(--hue));
-  --surface:      oklch(0.08 0.03 var(--hue));
-  --surface-2:    oklch(0.12 0.05 var(--hue));
-  --surface-3:    oklch(0.16 0.06 var(--hue));
+  --surface:      oklch(0.08 0.02 var(--hue));
+  --surface-2:    oklch(0.12 0.03 var(--hue));
+  --surface-3:    oklch(0.16 0.04 var(--hue));
 
   /* ── Neon accents ── */
-  --neon:         oklch(0.85 0.30 var(--hue));    /* Vivid Cobalt Glow */
-  --neon-dim:     oklch(0.60 0.20 var(--hue));
-  --neon-glow:    oklch(0.70 0.35 var(--hue));
-  --neon-2:       oklch(0.88 0.28 var(--hue-2));  /* Intense Emerald */
-  --neon-2-dim:   oklch(0.65 0.22 var(--hue-2));
-  --neon-3:       oklch(0.75 0.35 var(--hue-3));  /* High-Vis Orange */
-  --neon-3-dim:   oklch(0.55 0.25 var(--hue-3));
-  --neon-4:       oklch(0.92 0.35 var(--hue-4));  /* Acid Lime Glow */
+  --neon:         oklch(0.90 0.10 var(--hue));    /* Pure Ice Blue Glow */
+  --neon-dim:     oklch(0.65 0.06 var(--hue));
+  --neon-glow:    oklch(0.85 0.15 var(--hue));
+  --neon-2:       oklch(0.92 0.08 var(--hue-2));  /* Bright Slate */
+  --neon-2-dim:   oklch(0.60 0.05 var(--hue-2));
+  --neon-3:       oklch(0.80 0.08 var(--hue-3));  /* Muted Sand */
+  --neon-3-dim:   oklch(0.55 0.04 var(--hue-3));
+  --neon-4:       oklch(0.92 0.12 var(--hue-4));  /* Teal Ice Glow */
 
   /* ── Text ── */
-  --foreground:   oklch(0.96 0.02 var(--hue));
-  --text-dim:     oklch(0.55 0.06 var(--hue));
-  --text-muted:   oklch(0.35 0.04 var(--hue));
+  --foreground:   oklch(0.98 0.005 var(--hue));
+  --text-dim:     oklch(0.65 0.02 var(--hue));
+  --text-muted:   oklch(0.40 0.02 var(--hue));
 
   /* ── Borders ── */
   --border:       oklch(0.20 0.06 var(--hue));

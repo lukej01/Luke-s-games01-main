@@ -210,15 +210,19 @@ function Console({ insertedGame, isEjecting, onEject }: { insertedGame: Carousel
         }}>
           {insertedGame && (
             <div style={{
-              position: "absolute", bottom: isEjecting ? -40 : 9, left: "50%", transform: "translateX(-50%)",
+              position: "absolute", 
+              bottom: isEjecting ? 100 : 9, 
+              left: "50%", 
+              transform: "translateX(-50%)",
               width: 90, height: 26,
               background: `linear-gradient(160deg, oklch(0.22 0.10 ${insertedGame.hue}), oklch(0.14 0.06 ${insertedGame.hue}))`,
               border: `1px solid ${c}99`,
               borderRadius: "2px 2px 0 0",
               display: "flex", alignItems: "center", justifyContent: "center",
               boxShadow: isEjecting ? "none" : `0 0 18px ${c}66`,
-              transition: "all 0.8s cubic-bezier(0.34, 1.56, 0.64, 1)",
-              zIndex: isEjecting ? 1 : 2,
+              transition: "all 0.6s cubic-bezier(0.34, 1.56, 0.64, 1)",
+              opacity: isEjecting ? 0 : 1,
+              zIndex: isEjecting ? 10 : 2,
             }}>
               <span style={{ fontFamily: "'Press Start 2P'", fontSize: 4, color: c }}>
                 {insertedGame.title.slice(0, 12).toUpperCase()}
