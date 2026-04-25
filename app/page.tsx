@@ -124,29 +124,27 @@ function Preloader() {
   );
 }
 
-// ── FloatTitle — GAMESTASH clean premium aesthetics ───
 function FloatTitle() {
   return (
     <h1
-      className="text-[clamp(2.5rem,8vw,9rem)] font-bold leading-none tracking-tighter mb-10 relative z-10 whitespace-nowrap"
+      className="text-[clamp(3rem,11vw,11.5rem)] font-bold leading-none tracking-tight mb-12 relative z-10 whitespace-nowrap"
       style={{
         fontFamily: "'Space Grotesk', sans-serif",
         textTransform: "uppercase",
         color: "var(--foreground)",
-        textShadow: "-3px 0 0 rgba(0,255,255,0.5), 3px 0 0 rgba(255,0,255,0.5)",
+        textShadow: "-4px 0 0 rgba(0,255,255,0.6), 4px 0 0 rgba(255,0,255,0.6)",
       }}
       aria-label="GAMESTASH"
     >
-      <span className="inline-block">
-        {"GAME".split("").map((ch, i) => (
-          <FloatLetter key={i} char={ch} phase={i * 0.9} amp={3 + i * 0.4} si={i} />
-        ))}
-      </span>
-      <span className="inline-block" style={{ color: "var(--neon)", marginLeft: "0.05em" }}>
-        {"STASH".split("").map((ch, i) => (
-          <FloatLetter key={i} char={ch} phase={3.6 + i * 0.85} amp={2.5 + i * 0.5} si={i + 4} />
-        ))}
-      </span>
+      {"GAMESTASH".split("").map((ch, i) => (
+        <FloatLetter 
+          key={i} 
+          char={ch} 
+          phase={i * 0.45} 
+          amp={2.5 + i * 0.15} 
+          si={i} 
+        />
+      ))}
     </h1>
   );
 }
