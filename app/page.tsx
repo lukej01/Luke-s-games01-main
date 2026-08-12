@@ -311,6 +311,25 @@ function useReveal(threshold = 0.15) {
 // ── GamePlayer — full-screen iframe overlay ────────────────────────────────
 function GamePlayer({ game, onClose }: { game: Game | null; onClose: () => void }) {
   const [mounted, setMounted] = useState(false);
+  const [frameDead, setFrameDead] = useState(false);
+
+  // Game pages postMessage "gamestash:page-alive" as soon as they parse.
+  // Silence means the frame never rendered — managed-device content filters
+  // can block embedded frames while allowing the same page top-level — so
+  // offer a direct launch instead of black.
+  useEffect(() => {
+    if (!game) { setFrameDead(false); return; }
+    let alive = false;
+    const onMsg = (e: MessageEvent) => {
+      if ((e.data as { type?: string } | null)?.type === "gamestash:page-alive") {
+        alive = true;
+        setFrameDead(false);
+      }
+    };
+    window.addEventListener("message", onMsg);
+    const t = setTimeout(() => { if (!alive) setFrameDead(true); }, 5000);
+    return () => { window.removeEventListener("message", onMsg); clearTimeout(t); };
+  }, [game]);
 
   useEffect(() => {
     if (game) {
@@ -410,14 +429,39 @@ function GamePlayer({ game, onClose }: { game: Game | null; onClose: () => void 
       </div>
 
       {/* Game iframe */}
-      <iframe
-        key={game.id}
-        src={`${BASE}/games/${game.id}.html?v=${Date.now()}`}
-        className="flex-1 w-full"
-        style={{ border: "none", display: "block" }}
-        allow="gamepad *; autoplay *; fullscreen *"
-        title={game.title}
-      />
+      <div className="relative flex-1 w-full">
+        <iframe
+          key={game.id}
+          src={`${BASE}/games/${game.id}.html?v=${Date.now()}`}
+          className="absolute inset-0 w-full h-full"
+          style={{ border: "none", display: "block" }}
+          allow="gamepad *; autoplay *; fullscreen *"
+          title={game.title}
+        />
+        {frameDead && (
+          <div
+            className="absolute inset-0 flex flex-col items-center justify-center gap-5"
+            style={{ background: "oklch(0.05 0.015 195 / 0.92)" }}
+          >
+            <span className="font-pixel text-[9px] tracking-widest" style={{ color: neon }}>
+              GAME FRAME BLOCKED
+            </span>
+            <span className="font-mono-cyber text-[11px] tracking-[0.2em] max-w-sm text-center" style={{ color: "var(--text-dim)" }}>
+              Nothing loaded inside the app frame. Filtered networks and managed
+              devices sometimes block embedded pages — launching directly works.
+            </span>
+            <a
+              href={`${BASE}/games/${game.id}.html?direct=${Date.now()}`}
+              target="_blank"
+              rel="noreferrer"
+              className="font-mono-cyber text-[11px] tracking-[0.3em] uppercase px-5 py-2.5 border transition-colors duration-200"
+              style={{ color: neon, borderColor: `${neon}66`, background: `${neon}10` }}
+            >
+              Launch in new tab
+            </a>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
