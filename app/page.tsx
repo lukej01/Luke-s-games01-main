@@ -412,7 +412,7 @@ function GamePlayer({ game, onClose }: { game: Game | null; onClose: () => void 
       {/* Game iframe */}
       <iframe
         key={game.id}
-        src={`${BASE}/games/${game.id}.html`}
+        src={`${BASE}/games/${game.id}.html?v=${Date.now()}`}
         className="flex-1 w-full"
         style={{ border: "none", display: "block" }}
         allow="gamepad *; autoplay *; fullscreen *"

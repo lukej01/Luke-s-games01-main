@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8">
 <script src="diag.js"></script>
+<script src="ejs-boot.js"></script>
   <title>Zelda: Ocarina of Time</title>
   <script>
     window.gameconfig = {
@@ -86,9 +87,11 @@
       EJS_pathtodata = "https://cdn.emulatorjs.org/stable/data/";
       EJS_gameUrl = gameUrl;
       EJS_defaultOptions = { vsync: "disabled" };
-      var s = document.createElement("script");
-      s.src = "https://cdn.emulatorjs.org/stable/data/loader.js";
-      document.body.appendChild(s);
+      bootEmulator(function () {
+        var errEl = document.getElementById("error-msg");
+        errEl.textContent = "Emulator failed to load. Check your connection and try refreshing.";
+        errEl.style.display = "block";
+      });
     }).catch(err => {
       console.error(err);
       var e = document.getElementById("error-msg");
