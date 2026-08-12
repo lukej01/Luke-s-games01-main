@@ -2,6 +2,7 @@
 <html>
 <head>
   <meta charset="UTF-8">
+<script src="diag.js"></script>
   <title>LEGO Batman 2</title>
   <script>
     window.gameconfig = {
@@ -38,6 +39,7 @@
   </script>
   <style>
     body, html { margin: 0; padding: 0; width: 100%; height: 100%; background: #121212; color: white; font-family: Arial, sans-serif; display: flex; align-items: center; justify-content: center; }
+    #game { width: 100%; height: 100%; }
     #game-container { text-align: center; width: 100%; height: 100%; }
     #loading-progress { font-size: 18px; margin-top: 20px; padding: 10px; background: rgba(255,255,255,0.1); border-radius: 8px; display: inline-block; }
     #error-msg { display: none; color: #ff6b6b; font-size: 16px; margin-top: 20px; }
@@ -53,6 +55,11 @@
   <script>
     var parts = getParts(window.gameconfig.url, window.gameconfig.min, window.gameconfig.max);
     var totalParts = parts.length;
+    if (window.__diagProbe) {
+      window.__diag("game page loaded, " + totalParts + " parts to fetch");
+      window.__diagProbe("emulator core", "https://cdn.emulatorjs.org/stable/data/loader.js");
+      window.__diagProbe("ROM part 1", parts[0]);
+    }
     function updateProgress(i) { var el = document.getElementById("loading-progress"); if (el) el.textContent = "Loading: " + i + "/" + totalParts; }
     Promise.all([mergeFiles(parts, updateProgress)]).then(([gameUrl]) => {
       var lp = document.getElementById("loading-progress"); if (lp) lp.remove();
