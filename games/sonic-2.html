@@ -1,7 +1,8 @@
 <!DOCTYPE html>
 <html>
 <head><meta charset="UTF-8">
-<script src="diag.js"></script><title>Sonic the Hedgehog 2</title>
+<script src="diag.js"></script>
+<script src="ejs-boot.js"></script><title>Sonic the Hedgehog 2</title>
 <style>
   body,html{margin:0;padding:0;width:100%;height:100%;background:#000;overflow:hidden}
   #game{width:100%;height:100%}
@@ -23,6 +24,6 @@
   var clearStatus=function(){var s=document.getElementById('status');if(s)s.remove();};
   EJS_ready=clearStatus;EJS_onGameStart=clearStatus;
 </script>
-<script src="https://cdn.emulatorjs.org/stable/data/loader.js" onerror="document.getElementById('status').querySelector('span').style.display='none';document.getElementById('err').style.display='block'"></script>
+<script>bootEmulator(function(){var st=document.getElementById('status');if(st){st.querySelector('span').style.display='none';document.getElementById('err').style.display='block';}});</script>
 </body>
 </html>

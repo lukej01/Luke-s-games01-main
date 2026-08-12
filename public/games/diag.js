@@ -71,7 +71,9 @@
         var r = c.getBoundingClientRect();
         var good = r.width > 10 && r.height > 10;
         log("emulator canvas mounted: " + Math.round(r.width) + "x" + Math.round(r.height), !good);
-        if (good && box) box.style.display = "none";
+        // Leave the report readable for a few seconds, then get out of the way.
+        // A zero-size canvas is a failure and stays on screen.
+        if (good && box) setTimeout(function () { box.style.display = "none"; }, 5000);
       }, 600);
     } else if (waited === 60) {
       log("no emulator canvas after 60s — emulator never mounted", true);
