@@ -36,6 +36,16 @@
 
   window.__diag = log;
 
+  // Tell the parent app this frame actually rendered. The player shows a
+  // launch-in-new-tab fallback when nothing arrives — content filters on
+  // managed devices can treat embedded frames differently from top-level
+  // pages, and a silently blocked iframe is indistinguishable from black.
+  try {
+    if (window.parent !== window) {
+      window.parent.postMessage({ type: "gamestash:page-alive" }, "*");
+    }
+  } catch (e) {}
+
   window.addEventListener("error", function (e) {
     log("script error: " + (e.message || e.type) + (e.filename ? "  " + e.filename : ""), true);
   });
