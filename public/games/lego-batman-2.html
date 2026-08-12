@@ -2,6 +2,7 @@
 <html>
 <head>
   <meta charset="UTF-8">
+<script src="../coi-serviceworker.js"></script>
   <title>LEGO Batman 2</title>
   <script>
     window.gameconfig = {
@@ -59,6 +60,7 @@
       var ft = document.getElementById("first-time"); if (ft) ft.remove();
       EJS_player = "#game"; EJS_core = window.gameconfig.core; EJS_gameName = window.gameconfig.name;
       EJS_color = "#0064ff"; EJS_startOnLoaded = true;
+      EJS_threads = typeof SharedArrayBuffer === "function";
       EJS_pathtodata = "https://cdn.emulatorjs.org/stable/data/";
       EJS_gameUrl = gameUrl;
       var s = document.createElement("script"); s.src = "https://cdn.emulatorjs.org/stable/data/loader.js"; document.body.appendChild(s);

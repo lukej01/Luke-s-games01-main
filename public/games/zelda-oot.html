@@ -2,6 +2,7 @@
 <html>
 <head>
   <meta charset="UTF-8">
+<script src="../coi-serviceworker.js"></script>
   <title>Zelda: Ocarina of Time</title>
   <script>
     window.gameconfig = {
@@ -65,6 +66,7 @@
       EJS_gameName = window.gameconfig.name;
       EJS_color = "#0064ff";
       EJS_startOnLoaded = true;
+      EJS_threads = typeof SharedArrayBuffer === "function";
       EJS_pathtodata = "https://cdn.emulatorjs.org/stable/data/";
       EJS_gameUrl = gameUrl;
       EJS_defaultOptions = { vsync: "disabled" };
