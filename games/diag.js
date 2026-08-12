@@ -59,13 +59,28 @@
       });
   };
 
+  var waited = 0;
   var poll = setInterval(function () {
-    if (document.querySelector("canvas")) {
+    waited += 1;
+    var c = document.querySelector("canvas");
+    if (c) {
       clearInterval(poll);
-      if (box) box.style.display = "none";
+      // Let layout settle, then report the real mounted size. A canvas that
+      // exists but has no pixels is exactly the failure that must stay visible.
+      setTimeout(function () {
+        var r = c.getBoundingClientRect();
+        var good = r.width > 10 && r.height > 10;
+        log("emulator canvas mounted: " + Math.round(r.width) + "x" + Math.round(r.height), !good);
+        if (good && box) box.style.display = "none";
+      }, 600);
+    } else if (waited === 60) {
+      log("no emulator canvas after 60s — emulator never mounted", true);
     }
   }, 1000);
   setTimeout(function () {
     clearInterval(poll);
   }, 180000);
+
+  // Version marker so a cached old page is instantly distinguishable from this one.
+  log("diag v2");
 })();
