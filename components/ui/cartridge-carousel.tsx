@@ -177,10 +177,10 @@ function Card3D({ game, isActive }: { game: CarouselGame; isActive: boolean }) {
 }
 
 // ── Console ──────────────────────────────────────────────────────────────────
-function Console({ insertedGame, isEjecting, onEject }: { insertedGame: CarouselGame | null; isEjecting?: boolean; onEject: () => void }) {
+function Console({ insertedGame, onEject }: { insertedGame: CarouselGame | null; onEject: () => void }) {
   const [screenTxt, setScreenTxt] = useState("INSERT GAME");
   const c   = insertedGame ? gc(insertedGame.hue) : "oklch(0.88 0.22 195)";
-  const isOn = !!insertedGame && !isEjecting;
+  const isOn = !!insertedGame;
 
   useEffect(() => {
     if (!insertedGame) { setScreenTxt("INSERT GAME"); return; }
@@ -210,19 +210,18 @@ function Console({ insertedGame, isEjecting, onEject }: { insertedGame: Carousel
         }}>
           {insertedGame && (
             <div style={{
-              position: "absolute", 
-              bottom: isEjecting ? 100 : 9, 
-              left: "50%", 
+              position: "absolute",
+              bottom: 9,
+              left: "50%",
               transform: "translateX(-50%)",
               width: 90, height: 26,
               background: `linear-gradient(160deg, oklch(0.22 0.10 ${insertedGame.hue}), oklch(0.14 0.06 ${insertedGame.hue}))`,
               border: `1px solid ${c}99`,
               borderRadius: "2px 2px 0 0",
               display: "flex", alignItems: "center", justifyContent: "center",
-              boxShadow: isEjecting ? "none" : `0 0 18px ${c}66`,
+              boxShadow: `0 0 18px ${c}66`,
               transition: "all 0.6s cubic-bezier(0.34, 1.56, 0.64, 1)",
-              opacity: isEjecting ? 0 : 1,
-              zIndex: isEjecting ? 10 : 2,
+              zIndex: 2,
             }}>
               <span style={{ fontFamily: "'Press Start 2P'", fontSize: 4, color: c }}>
                 {insertedGame.title.slice(0, 12).toUpperCase()}
@@ -310,9 +309,11 @@ function Console({ insertedGame, isEjecting, onEject }: { insertedGame: Carousel
 export function CartridgeCarousel({
   games,
   onPlay,
+  playingId,
 }: {
   games: CarouselGame[];
   onPlay: (game: CarouselGame) => void;
+  playingId: string | null;
 }) {
   const TOTAL      = games.length;
   const LOOP_W     = TOTAL * UNIT;          // width of one full copy
@@ -532,6 +533,14 @@ export function CartridgeCarousel({
     setInsertedGame(null);
     setTimeout(() => setEjectCart(null), 750);
   }, [insertedGame, games]);
+
+  // Closing the player must release the cartridge, otherwise the card stays
+  // dimmed and handleCardClick refuses to re-insert the same game.
+  const wasPlaying = useRef(false);
+  useEffect(() => {
+    if (wasPlaying.current && !playingId) handleEject();
+    wasPlaying.current = !!playingId;
+  }, [playingId, handleEject]);
 
   const handleCardClick = useCallback((triIdx: number) => {
     if (inFlight) return;

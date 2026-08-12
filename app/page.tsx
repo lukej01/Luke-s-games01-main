@@ -485,7 +485,6 @@ export default function Home() {
   const [scrollY, setScrollY] = useState(0);
   const [scrollProgress, setScrollProgress] = useState(0);
   const [playingGame, setPlayingGame] = useState<Game | null>(null);
-  const [isEjecting, setIsEjecting] = useState(false);
   const libraryReveal = useReveal(0.03);
   const platformReveal = useReveal(0.12);
   const heroRef = useRef<HTMLElement>(null);
@@ -504,17 +503,8 @@ export default function Home() {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
-  const closePlayer = useCallback(() => {
-    setIsEjecting(true);
-    setTimeout(() => {
-      setPlayingGame(null);
-      setIsEjecting(false);
-    }, 1000);
-  }, []);
-  const handlePlay = useCallback((game: Game) => {
-    setIsEjecting(false);
-    setPlayingGame(game);
-  }, []);
+  const closePlayer = useCallback(() => setPlayingGame(null), []);
+  const handlePlay = useCallback((game: Game) => setPlayingGame(game), []);
 
   // Hero content fades as library slides over it
   const heroOpacity = Math.max(0, 1 - scrollY / 360);
@@ -752,6 +742,7 @@ export default function Home() {
             <CartridgeCarousel
               games={GAMES.map(g => ({ id: g.id, title: g.title, platform: g.platform, year: g.year, hue: g.hue, coverImage: g.coverImage }))}
               onPlay={(game) => { const g = GAMES.find(x => x.id === game.id); if (g) handlePlay(g); }}
+              playingId={playingGame?.id ?? null}
             />
           </section>
 

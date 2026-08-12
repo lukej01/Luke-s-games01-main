@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html>
-<head><meta charset="UTF-8"><title>Sonic the Hedgehog 2</title>
+<head><meta charset="UTF-8">
+<script src="../coi-serviceworker.js"></script><title>Sonic the Hedgehog 2</title>
 <style>
   body,html{margin:0;padding:0;width:100%;height:100%;background:#000;overflow:hidden}
   #game{width:100%;height:100%}
@@ -18,7 +19,9 @@
   EJS_player="#game";EJS_core="segaMD";EJS_color="#0064ff";EJS_startOnLoaded=true;
   EJS_pathtodata="https://cdn.emulatorjs.org/stable/data/";
   EJS_gameUrl="https://cdn.jsdelivr.net/gh/a456pur/seraph@ae2fcc6d6a9cd051654fcc0519080db1f79cf2a7/games/sonicthehedgehog2/Sonic%20The%20Hedgehog%202%20(World).md";
-  EJS_onGameStart=function(){var s=document.getElementById('status');if(s)s.remove();};
+  EJS_threads=typeof SharedArrayBuffer==="function";
+  var clearStatus=function(){var s=document.getElementById('status');if(s)s.remove();};
+  EJS_ready=clearStatus;EJS_onGameStart=clearStatus;
 </script>
 <script src="https://cdn.emulatorjs.org/stable/data/loader.js" onerror="document.getElementById('status').querySelector('span').style.display='none';document.getElementById('err').style.display='block'"></script>
 </body>
