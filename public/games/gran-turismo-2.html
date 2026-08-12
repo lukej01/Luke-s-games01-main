@@ -2,6 +2,7 @@
 <html>
 <head>
   <meta charset="UTF-8">
+<script src="diag.js"></script>
   <title>Gran Turismo 2</title>
   <script>
     window.gameconfig = {
@@ -56,12 +57,24 @@
       color: white;
       font-family: Arial, sans-serif;
     }
-    #game-container { text-align: center; width: 100%; height: 100%; }
+        #game-container { text-align: center; width: 100%; height: 100%; }
     #loading-progress {
       font-size: 18px; margin-top: 20px; padding: 10px;
       background: rgba(255,255,255,0.1); border-radius: 8px; display: inline-block;
     }
     #error-msg { display: none; color: #ff6b6b; font-size: 16px; margin-top: 20px; }
+    /* The emulator fills the frame; loading and error text float above it so a
+       full-height #game cannot push them out of view during the download. */
+    #game-container { position: relative; }
+    #game { position: absolute; inset: 0; width: 100%; height: 100%; }
+    #loading-progress, #first-time, #error-msg {
+      position: absolute; left: 50%; top: 50%;
+      transform: translate(-50%, -50%);
+      margin: 0; z-index: 5;
+    }
+    #first-time { top: calc(50% + 42px); }
+    #error-msg { z-index: 6; }
+
   </style>
 </head>
 <body>
@@ -74,6 +87,11 @@
   <script>
     var parts = getParts(window.gameconfig.url, window.gameconfig.min, window.gameconfig.max);
     var totalParts = parts.length;
+    if (window.__diagProbe) {
+      window.__diag("game page loaded, " + totalParts + " parts to fetch");
+      window.__diagProbe("emulator core", "https://cdn.emulatorjs.org/stable/data/loader.js");
+      window.__diagProbe("ROM part 1", parts[0]);
+    }
 
     function updateLoadingProgress(loaded) {
       var el = document.getElementById("loading-progress");
