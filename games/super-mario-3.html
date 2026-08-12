@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 <html>
-<head><meta charset="UTF-8">
-<script src="../coi-serviceworker.js"></script><title>Super Mario Bros. 3</title>
+<head><meta charset="UTF-8"><title>Super Mario Bros. 3</title>
 <style>
   body,html{margin:0;padding:0;width:100%;height:100%;background:#000;overflow:hidden}
   #game{width:100%;height:100%}
@@ -19,7 +18,6 @@
   EJS_player="#game";EJS_core="nes";EJS_color="#0064ff";EJS_startOnLoaded=true;
   EJS_pathtodata="https://cdn.emulatorjs.org/stable/data/";
   EJS_gameUrl="https://cdn.jsdelivr.net/gh/bubbls/UGS-file-encryption@a98e2e20cae75fa14dd7450a1047348ccf0786d6/Super%20Mario%20Bros.%203%20(USA).zip";
-  EJS_threads=typeof SharedArrayBuffer==="function";
   var clearStatus=function(){var s=document.getElementById('status');if(s)s.remove();};
   EJS_ready=clearStatus;EJS_onGameStart=clearStatus;
 </script>

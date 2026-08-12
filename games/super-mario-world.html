@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 <html>
-<head><meta charset="UTF-8">
-<script src="../coi-serviceworker.js"></script><title>Super Mario World</title>
+<head><meta charset="UTF-8"><title>Super Mario World</title>
 <style>
   body,html{margin:0;padding:0;width:100%;height:100%;background:#000;overflow:hidden}
   #game{width:100%;height:100%}
@@ -19,7 +18,6 @@
   EJS_player="#game";EJS_core="snes9x";EJS_color="#0064ff";EJS_startOnLoaded=true;
   EJS_pathtodata="https://cdn.emulatorjs.org/stable/data/";
   EJS_gameUrl="https://cdn.jsdelivr.net/gh/bubbls/UGS-file-encryption@d8359714213990e929bd5fc43895c2be2a21999c/Super%20Mario%20World%20(USA)%20(patched).sfc";
-  EJS_threads=typeof SharedArrayBuffer==="function";
   var clearStatus=function(){var s=document.getElementById('status');if(s)s.remove();};
   EJS_ready=clearStatus;EJS_onGameStart=clearStatus;
 </script>

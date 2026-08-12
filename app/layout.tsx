@@ -15,7 +15,15 @@ export default function RootLayout({
   return (
     <html lang="en" className="h-full antialiased">
       <head>
-        <script src="/Luke-s-games01-main/coi-serviceworker.js" />
+        {/* Tears down the COI service worker if a previous build installed it.
+            It caused a navigation reload loop that stopped games from booting.
+            No reload here on purpose — unregister only, so it cannot loop. */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html:
+              'if("serviceWorker" in navigator)navigator.serviceWorker.getRegistrations().then(function(rs){rs.forEach(function(r){r.unregister()})}).catch(function(){});',
+          }}
+        />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link
