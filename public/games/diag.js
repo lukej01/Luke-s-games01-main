@@ -84,7 +84,10 @@
         var cs = getComputedStyle(el);
         entry += " [disp:" + cs.display + " pos:" + cs.position + " w:" + cs.width + " h:" + cs.height +
           (cs.transform !== "none" ? " tf:" + cs.transform : "") +
-          (cs.visibility !== "visible" ? " vis:" + cs.visibility : "") + "]";
+          (cs.visibility !== "visible" ? " vis:" + cs.visibility : "") +
+          (cs.zoom && cs.zoom !== "1" ? " zoom:" + cs.zoom : "") +
+          (cs.contain && cs.contain !== "none" ? " contain:" + cs.contain : "") +
+          (cs.contentVisibility && cs.contentVisibility !== "visible" ? " cv:" + cs.contentVisibility : "") + "]";
       }
       parts.push(entry);
       if (el === document.body) break;
@@ -101,6 +104,7 @@
       display: "block", visibility: "visible", opacity: "1",
       position: "absolute", top: "0", left: "0", right: "0", bottom: "0",
       width: "100%", height: "100%", transform: "none",
+      zoom: "1", contain: "none", "content-visibility": "visible",
     };
     var el = node;
     for (var hops = 0; el && el !== document.body && hops < 6; hops++) {
@@ -165,5 +169,5 @@
   }, 180000);
 
   // Version marker so a cached old page is instantly distinguishable from this one.
-  log("diag v3");
+  log("diag v4");
 })();
