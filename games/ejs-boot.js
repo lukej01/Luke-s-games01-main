@@ -14,6 +14,32 @@
 // appear (engine is remembered in localStorage and used first next time),
 // or __ejsVideoDead() when the canvas never appears or stays black (the
 // engine is skipped via sessionStorage and the page reloads onto the next).
+// Game pages are now visited top-level (the landing page navigates here
+// instead of iframing — content filters on managed devices black out the
+// embedded route). Give the player a way back that isn't the browser chrome.
+// Skipped when embedded: the overlay has its own header.
+(function () {
+  if (window.parent !== window) return;
+  function mount() {
+    var a = document.createElement("a");
+    a.textContent = "\u2190 GAMESTASH";
+    a.href = "/Luke-s-games01-main/";
+    a.setAttribute(
+      "style",
+      "position:fixed;top:10px;left:10px;z-index:9000;" +
+        "font:600 11px/1 ui-monospace,monospace;letter-spacing:.25em;" +
+        "color:#7fe9e0;text-decoration:none;padding:8px 12px;" +
+        "background:rgba(0,0,0,.55);border:1px solid rgba(127,233,224,.35);" +
+        "border-radius:4px;opacity:.75"
+    );
+    a.onmouseenter = function () { a.style.opacity = "1"; };
+    a.onmouseleave = function () { a.style.opacity = ".75"; };
+    document.body.appendChild(a);
+  }
+  if (document.body) mount();
+  else document.addEventListener("DOMContentLoaded", mount);
+})();
+
 window.bootEmulator = function (onAllFailed) {
   // The original pages shipped with vsync disabled — a known black-screen
   // trigger in EmulatorJS on some GPUs. Pages with their own options keep them.
