@@ -89,6 +89,58 @@ window.bootEmulator = function (onAllFailed) {
     };
   }
 
+  // ── Controls keeper ──────────────────────────────────────────────────────
+  // EmulatorJS saves remaps per game (localStorage "ejs-1-<console>-<name>-
+  // settings", verified against @emulatorjs/emulatorjs 4.2.3 saveSettings/
+  // getLocalStorageKey), so a mapping set in one game never reaches the
+  // others, and the legacy engine used a different format. The keeper makes
+  // one mapping rule them all: it mirrors the live mapping to its own key
+  // whenever the player remaps, and on every boot re-applies the mirror as
+  // the defaults AND into the emulator's own store for this game, so even a
+  // stale stock per-game save can't shadow it.
+  var MIRROR = "gamestash-controls";
+  function lsGetJSON(k) { try { return JSON.parse(localStorage.getItem(k) || "null"); } catch (e) { return null; } }
+  function lsSet(k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
+
+  var userControls = lsGetJSON(MIRROR);
+  if (userControls && typeof userControls === "object") {
+    window.EJS_defaultControls = userControls;
+    // Console family the storage key is built from: getCore(true) folds a
+    // specific core into its console key; for every core this site uses,
+    // only these two differ from the core name itself.
+    var FAMILY = { parallel_n64: "n64", snes9x: "snes" };
+    var core = window.EJS_core || "";
+    var name = typeof window.EJS_gameName === "string" ? window.EJS_gameName : "";
+    if (core) {
+      var key = "ejs-1-" + (FAMILY[core] || core) + (name ? "-" + name : "") + "-settings";
+      var per = lsGetJSON(key) || {};
+      // loadSettings rejects the record unless settings is an object and
+      // cheats an array, so seed valid siblings alongside the controls.
+      per.controlSettings = userControls;
+      if (!(per.settings instanceof Object)) per.settings = {};
+      if (!Array.isArray(per.cheats)) per.cheats = [];
+      lsSet(key, JSON.stringify(per));
+    }
+    // Legacy engine kept controlSettings inside the global "ejs-settings".
+    var legacy = lsGetJSON("ejs-settings");
+    if (legacy && typeof legacy === "object" && legacy.controlSettings) {
+      legacy.controlSettings = userControls;
+      lsSet("ejs-settings", JSON.stringify(legacy));
+    }
+  }
+
+  // Mirror live remaps. EJS_emulator.controls is the active mapping in both
+  // engine generations; poll it and persist on change.
+  var lastMirrored = userControls ? JSON.stringify(userControls) : null;
+  setInterval(function () {
+    var em = window.EJS_emulator;
+    if (!em || !em.controls) return;
+    try {
+      var now = JSON.stringify(em.controls);
+      if (now && now !== lastMirrored) { lastMirrored = now; lsSet(MIRROR, now); }
+    } catch (e) {}
+  }, 3000);
+
   var ALL = [
     "https://cdn.emulatorjs.org/stable/data/",
     "https://cdn.jsdelivr.net/gh/genizy/emu@master/",
