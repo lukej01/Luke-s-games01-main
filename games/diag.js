@@ -185,9 +185,21 @@
       if (checks >= 8) {
         clearInterval(iv);
         if (!sawColor && blackReads >= 4) {
-          log("canvas is mounted and sized but every sampled frame is black — video output is not reaching the screen. Audio working + black video usually means graphics acceleration is broken or blocked on this device.", true);
+          log("canvas is mounted and sized but every sampled frame is black — video output is not reaching the screen.", true);
           if (box) box.style.display = "";
-          reportWebGL();
+          // The site originally shipped an older emulator build that rendered
+          // fine on hardware where the current one is black. Fall back to it
+          // once; the flag makes ejs-boot.js load it first after reload.
+          var tried = null;
+          try { tried = localStorage.getItem("ejs-legacy"); } catch (e) {}
+          if (tried !== "1") {
+            try { localStorage.setItem("ejs-legacy", "1"); } catch (e) {}
+            log("switching to the original emulator build and reloading…");
+            setTimeout(function () { location.reload(); }, 2000);
+          } else {
+            log("already on the original build and still black — this device's graphics are the problem, not the emulator version. Audio working + black video usually means graphics acceleration is broken or blocked.", true);
+            reportWebGL();
+          }
         }
       }
     }, 2000);
@@ -248,5 +260,5 @@
   }, 180000);
 
   // Version marker so a cached old page is instantly distinguishable from this one.
-  log("diag v5");
+  log("diag v6");
 })();
