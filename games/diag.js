@@ -69,6 +69,21 @@
       });
   };
 
+  function sizeChain(node) {
+    var parts = [];
+    var el = node;
+    for (var hops = 0; el && hops < 8; hops++) {
+      var r = el.getBoundingClientRect();
+      var name = el.tagName.toLowerCase();
+      if (el.id) name += "#" + el.id;
+      else if (typeof el.className === "string" && el.className) name += "." + el.className.split(" ")[0];
+      parts.push(name + " " + Math.round(r.width) + "x" + Math.round(r.height));
+      if (el === document.body) break;
+      el = el.parentElement;
+    }
+    return parts.join("  <  ");
+  }
+
   var waited = 0;
   var poll = setInterval(function () {
     waited += 1;
@@ -84,6 +99,23 @@
         // Leave the report readable for a few seconds, then get out of the way.
         // A zero-size canvas is a failure and stays on screen.
         if (good && box) setTimeout(function () { box.style.display = "none"; }, 5000);
+        if (!good) {
+          // Walk up from the canvas so the report names the collapsed ancestor.
+          log("size chain: " + sizeChain(c), true);
+          var tries = 0;
+          var re = setInterval(function () {
+            tries++;
+            var r2 = c.getBoundingClientRect();
+            if (r2.width > 10 && r2.height > 10) {
+              clearInterval(re);
+              log("canvas recovered: " + Math.round(r2.width) + "x" + Math.round(r2.height));
+              if (box) setTimeout(function () { box.style.display = "none"; }, 4000);
+            } else if (tries >= 10) {
+              clearInterval(re);
+              log("still zero after 30s; chain: " + sizeChain(c), true);
+            }
+          }, 3000);
+        }
       }, 600);
     } else if (waited === 60) {
       log("no emulator canvas after 60s — emulator never mounted", true);
