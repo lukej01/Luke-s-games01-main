@@ -11,9 +11,10 @@
 //
 // Instead: try engines in order and judge them by what matters — pixels.
 // diag.js watches the canvas and calls __ejsVideoOk() when real frames
-// appear (engine is remembered in localStorage and used first next time),
-// or __ejsVideoDead() when the canvas never appears or stays black (the
-// engine is skipped via sessionStorage and the page reloads onto the next).
+// appear, or __ejsVideoDead() when the canvas never appears or stays black.
+// Verdicts persist in localStorage: a proven engine boots first on every
+// later visit, and proven-dead engines are never retried — discovery costs
+// one slow first game, then the working engine is simply the default.
 // Game pages are now visited top-level (the landing page navigates here
 // instead of iframing — content filters on managed devices black out the
 // embedded route). Give the player a way back that isn't the browser chrome.
@@ -22,7 +23,7 @@
   if (window.parent !== window) return;
   function mount() {
     var a = document.createElement("a");
-    a.textContent = "\u2190 GAMESTASH";
+    a.textContent = "← GAMESTASH";
     a.href = "/Luke-s-games01-main/";
     a.setAttribute(
       "style",
@@ -47,19 +48,67 @@ window.bootEmulator = function (onAllFailed) {
   if (!("vsync" in opts)) opts.vsync = "disabled";
   window.EJS_defaultOptions = opts;
 
-  var cdns = [
+  // The owner's keyboard mapping, recovered from the original gaming hub
+  // (042455c index.html) — WASD drives d-pad + left stick, arrows the right
+  // stick. loader.js reads EJS_defaultControls into config.defaultControllers.
+  // Defaults only: remaps made in the emulator's own controls UI are stored
+  // by EmulatorJS in this origin's browser storage and win over these.
+  if (!window.EJS_defaultControls) {
+    window.EJS_defaultControls = {
+      0: {
+        0: { value: "space", value2: "BUTTON_2" },
+        1: { value: "v", value2: "BUTTON_4" },
+        2: { value: "enter", value2: "SELECT" },
+        3: { value: "enter", value2: "START" },
+        4: { value: "w", value2: "DPAD_UP" },
+        5: { value: "s", value2: "DPAD_DOWN" },
+        6: { value: "a", value2: "DPAD_LEFT" },
+        7: { value: "d", value2: "DPAD_RIGHT" },
+        8: { value: "b", value2: "BUTTON_1" },
+        9: { value: "n", value2: "BUTTON_3" },
+        10: { value: "x", value2: "LEFT_TOP_SHOULDER" },
+        11: { value: "m", value2: "RIGHT_TOP_SHOULDER" },
+        12: { value: "c", value2: "LEFT_BOTTOM_SHOULDER" },
+        13: { value: "comma", value2: "RIGHT_BOTTOM_SHOULDER" },
+        14: { value: "", value2: "LEFT_STICK" },
+        15: { value: "", value2: "RIGHT_STICK" },
+        16: { value: "d", value2: "LEFT_STICK_X:+1" },
+        17: { value: "a", value2: "LEFT_STICK_X:-1" },
+        18: { value: "s", value2: "LEFT_STICK_Y:+1" },
+        19: { value: "w", value2: "LEFT_STICK_Y:-1" },
+        20: { value: "right arrow", value2: "RIGHT_STICK_X:+1" },
+        21: { value: "left arrow", value2: "RIGHT_STICK_X:-1" },
+        22: { value: "down arrow", value2: "RIGHT_STICK_Y:+1" },
+        23: { value: "up arrow", value2: "RIGHT_STICK_Y:-1" },
+        24: { value: "1" },
+        25: { value: "2" },
+        26: { value: "3" },
+        27: {}, 28: {}, 29: {},
+      },
+      1: {}, 2: {}, 3: {},
+    };
+  }
+
+  var ALL = [
     "https://cdn.emulatorjs.org/stable/data/",
     "https://cdn.jsdelivr.net/gh/genizy/emu@master/",
     "https://cdn.jsdelivr.net/gh/EmulatorJS/EmulatorJS@latest/data/",
   ];
-  // An engine that produced real frames on this device goes first.
-  var good = null;
-  try { good = localStorage.getItem("ejs-good"); } catch (e) {}
-  if (good && cdns.indexOf(good) > 0) cdns.splice(cdns.indexOf(good), 1), cdns.unshift(good);
-  // Engines already proven video-dead this session are skipped.
-  var skip = 0;
-  try { skip = parseInt(sessionStorage.getItem("ejs-skip") || "0", 10) || 0; } catch (e) {}
-  if (skip > 0 && window.__diag) window.__diag("skipping " + skip + " engine(s) that showed no video");
+
+  function getLS(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
+  function setLS(k, v) { try { v === null ? localStorage.removeItem(k) : localStorage.setItem(k, v); } catch (e) {} }
+
+  // Engines proven video-dead on this device — persisted, so no visit ever
+  // sits through a known failure again. If the list somehow swallows every
+  // engine without one being proven good, ignore it and rediscover.
+  var dead = [];
+  try { dead = JSON.parse(getLS("ejs-dead") || "[]"); } catch (e) {}
+  if (!Array.isArray(dead)) dead = [];
+  var good = getLS("ejs-good");
+  var cdns = ALL.filter(function (u) { return u === good || dead.indexOf(u) === -1; });
+  if (cdns.length === 0) { dead = []; setLS("ejs-dead", null); cdns = ALL.slice(); }
+  if (good && cdns.indexOf(good) > 0) { cdns.splice(cdns.indexOf(good), 1); cdns.unshift(good); }
+  if (dead.length && window.__diag) window.__diag("skipping " + dead.length + " engine(s) previously proven video-dead here");
 
   var current = -1;
   var canvasTimer = null;
@@ -72,24 +121,26 @@ window.bootEmulator = function (onAllFailed) {
   // Called by diag.js once the canvas shows real (non-black) frames.
   window.__ejsVideoOk = function () {
     if (canvasTimer) { clearInterval(canvasTimer); canvasTimer = null; }
-    try { localStorage.setItem("ejs-good", cdns[current]); } catch (e) {}
-    try { sessionStorage.removeItem("ejs-skip"); } catch (e) {}
+    setLS("ejs-good", cdns[current]);
   };
 
   // Called by diag.js on confirmed black frames, and below when no canvas
-  // ever appears: mark this engine dead for the session and reload onto the
-  // next one. Loading succeeded but video didn't, so a reload is the only
-  // clean way to hand the page to a different engine.
+  // ever appears: remember this engine as dead here and reload onto the next.
+  // Loading succeeded but video didn't, so a reload is the only clean way to
+  // hand the page to a different engine.
   window.__ejsVideoDead = function (reason) {
     if (canvasTimer) { clearInterval(canvasTimer); canvasTimer = null; }
-    var next = skip + 1;
-    if (next >= cdns.length) {
+    var engine = cdns[current];
+    if (engine && dead.indexOf(engine) === -1) { dead.push(engine); setLS("ejs-dead", JSON.stringify(dead)); }
+    if (engine === good) setLS("ejs-good", null);
+    if (current + 1 >= cdns.length) {
+      // Clear the list so a later visit (new day, fixed drivers) rediscovers
+      // from scratch instead of being locked out forever.
+      setLS("ejs-dead", null);
       fail("every emulator engine failed to produce video on this device (" + reason + ") — graphics are likely disabled or blocked here");
       return false;
     }
-    try { sessionStorage.setItem("ejs-skip", String(next)); } catch (e) {}
-    try { if (cdns[current] === good) localStorage.removeItem("ejs-good"); } catch (e) {}
-    if (window.__diag) window.__diag(reason + " — switching emulator engine (" + (next + 1) + "/" + cdns.length + ") and reloading…", true);
+    if (window.__diag) window.__diag(reason + " — switching emulator engine and reloading…", true);
     setTimeout(function () { location.reload(); }, 2000);
     return true;
   };
@@ -110,7 +161,7 @@ window.bootEmulator = function (onAllFailed) {
       tryNext(i + 1);
     };
     document.body.appendChild(s);
-  })(skip);
+  })(0);
 
   // A loader that fetches fine but boots nothing fires no error event — the
   // genizy failure mode. bootEmulator runs after the ROM is already
