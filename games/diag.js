@@ -170,7 +170,12 @@
       } catch (e) { return; }
       if (!data) return;
       for (var j = 0; j < data.length; j += 4) {
-        if (data[j] > 8 || data[j + 1] > 8 || data[j + 2] > 8) { sawColor = true; return; }
+        if (data[j] > 8 || data[j + 1] > 8 || data[j + 2] > 8) {
+          sawColor = true;
+          // Real frames: tell the boot layer so this engine is remembered.
+          if (window.__ejsVideoOk) window.__ejsVideoOk();
+          return;
+        }
       }
       blackReads++;
     }
@@ -187,19 +192,10 @@
         if (!sawColor && blackReads >= 4) {
           log("canvas is mounted and sized but every sampled frame is black — video output is not reaching the screen.", true);
           if (box) box.style.display = "";
-          // The original build is the default engine. If IT renders black on
-          // this device, give the modern build one shot; the flag makes
-          // ejs-boot.js load it first after reload.
-          var tried = null;
-          try { tried = localStorage.getItem("ejs-modern"); } catch (e) {}
-          if (tried !== "1") {
-            try { localStorage.setItem("ejs-modern", "1"); } catch (e) {}
-            log("trying the current emulator build and reloading…");
-            setTimeout(function () { location.reload(); }, 2000);
-          } else {
-            log("black on both emulator builds — this device's graphics are the problem, not the emulator version. Audio working + black video usually means graphics acceleration is broken or blocked.", true);
-            reportWebGL();
-          }
+          // Hand the verdict to the boot layer, which rotates to the next
+          // engine (reload) or, when none are left, reports final failure.
+          var rotated = window.__ejsVideoDead && window.__ejsVideoDead("video output is black on this engine");
+          if (!rotated) reportWebGL();
         }
       }
     }, 2000);
@@ -252,7 +248,7 @@
         }
       }, 600);
     } else if (waited === 60) {
-      log("no emulator canvas after 60s — emulator never mounted", true);
+      log("no emulator canvas after 60s — either the ROM is still downloading (large games) or the engine never mounted; the boot layer rotates engines on its own timer", true);
     }
   }, 1000);
   setTimeout(function () {
@@ -260,5 +256,5 @@
   }, 180000);
 
   // Version marker so a cached old page is instantly distinguishable from this one.
-  log("diag v7");
+  log("diag v8");
 })();
