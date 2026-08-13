@@ -21,11 +21,11 @@
         function fetchPart(index) {
           if (index >= fileParts.length) { resolve(URL.createObjectURL(new Blob(buffers))); return; }
           fetch(fileParts[index])
-            .then(r => { if (!r.ok) throw new Error("HTTP " + r.status); return r.arrayBuffer(); })
-            .then(data => { buffers.push(data); fetchPart(index + 1); })
+            .then(r => { if (!r.ok) throw new Error("HTTP " + r.status); return r.blob(); })
+            .then(data => { buffers.push(data); cb(index + 1); fetchPart(index + 1); })
             .catch(reject);
-          cb(index);
         }
+        cb(0);
         fetchPart(0);
       });
     }

@@ -28,15 +28,16 @@
           fetch(fileParts[index])
             .then((response) => {
               if (!response.ok) throw new Error("HTTP " + response.status);
-              return response.arrayBuffer();
+              return response.blob();
             })
             .then((data) => {
               buffers.push(data);
+              cb(index + 1);
               fetchPart(index + 1);
             })
             .catch(reject);
-          cb(index);
         }
+        cb(0);
         fetchPart(0);
       });
     }
@@ -108,7 +109,7 @@
     function updateLoadingProgress(loaded) {
       var el = document.getElementById("loading-progress");
       if (!el) return;
-      el.textContent = loaded === 0 ? "Loading: 0/0" : "Loading: " + loaded + "/" + totalParts;
+      el.textContent = "Loading: " + loaded + "/" + totalParts;
     }
 
     Promise.all([mergeFiles(parts, updateLoadingProgress)])
