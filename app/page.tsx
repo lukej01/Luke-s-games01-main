@@ -548,7 +548,19 @@ export default function Home() {
   }, []);
 
   const closePlayer = useCallback(() => setPlayingGame(null), []);
-  const handlePlay = useCallback((game: Game) => setPlayingGame(game), []);
+  // Navigate to the game page top-level instead of opening the iframe
+  // overlay. The original site worked this way, and it sidesteps managed
+  // devices/content filters that block embedded frames while allowing the
+  // same page loaded directly — the overlay was rendering solid black there
+  // with the site's scrollbar still visible behind it. GamePlayer is kept
+  // for the ?embed=1 escape hatch.
+  const handlePlay = useCallback((game: Game) => {
+    if (new URLSearchParams(window.location.search).has("embed")) {
+      setPlayingGame(game);
+      return;
+    }
+    window.location.assign(`${BASE}/games/${game.id}.html`);
+  }, []);
 
   // Hero content fades as library slides over it
   const heroOpacity = Math.max(0, 1 - scrollY / 360);
