@@ -48,6 +48,47 @@ window.bootEmulator = function (onAllFailed) {
   if (!("vsync" in opts)) opts.vsync = "disabled";
   window.EJS_defaultOptions = opts;
 
+  // The owner's keyboard mapping, recovered from the original gaming hub
+  // (042455c index.html) — WASD drives d-pad + left stick, arrows the right
+  // stick. loader.js reads EJS_defaultControls into config.defaultControllers.
+  // Defaults only: remaps made in the emulator's own controls UI are stored
+  // by EmulatorJS in this origin's browser storage and win over these.
+  if (!window.EJS_defaultControls) {
+    window.EJS_defaultControls = {
+      0: {
+        0: { value: "space", value2: "BUTTON_2" },
+        1: { value: "v", value2: "BUTTON_4" },
+        2: { value: "enter", value2: "SELECT" },
+        3: { value: "enter", value2: "START" },
+        4: { value: "w", value2: "DPAD_UP" },
+        5: { value: "s", value2: "DPAD_DOWN" },
+        6: { value: "a", value2: "DPAD_LEFT" },
+        7: { value: "d", value2: "DPAD_RIGHT" },
+        8: { value: "b", value2: "BUTTON_1" },
+        9: { value: "n", value2: "BUTTON_3" },
+        10: { value: "x", value2: "LEFT_TOP_SHOULDER" },
+        11: { value: "m", value2: "RIGHT_TOP_SHOULDER" },
+        12: { value: "c", value2: "LEFT_BOTTOM_SHOULDER" },
+        13: { value: "comma", value2: "RIGHT_BOTTOM_SHOULDER" },
+        14: { value: "", value2: "LEFT_STICK" },
+        15: { value: "", value2: "RIGHT_STICK" },
+        16: { value: "d", value2: "LEFT_STICK_X:+1" },
+        17: { value: "a", value2: "LEFT_STICK_X:-1" },
+        18: { value: "s", value2: "LEFT_STICK_Y:+1" },
+        19: { value: "w", value2: "LEFT_STICK_Y:-1" },
+        20: { value: "right arrow", value2: "RIGHT_STICK_X:+1" },
+        21: { value: "left arrow", value2: "RIGHT_STICK_X:-1" },
+        22: { value: "down arrow", value2: "RIGHT_STICK_Y:+1" },
+        23: { value: "up arrow", value2: "RIGHT_STICK_Y:-1" },
+        24: { value: "1" },
+        25: { value: "2" },
+        26: { value: "3" },
+        27: {}, 28: {}, 29: {},
+      },
+      1: {}, 2: {}, 3: {},
+    };
+  }
+
   var ALL = [
     "https://cdn.emulatorjs.org/stable/data/",
     "https://cdn.jsdelivr.net/gh/genizy/emu@master/",
