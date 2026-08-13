@@ -77,11 +77,39 @@
       var name = el.tagName.toLowerCase();
       if (el.id) name += "#" + el.id;
       else if (typeof el.className === "string" && el.className) name += "." + el.className.split(" ")[0];
-      parts.push(name + " " + Math.round(r.width) + "x" + Math.round(r.height));
+      var entry = name + " " + Math.round(r.width) + "x" + Math.round(r.height);
+      // A zero element with a full-size parent means something nullified it at
+      // runtime; print the computed values so the culprit property is named.
+      if (r.width < 10 || r.height < 10) {
+        var cs = getComputedStyle(el);
+        entry += " [disp:" + cs.display + " pos:" + cs.position + " w:" + cs.width + " h:" + cs.height +
+          (cs.transform !== "none" ? " tf:" + cs.transform : "") +
+          (cs.visibility !== "visible" ? " vis:" + cs.visibility : "") + "]";
+      }
+      parts.push(entry);
       if (el === document.body) break;
       el = el.parentElement;
     }
     return parts.join("  <  ");
+  }
+
+  // Force collapsed elements back open with inline importants, which outrank
+  // injected stylesheets. Walks canvas-to-body and only touches zero-size
+  // elements, so EJS chrome and healthy layout are never affected.
+  function selfHeal(node) {
+    var FULL = {
+      display: "block", visibility: "visible", opacity: "1",
+      position: "absolute", top: "0", left: "0", right: "0", bottom: "0",
+      width: "100%", height: "100%", transform: "none",
+    };
+    var el = node;
+    for (var hops = 0; el && el !== document.body && hops < 6; hops++) {
+      var r = el.getBoundingClientRect();
+      if (r.width < 10 || r.height < 10) {
+        for (var k in FULL) el.style.setProperty(k, FULL[k], "important");
+      }
+      el = el.parentElement;
+    }
   }
 
   var waited = 0;
@@ -102,17 +130,28 @@
         if (!good) {
           // Walk up from the canvas so the report names the collapsed ancestor.
           log("size chain: " + sizeChain(c), true);
+          selfHeal(c);
+          setTimeout(function () {
+            var rh = c.getBoundingClientRect();
+            var healed = rh.width > 10 && rh.height > 10;
+            log("self-heal -> " + Math.round(rh.width) + "x" + Math.round(rh.height), !healed);
+            if (healed && box) setTimeout(function () { box.style.display = "none"; }, 5000);
+          }, 400);
           var tries = 0;
           var re = setInterval(function () {
             tries++;
             var r2 = c.getBoundingClientRect();
             if (r2.width > 10 && r2.height > 10) {
               clearInterval(re);
+              if (box && box.style.display === "none") return;
               log("canvas recovered: " + Math.round(r2.width) + "x" + Math.round(r2.height));
               if (box) setTimeout(function () { box.style.display = "none"; }, 4000);
-            } else if (tries >= 10) {
-              clearInterval(re);
-              log("still zero after 30s; chain: " + sizeChain(c), true);
+            } else {
+              selfHeal(c);
+              if (tries >= 10) {
+                clearInterval(re);
+                log("still zero after 30s; chain: " + sizeChain(c), true);
+              }
             }
           }, 3000);
         }
@@ -126,5 +165,5 @@
   }, 180000);
 
   // Version marker so a cached old page is instantly distinguishable from this one.
-  log("diag v2");
+  log("diag v3");
 })();
