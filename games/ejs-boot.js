@@ -7,11 +7,32 @@
 // networks (schools in particular) commonly allow jsDelivr while blocking
 // cdn.emulatorjs.org, in which case ROM parts download fine and the emulator
 // then silently never arrives. So: try each in order instead of picking one.
+//
+// The site as originally uploaded (33d854d) ran genizy/emu@master — an older
+// EmulatorJS build — and worked on hardware where the current stable build
+// renders black with working audio. That build is kept as a reachable target:
+// last in line normally, first when the "ejs-legacy" flag is set (diag.js
+// sets it after confirming black video output, then reloads once).
 window.bootEmulator = function (onAllFailed) {
+  // The original pages shipped with vsync disabled, and vsync is a known
+  // black-screen trigger in EmulatorJS on some GPUs. Default it off
+  // everywhere; pages that set their own options keep them.
+  var opts = window.EJS_defaultOptions || {};
+  if (!("vsync" in opts)) opts.vsync = "disabled";
+  window.EJS_defaultOptions = opts;
+
+  var LEGACY = "https://cdn.jsdelivr.net/gh/genizy/emu@master/";
   var cdns = [
     "https://cdn.emulatorjs.org/stable/data/",
     "https://cdn.jsdelivr.net/gh/EmulatorJS/EmulatorJS@latest/data/",
+    LEGACY,
   ];
+  var legacy = false;
+  try { legacy = localStorage.getItem("ejs-legacy") === "1"; } catch (e) {}
+  if (legacy) {
+    cdns = [LEGACY, cdns[0], cdns[1]];
+    if (window.__diag) window.__diag("using original (legacy) emulator build");
+  }
   (function tryNext(i) {
     if (i >= cdns.length) {
       if (window.__diag) window.__diag("all emulator CDNs failed", true);
