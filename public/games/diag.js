@@ -187,7 +187,9 @@
       checks++;
       if (sawColor) { clearInterval(iv); return; }
       requestAnimationFrame(sample);
-      if (checks >= 8) {
+      // 60s: PS1/N64 games sit on black BIOS and load screens well past 16s,
+      // and a black verdict blacklists the engine on this device.
+      if (checks >= 30) {
         clearInterval(iv);
         if (!sawColor && blackReads >= 4) {
           log("canvas is mounted and sized but every sampled frame is black — video output is not reaching the screen.", true);
@@ -256,5 +258,5 @@
   }, 180000);
 
   // Version marker so a cached old page is instantly distinguishable from this one.
-  log("diag v8");
+  log("diag v9");
 })();
