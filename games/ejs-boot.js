@@ -91,7 +91,9 @@ window.bootEmulator = function (onAllFailed) {
 
   var ALL = [
     "https://cdn.emulatorjs.org/stable/data/",
-    "https://cdn.jsdelivr.net/gh/genizy/emu@master/",
+    // Pinned to a commit: genizy/emu no longer has a master branch (only
+    // main), so @master 404s and the engine showed as unreachable.
+    "https://cdn.jsdelivr.net/gh/genizy/emu@7bf5cbb0b94866568d2aaa1fd42ebb5acd517e0d/",
     "https://cdn.jsdelivr.net/gh/EmulatorJS/EmulatorJS@latest/data/",
   ];
 
@@ -101,6 +103,11 @@ window.bootEmulator = function (onAllFailed) {
   // Engines proven video-dead on this device — persisted, so no visit ever
   // sits through a known failure again. If the list somehow swallows every
   // engine without one being proven good, ignore it and rediscover.
+  // Verdicts recorded under an older engine list or black-frame window may
+  // have written off an engine that works (a slow boot screen read as dead
+  // video). Bump this to wipe them on every device once.
+  if (getLS("ejs-ver") !== "9") { setLS("ejs-dead", null); setLS("ejs-good", null); setLS("ejs-ver", "9"); }
+
   var dead = [];
   try { dead = JSON.parse(getLS("ejs-dead") || "[]"); } catch (e) {}
   if (!Array.isArray(dead)) dead = [];
