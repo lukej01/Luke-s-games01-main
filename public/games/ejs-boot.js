@@ -1,20 +1,19 @@
-// Loads EmulatorJS with engine rotation. Set the EJS_* globals first, then
-// call bootEmulator(onAllFailed).
+// Loads EmulatorJS. Set the EJS_* globals first, then call
+// bootEmulator(onAllFailed).
 //
-// History, so the next fix doesn't repeat it: the site originally ran
-// genizy/emu@master and worked; that host then broke (64cc9cb switched away
-// from it calling it broken) and its loader now loads but boots nothing —
-// no error event, no canvas, just black. Current-stable EmulatorJS loads
-// everywhere but renders black-with-audio on some GPUs. So no single engine
-// choice works for every device, and this repo flip-flopped hosts four times
-// (100a23e, f3cebd3, aa9663f, 092974e/04d949e) trying to find one.
+// History, so the next fix doesn't repeat it: an earlier version judged each
+// engine by reading canvas pixels, saved any engine whose frames read black as
+// "dead" in localStorage, and reloaded onto the next one. That check was wrong.
+// The emulator's WebGL canvas does not keep its drawing buffer, so pixels read
+// from outside its own render loop come back cleared (black) even while the
+// game is on screen. Working engines got blacklisted and every game
+// reload-looped into "every emulator engine failed". Its 60s no-canvas timer
+// was wrong too: EmulatorJS mounts the canvas only after the core, ROM and
+// BIOS have all downloaded, and on a slow connection that takes longer.
 //
-// Instead: try engines in order and judge them by what matters — pixels.
-// diag.js watches the canvas and calls __ejsVideoOk() when real frames
-// appear, or __ejsVideoDead() when the canvas never appears or stays black.
-// Verdicts persist in localStorage: a proven engine boots first on every
-// later visit, and proven-dead engines are never retried — discovery costs
-// one slow first game, then the working engine is simply the default.
+// So the engine is switched only when it fails to load, a signal that cannot
+// fire on a working game. There are no pixel checks, no timers and no reloads.
+
 // Game pages are now visited top-level (the landing page navigates here
 // instead of iframing — content filters on managed devices black out the
 // embedded route). Give the player a way back that isn't the browser chrome.
@@ -42,7 +41,7 @@
 })();
 
 window.bootEmulator = function (onAllFailed) {
-  // The original pages shipped with vsync disabled — a known black-screen
+  // The original pages shipped with vsync disabled, a known black-screen
   // trigger in EmulatorJS on some GPUs. Pages with their own options keep them.
   var opts = window.EJS_defaultOptions || {};
   if (!("vsync" in opts)) opts.vsync = "disabled";
@@ -89,87 +88,77 @@ window.bootEmulator = function (onAllFailed) {
     };
   }
 
-  var ALL = [
-    "https://cdn.emulatorjs.org/stable/data/",
-    "https://cdn.jsdelivr.net/gh/genizy/emu@master/",
-    "https://cdn.jsdelivr.net/gh/EmulatorJS/EmulatorJS@latest/data/",
+  // Verdicts stored by the old pixel check. Nothing reads them any more;
+  // clear them so they cannot mislead whoever debugs this next.
+  try { localStorage.removeItem("ejs-dead"); localStorage.removeItem("ejs-good"); } catch (e) {}
+
+  var VERSION = "4.2.3";
+  var NPM = "https://cdn.jsdelivr.net/npm/@emulatorjs/";
+  var ENGINES = [
+    { data: "https://cdn.emulatorjs.org/stable/data/" },
+    // The same release from npm through jsDelivr, the host that already serves
+    // the ROMs, for networks that block the EmulatorJS CDN. npm ships each
+    // core as its own package, so core files are mapped to it below.
+    { data: NPM + "emulatorjs@" + VERSION + "/data/", npmCores: true },
   ];
 
-  function getLS(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
-  function setLS(k, v) { try { v === null ? localStorage.removeItem(k) : localStorage.setItem(k, v); } catch (e) {} }
+  // EmulatorJS picks one core per system, and players can switch to another
+  // in its settings, so map every core of the page's system.
+  var CORE_GROUPS = [
+    ["nes", "fceumm", "nestopia"],
+    ["snes", "snes9x"],
+    ["segaMD", "genesis_plus_gx", "picodrive"],
+    ["n64", "mupen64plus_next", "parallel_n64"],
+    ["psx", "pcsx_rearmed", "mednafen_psx_hw"],
+    ["nds", "melonds", "desmume", "desmume2015"],
+  ];
 
-  // Engines proven video-dead on this device — persisted, so no visit ever
-  // sits through a known failure again. If the list somehow swallows every
-  // engine without one being proven good, ignore it and rediscover.
-  var dead = [];
-  try { dead = JSON.parse(getLS("ejs-dead") || "[]"); } catch (e) {}
-  if (!Array.isArray(dead)) dead = [];
-  var good = getLS("ejs-good");
-  var cdns = ALL.filter(function (u) { return u === good || dead.indexOf(u) === -1; });
-  if (cdns.length === 0) { dead = []; setLS("ejs-dead", null); cdns = ALL.slice(); }
-  if (good && cdns.indexOf(good) > 0) { cdns.splice(cdns.indexOf(good), 1); cdns.unshift(good); }
-  if (dead.length && window.__diag) window.__diag("skipping " + dead.length + " engine(s) previously proven video-dead here");
-
-  var current = -1;
-  var canvasTimer = null;
-
-  function fail(msg) {
-    if (window.__diag) window.__diag(msg, true);
-    if (onAllFailed) onAllFailed();
+  // EJS_paths overrides a download by file name. Missing files fall through to
+  // EmulatorJS's own fetch, so an unmapped core still has its usual path.
+  function npmCorePaths(system) {
+    var paths = {};
+    CORE_GROUPS.forEach(function (group) {
+      if (group.indexOf(system) === -1) return;
+      group.slice(1).forEach(function (core) {
+        var pkg = NPM + "core-" + core + "@" + VERSION + "/";
+        ["", "-thread"].forEach(function (thread) {
+          ["", "-legacy"].forEach(function (legacy) {
+            var file = core + thread + legacy + "-wasm.data";
+            paths[file] = pkg + file;
+          });
+        });
+        paths[core + ".json"] = pkg + "reports/" + core + ".json";
+      });
+    });
+    return paths;
   }
 
-  // Called by diag.js once the canvas shows real (non-black) frames.
-  window.__ejsVideoOk = function () {
-    if (canvasTimer) { clearInterval(canvasTimer); canvasTimer = null; }
-    setLS("ejs-good", cdns[current]);
-  };
-
-  // Called by diag.js on confirmed black frames, and below when no canvas
-  // ever appears: remember this engine as dead here and reload onto the next.
-  // Loading succeeded but video didn't, so a reload is the only clean way to
-  // hand the page to a different engine.
-  window.__ejsVideoDead = function (reason) {
-    if (canvasTimer) { clearInterval(canvasTimer); canvasTimer = null; }
-    var engine = cdns[current];
-    if (engine && dead.indexOf(engine) === -1) { dead.push(engine); setLS("ejs-dead", JSON.stringify(dead)); }
-    if (engine === good) setLS("ejs-good", null);
-    if (current + 1 >= cdns.length) {
-      // Clear the list so a later visit (new day, fixed drivers) rediscovers
-      // from scratch instead of being locked out forever.
-      setLS("ejs-dead", null);
-      fail("every emulator engine failed to produce video on this device (" + reason + ") — graphics are likely disabled or blocked here");
-      return false;
-    }
-    if (window.__diag) window.__diag(reason + " — switching emulator engine and reloading…", true);
-    setTimeout(function () { location.reload(); }, 2000);
-    return true;
-  };
-
   (function tryNext(i) {
-    if (i >= cdns.length) {
-      fail("all emulator engines unreachable");
+    if (i >= ENGINES.length) {
+      if (window.__diag) window.__diag("no emulator engine could be loaded on this network", true);
+      if (onAllFailed) onAllFailed();
       return;
     }
-    current = i;
+    var engine = ENGINES[i];
+    function skip(why) {
+      if (window.__diag) window.__diag(why + ": " + engine.data, true);
+      tryNext(i + 1);
+    }
     // loader.js resolves cores and wasm relative to EJS_pathtodata, so the
     // two must always point at the same host.
-    window.EJS_pathtodata = cdns[i];
+    window.EJS_pathtodata = engine.data;
+    if (engine.npmCores) window.EJS_paths = Object.assign(npmCorePaths(window.EJS_core), window.EJS_paths);
     var s = document.createElement("script");
-    s.src = cdns[i] + "loader.js";
-    s.onerror = function () {
-      if (window.__diag) window.__diag("engine unreachable: " + cdns[i], true);
-      tryNext(i + 1);
+    s.src = engine.data + "loader.js";
+    s.onload = function () {
+      // A content filter can answer with its own block page: status 200 but
+      // not JavaScript, so the script "loads" yet never runs. A real loader.js
+      // adds its first emulator script from the same host before it yields,
+      // so if that script is missing, this host served something else.
+      var started = document.querySelector('script[src^="' + engine.data + '"]:not([src$="loader.js"])');
+      if (!started) skip("engine blocked (got a non-script response)");
     };
+    s.onerror = function () { skip("engine unreachable"); };
     document.body.appendChild(s);
   })(0);
-
-  // A loader that fetches fine but boots nothing fires no error event — the
-  // genizy failure mode. bootEmulator runs after the ROM is already
-  // downloaded, so a healthy engine mounts its canvas well within a minute.
-  var waited = 0;
-  canvasTimer = setInterval(function () {
-    waited += 2;
-    if (document.querySelector("canvas")) { clearInterval(canvasTimer); canvasTimer = null; return; }
-    if (waited >= 60) window.__ejsVideoDead("engine loaded but never started (no canvas after 60s)");
-  }, 2000);
 };

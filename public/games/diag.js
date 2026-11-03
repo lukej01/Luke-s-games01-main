@@ -52,6 +52,9 @@
 
   window.addEventListener("unhandledrejection", function (e) {
     var r = e.reason;
+    // EmulatorJS asks to keep the screen awake; browsers and managed devices
+    // may refuse. The game runs either way, so this is not a failure.
+    if (r && r.name === "NotAllowedError" && /wake lock/i.test(r.message || "")) return;
     log("unhandled rejection: " + ((r && (r.message || r)) || "unknown"), true);
   });
 
@@ -117,10 +120,15 @@
   }
 
   // Black screen with working audio means the core is running but the video
-  // blit is producing nothing — a GPU problem, not a loading problem. Report
+  // blit is producing nothing: a GPU problem, not a loading problem. Report
   // whether this device can create a WebGL context at all, and which renderer
   // backs it, so "graphics disabled on this machine" is named on screen
   // instead of looking identical to every other black frame.
+  //
+  // Do not try to detect black frames by reading the emulator canvas. It
+  // does not preserve its drawing buffer, so reads from outside its render
+  // loop return cleared pixels while the game is visibly running. A check
+  // like that once blacklisted working engines and reload-looped every game.
   function reportWebGL() {
     var probe = document.createElement("canvas");
     var gl = null, kind = "";
@@ -131,74 +139,26 @@
     } catch (e) {}
     if (!gl) {
       log("WebGL unavailable — graphics are disabled on this device. The game runs (audio works) but cannot draw. Enable hardware acceleration in the browser settings, or it may be blocked by device management.", true);
-      return false;
+      return;
     }
     var renderer = "";
     try {
       var info = gl.getExtension("WEBGL_debug_renderer_info");
       renderer = info ? gl.getParameter(info.UNMASKED_RENDERER_WEBGL) : gl.getParameter(gl.RENDERER);
     } catch (e) {}
+    // Free the probe context now; browsers cap how many can be live at once.
+    try { var lose = gl.getExtension("WEBGL_lose_context"); if (lose) lose.loseContext(); } catch (e) {}
     log("graphics: " + kind + (renderer ? " (" + renderer + ")" : ""));
     if (/swiftshader|software/i.test(renderer)) {
       log("software rendering — hardware acceleration is off; games may be black or very slow", true);
     }
-    return true;
   }
 
-  // Sample the mounted canvas a few times; if every pixel we see stays black
-  // while the emulator is running, say so. getContext returns the existing
-  // context when the type matches, so try each type the emulator could have
-  // used. readPixels without preserveDrawingBuffer is a heuristic (the buffer
-  // may already be cleared), so require repeated all-black reads before
-  // reporting, and never report if any read shows color.
-  function watchBlackFrames(c) {
-    var sawColor = false, blackReads = 0, checks = 0;
-    function sample() {
-      var data = null;
-      try {
-        var gl = c.getContext("webgl2") || c.getContext("webgl");
-        if (gl) {
-          var px = new Uint8Array(4 * 16);
-          for (var i = 0; i < 16; i++) {
-            gl.readPixels(((i % 4) + 0.5) * gl.drawingBufferWidth / 4 | 0, ((i / 4 | 0) + 0.5) * gl.drawingBufferHeight / 4 | 0, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, px.subarray(i * 4, i * 4 + 4));
-          }
-          data = px;
-        } else {
-          var ctx = c.getContext("2d");
-          if (ctx) data = ctx.getImageData(0, 0, Math.min(64, c.width || 1), Math.min(64, c.height || 1)).data;
-        }
-      } catch (e) { return; }
-      if (!data) return;
-      for (var j = 0; j < data.length; j += 4) {
-        if (data[j] > 8 || data[j + 1] > 8 || data[j + 2] > 8) {
-          sawColor = true;
-          // Real frames: tell the boot layer so this engine is remembered.
-          if (window.__ejsVideoOk) window.__ejsVideoOk();
-          return;
-        }
-      }
-      blackReads++;
-    }
+  function watchContextLoss(c) {
     c.addEventListener("webglcontextlost", function () {
       log("WebGL context lost — the graphics driver gave up. Refresh the page; if it repeats, this device's GPU cannot handle the emulator.", true);
       if (box) box.style.display = "";
     });
-    var iv = setInterval(function () {
-      checks++;
-      if (sawColor) { clearInterval(iv); return; }
-      requestAnimationFrame(sample);
-      if (checks >= 8) {
-        clearInterval(iv);
-        if (!sawColor && blackReads >= 4) {
-          log("canvas is mounted and sized but every sampled frame is black — video output is not reaching the screen.", true);
-          if (box) box.style.display = "";
-          // Hand the verdict to the boot layer, which rotates to the next
-          // engine (reload) or, when none are left, reports final failure.
-          var rotated = window.__ejsVideoDead && window.__ejsVideoDead("video output is black on this engine");
-          if (!rotated) reportWebGL();
-        }
-      }
-    }, 2000);
   }
 
   var waited = 0;
@@ -213,8 +173,7 @@
         var r = c.getBoundingClientRect();
         var good = r.width > 10 && r.height > 10;
         log("emulator canvas mounted: " + Math.round(r.width) + "x" + Math.round(r.height), !good);
-        // A correctly sized canvas can still be black; keep watching pixels.
-        watchBlackFrames(c);
+        watchContextLoss(c);
         // Leave the report readable for a few seconds, then get out of the way.
         // A zero-size canvas is a failure and stays on screen.
         if (good && box) setTimeout(function () { box.style.display = "none"; }, 5000);
@@ -248,7 +207,7 @@
         }
       }, 600);
     } else if (waited === 60) {
-      log("no emulator canvas after 60s — either the ROM is still downloading (large games) or the engine never mounted; the boot layer rotates engines on its own timer", true);
+      log("no emulator canvas after 60s — the emulator shows its game only once the core and ROM have fully downloaded, so a slow connection can still be loading; if its own status text shows an error, that is the cause", true);
     }
   }, 1000);
   setTimeout(function () {
@@ -256,5 +215,6 @@
   }, 180000);
 
   // Version marker so a cached old page is instantly distinguishable from this one.
-  log("diag v8");
+  log("diag v9");
+  reportWebGL();
 })();
