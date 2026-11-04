@@ -4,11 +4,12 @@
 // identical from the outside: a black frame. This surfaces which one it is on
 // the page itself, so diagnosing does not require opening devtools.
 //
-// Strictly additive — it never gates the emulator, and it hides itself once a
-// canvas appears.
+// Strictly additive: it never gates the emulator. The panel stays out of
+// sight unless something fails, and hides again once the game is on screen.
 (function () {
   var lines = [];
   var box = null;
+  var failed = false;
 
   function ensureBox() {
     if (box) return box;
@@ -25,12 +26,16 @@
     return box;
   }
 
+  // Healthy lines are kept as context but shown only once something fails.
   function render() {
-    ensureBox().textContent = lines.join("\n");
+    var b = ensureBox();
+    b.textContent = lines.join("\n");
+    if (!failed) b.style.display = "none";
   }
 
   function log(msg, bad) {
     lines.push((bad ? "FAIL  " : "ok    ") + msg);
+    if (bad) { failed = true; ensureBox().style.display = ""; }
     render();
   }
 
@@ -47,6 +52,9 @@
   } catch (e) {}
 
   window.addEventListener("error", function (e) {
+    // Benign: the layout guard in ejs-boot.js resizes elements from inside a
+    // ResizeObserver callback, and the browser reports the follow-up frame.
+    if (/ResizeObserver loop/.test(e.message || "")) return;
     log("script error: " + (e.message || e.type) + (e.filename ? "  " + e.filename : ""), true);
   });
 
@@ -99,26 +107,6 @@
     return parts.join("  <  ");
   }
 
-  // Force collapsed elements back open with inline importants, which outrank
-  // injected stylesheets. Walks canvas-to-body and only touches zero-size
-  // elements, so EJS chrome and healthy layout are never affected.
-  function selfHeal(node) {
-    var FULL = {
-      display: "block", visibility: "visible", opacity: "1",
-      position: "absolute", top: "0", left: "0", right: "0", bottom: "0",
-      width: "100%", height: "100%", transform: "none",
-      zoom: "1", contain: "none", "content-visibility": "visible",
-    };
-    var el = node;
-    for (var hops = 0; el && el !== document.body && hops < 6; hops++) {
-      var r = el.getBoundingClientRect();
-      if (r.width < 10 || r.height < 10) {
-        for (var k in FULL) el.style.setProperty(k, FULL[k], "important");
-      }
-      el = el.parentElement;
-    }
-  }
-
   // Black screen with working audio means the core is running but the video
   // blit is producing nothing: a GPU problem, not a loading problem. Report
   // whether this device can create a WebGL context at all, and which renderer
@@ -150,14 +138,13 @@
     try { var lose = gl.getExtension("WEBGL_lose_context"); if (lose) lose.loseContext(); } catch (e) {}
     log("graphics: " + kind + (renderer ? " (" + renderer + ")" : ""));
     if (/swiftshader|software/i.test(renderer)) {
-      log("software rendering — hardware acceleration is off; games may be black or very slow", true);
+      log("note: software rendering, hardware acceleration is off; games may be slow");
     }
   }
 
   function watchContextLoss(c) {
     c.addEventListener("webglcontextlost", function () {
       log("WebGL context lost — the graphics driver gave up. Refresh the page; if it repeats, this device's GPU cannot handle the emulator.", true);
-      if (box) box.style.display = "";
     });
   }
 
@@ -177,34 +164,10 @@
         // Leave the report readable for a few seconds, then get out of the way.
         // A zero-size canvas is a failure and stays on screen.
         if (good && box) setTimeout(function () { box.style.display = "none"; }, 5000);
-        if (!good) {
-          // Walk up from the canvas so the report names the collapsed ancestor.
-          log("size chain: " + sizeChain(c), true);
-          selfHeal(c);
-          setTimeout(function () {
-            var rh = c.getBoundingClientRect();
-            var healed = rh.width > 10 && rh.height > 10;
-            log("self-heal -> " + Math.round(rh.width) + "x" + Math.round(rh.height), !healed);
-            if (healed && box) setTimeout(function () { box.style.display = "none"; }, 5000);
-          }, 400);
-          var tries = 0;
-          var re = setInterval(function () {
-            tries++;
-            var r2 = c.getBoundingClientRect();
-            if (r2.width > 10 && r2.height > 10) {
-              clearInterval(re);
-              if (box && box.style.display === "none") return;
-              log("canvas recovered: " + Math.round(r2.width) + "x" + Math.round(r2.height));
-              if (box) setTimeout(function () { box.style.display = "none"; }, 4000);
-            } else {
-              selfHeal(c);
-              if (tries >= 10) {
-                clearInterval(re);
-                log("still zero after 30s; chain: " + sizeChain(c), true);
-              }
-            }
-          }, 3000);
-        }
+        // The layout guard in ejs-boot.js should make this impossible; if it
+        // happens anyway, walk up from the canvas so the report names the
+        // collapsed ancestor.
+        if (!good) log("size chain: " + sizeChain(c), true);
       }, 600);
     } else if (waited === 60) {
       log("no emulator canvas after 60s — the emulator shows its game only once the core and ROM have fully downloaded, so a slow connection can still be loading; if its own status text shows an error, that is the cause", true);
@@ -215,6 +178,6 @@
   }, 180000);
 
   // Version marker so a cached old page is instantly distinguishable from this one.
-  log("diag v9");
+  log("diag v10");
   reportWebGL();
 })();

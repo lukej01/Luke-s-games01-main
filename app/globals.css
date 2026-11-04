@@ -59,75 +59,23 @@
   --color-border-glow:  var(--border-glow);
 }
 
-/* ── Base ── */
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+/* ── Base ── Tailwind's preflight already resets margin, padding and
+   box-sizing inside its base layer. Repeating that reset here, unlayered,
+   would beat every Tailwind padding and spacing utility. */
 
-html {
-  scroll-behavior: smooth;
-  scroll-padding-top: 0;
-}
-
-@supports (scroll-behavior: smooth) {
-  html { scroll-behavior: smooth; }
-}
+/* One screen, no scrolling: the roller is the whole site. */
+html, body { height: 100%; overflow: hidden; overscroll-behavior: none; }
 
 body {
-  background: var(--background);
+  background:
+    radial-gradient(ellipse 70% 55% at 50% 58%, oklch(0.10 0.04 var(--hue)) 0%, transparent 70%),
+    var(--background);
   color: var(--foreground);
   font-family: 'Space Grotesk', system-ui, sans-serif;
-  overflow-x: hidden;
-  cursor: none;
   -webkit-font-smoothing: antialiased;
 }
 
-/* ── Custom scrollbar ── */
-::-webkit-scrollbar { width: 2px; }
-::-webkit-scrollbar-track { background: var(--background); }
-::-webkit-scrollbar-thumb { background: var(--border-glow); border-radius: 1px; }
-
-/* ── CRT scanlines & grain (applied to body via class) ── */
-.crt-fx::before {
-  content: '';
-  position: fixed;
-  inset: 0;
-  background: repeating-linear-gradient(
-    0deg,
-    transparent,
-    transparent 2px,
-    oklch(0 0 0 / 0.06) 2px,
-    oklch(0 0 0 / 0.06) 4px
-  );
-  pointer-events: none;
-  z-index: 9900;
-}
-
-.crt-fx::after {
-  content: '';
-  position: fixed;
-  inset: -100px;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3CcolorMatrix type='matrix' values='1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 1.5 -0.1'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='1'/%3E%3C/svg%3E");
-  pointer-events: none;
-  z-index: 9899;
-  opacity: 0.05;
-  mix-blend-mode: overlay;
-  animation: grain 0.4s steps(1) infinite;
-}
-
-/* ── Keyframes ── */
-@keyframes grain {
-  0%   { transform: translate(0,0); }
-  10%  { transform: translate(-4%,-6%); }
-  20%  { transform: translate(5%,3%); }
-  30%  { transform: translate(-7%,8%); }
-  40%  { transform: translate(6%,-3%); }
-  50%  { transform: translate(-4%,7%); }
-  60%  { transform: translate(9%,-5%); }
-  70%  { transform: translate(-6%,4%); }
-  80%  { transform: translate(5%,-8%); }
-  90%  { transform: translate(-3%,6%); }
-  100% { transform: translate(0,0); }
-}
-
+/* ── Keyframes used by the roller ── */
 @keyframes neon-pulse {
   0%, 100% {
     text-shadow: 0 0 8px var(--neon), 0 0 24px var(--neon-dim), 0 0 48px oklch(0.65 0.18 var(--hue) / 0.4);
@@ -137,76 +85,9 @@ body {
   }
 }
 
-@keyframes neon-border-breathe {
-  0%, 100% { box-shadow: 0 0 8px oklch(0.88 0.22 195 / 0.25), inset 0 0 8px oklch(0.88 0.22 195 / 0.04); }
-  50%       { box-shadow: 0 0 20px oklch(0.88 0.22 195 / 0.5), 0 0 50px oklch(0.88 0.22 195 / 0.15), inset 0 0 16px oklch(0.88 0.22 195 / 0.06); }
-}
-
-@keyframes glitch-a {
-  0%,85%,100% { clip-path: inset(0 0 101% 0); transform: translate(0); }
-  86%  { clip-path: inset(15% 0 65% 0); transform: translate(-4px,1px); }
-  88%  { clip-path: inset(55% 0 25% 0); transform: translate(4px,-1px); }
-  90%  { clip-path: inset(75% 0 10% 0); transform: translate(-3px,2px); }
-  92%  { clip-path: inset(30% 0 50% 0); transform: translate(3px,-2px); }
-  94%  { clip-path: inset(0  0 80% 0); transform: translate(-2px,1px); }
-  96%  { clip-path: inset(60% 0 20% 0); transform: translate(2px,-1px); }
-  98%  { clip-path: inset(90% 0 5%  0); transform: translate(-3px,0); }
-}
-
-@keyframes glitch-b {
-  0%,85%,100% { clip-path: inset(0 0 101% 0); transform: translate(0); }
-  87%  { clip-path: inset(60% 0 15% 0); transform: translate(4px,-2px); }
-  89%  { clip-path: inset(25% 0 55% 0); transform: translate(-4px,2px); }
-  91%  { clip-path: inset(80% 0 5%  0); transform: translate(3px,-1px); }
-  93%  { clip-path: inset(40% 0 40% 0); transform: translate(-3px,1px); }
-  95%  { clip-path: inset(5%  0 85% 0); transform: translate(2px,-2px); }
-  97%  { clip-path: inset(70% 0 20% 0); transform: translate(-2px,2px); }
-  99%  { clip-path: inset(10% 0 75% 0); transform: translate(3px,0); }
-}
-
-@keyframes float-up {
-  from { opacity: 0; transform: translateY(32px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
-
-@keyframes reveal-clip {
-  from { clip-path: inset(0 100% 0 0); }
-  to   { clip-path: inset(0 0% 0 0); }
-}
-
 @keyframes scanline-drop {
   0%   { transform: translateY(-100%); opacity: 0.6; }
   100% { transform: translateY(100vh); opacity: 0; }
-}
-
-@keyframes blink-cursor {
-  0%, 100% { opacity: 1; }
-  50%       { opacity: 0; }
-}
-
-@keyframes neon-flicker {
-  0%,17%,19%,21%,23%,53%,55%,100% {
-    opacity: 1;
-    text-shadow: 0 0 10px var(--neon), 0 0 30px var(--neon-dim), 0 0 60px oklch(0.65 0.18 var(--hue) / 0.4);
-  }
-  18%, 20%, 22% {
-    opacity: 0.45;
-    text-shadow: none;
-  }
-  54% {
-    opacity: 0.7;
-    text-shadow: 0 0 4px var(--neon);
-  }
-}
-
-@keyframes spin-slow {
-  from { transform: rotate(0deg); }
-  to   { transform: rotate(360deg); }
-}
-
-@keyframes hue-shift {
-  from { filter: hue-rotate(0deg); }
-  to   { filter: hue-rotate(360deg); }
 }
 
 /* ── Utility classes ── */
@@ -216,61 +97,6 @@ body {
 .neon-text {
   color: var(--neon);
   text-shadow: 0 0 10px var(--neon), 0 0 30px var(--neon-dim);
-}
-
-.neon-text-2 {
-  color: var(--neon-2);
-  text-shadow: 0 0 10px var(--neon-2), 0 0 30px var(--neon-2-dim);
-}
-
-.neon-text-3 {
-  color: var(--neon-3);
-  text-shadow: 0 0 10px var(--neon-3), 0 0 30px var(--neon-3-dim);
-}
-
-.neon-border {
-  border-color: var(--border-glow);
-  box-shadow: 0 0 12px oklch(0.88 0.22 195 / 0.2), inset 0 0 8px oklch(0.88 0.22 195 / 0.04);
-}
-
-.circuit-bg {
-  background-image:
-    linear-gradient(oklch(0.88 0.22 195 / 0.035) 1px, transparent 1px),
-    linear-gradient(90deg, oklch(0.88 0.22 195 / 0.035) 1px, transparent 1px);
-  background-size: 48px 48px;
-}
-
-.glitch-wrap {
-  position: relative;
-  display: inline-block;
-}
-
-.glitch-wrap::before,
-.glitch-wrap::after {
-  content: attr(data-text);
-  position: absolute;
-  inset: 0;
-  background: transparent;
-}
-
-.glitch-wrap::before {
-  color: var(--neon-3);
-  animation: glitch-a 6s infinite linear;
-}
-
-.glitch-wrap::after {
-  color: var(--neon-2);
-  animation: glitch-b 6s infinite linear;
-  animation-delay: 0.15s;
-}
-
-.scan-line {
-  position: absolute;
-  left: 0; right: 0;
-  height: 2px;
-  background: linear-gradient(90deg, transparent, var(--neon), transparent);
-  animation: scanline-drop 3s linear infinite;
-  opacity: 0;
 }
 
 /* ── Reduced motion ── */
