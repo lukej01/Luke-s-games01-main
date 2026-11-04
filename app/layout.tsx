@@ -1,10 +1,9 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import { SmoothScroll } from "@/components/ui/smooth-scroll";
 
 export const metadata: Metadata = {
-  title: "GameStash — Classic Vault",
-  description: "Classic titles, rediscovered. The definitive retro game collection.",
+  title: "GameStash",
+  description: "Classic games, playable in the browser.",
 };
 
 export default function RootLayout({
@@ -31,8 +30,7 @@ export default function RootLayout({
           rel="stylesheet"
         />
       </head>
-      <body className="min-h-full flex flex-col crt-fx">
-        <SmoothScroll />
+      <body>
         {children}
       </body>
     </html>

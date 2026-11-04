@@ -40,7 +40,91 @@
   else document.addEventListener("DOMContentLoaded", mount);
 })();
 
+// Layout guard. On the owner's managed Chromebook something hides the
+// emulator's container while the page runs: diagnostics there showed div#game
+// at 0x0 inside a full-size parent, which no CSS on these pages produces, and
+// forcing it open with inline !important styles fixed it every time. diag.js
+// used to do that only after the game canvas mounted, so the player first sat
+// through the whole download on a black screen. Now the player is pinned open
+// before the emulator starts, and a ResizeObserver re-pins anything in its
+// chain the moment it collapses. Its callback runs after layout and before
+// paint, so a collapse is never drawn.
+function guardLayout(player) {
+  var FULL = {
+    display: "block", visibility: "visible", opacity: "1",
+    position: "absolute", top: "0", left: "0", right: "0", bottom: "0",
+    width: "100%", height: "100%", transform: "none",
+    zoom: "1", contain: "none", "content-visibility": "visible",
+  };
+  // Something that re-hides on every change would otherwise fight this
+  // forever; after this many repairs, stop and say so.
+  var MAX_REPAIRS = 30;
+  var repairs = 0;
+  var reported = [];
+
+  function pin(el) {
+    for (var k in FULL) el.style.setProperty(k, FULL[k], "important");
+  }
+
+  function name(el) {
+    var n = el.tagName.toLowerCase();
+    if (el.id) return n + "#" + el.id;
+    return typeof el.className === "string" && el.className ? n + "." + el.className.split(" ")[0] : n;
+  }
+
+  // Outermost first: a hidden ancestor makes everything inside it measure 0,
+  // so it must be reopened before its children are judged.
+  function chain() {
+    var list = [];
+    for (var up = player.parentElement; up && up !== document.body; up = up.parentElement) list.unshift(up);
+    list.push(player);
+    var inner = player.querySelector(":scope > .ejs_game, :scope > .ejs_canvas_parent");
+    if (inner) list.push(inner);
+    var canvas = player.querySelector("canvas.ejs_canvas");
+    if (canvas) list.push(canvas);
+    return list;
+  }
+
+  var ro = new ResizeObserver(repair);
+
+  function repair() {
+    chain().forEach(function (el) {
+      ro.observe(el);
+      var r = el.getBoundingClientRect();
+      if (r.width >= 10 && r.height >= 10) return;
+      if (repairs >= MAX_REPAIRS) return;
+      repairs++;
+      var cs = getComputedStyle(el);
+      var label = name(el);
+      if (reported.indexOf(label) === -1 && window.__diag) {
+        reported.push(label);
+        window.__diag("layout restored: " + label + " was " + Math.round(r.width) + "x" + Math.round(r.height) +
+          " (display:" + cs.display + " visibility:" + cs.visibility + ")");
+      }
+      pin(el);
+      if (repairs === MAX_REPAIRS && window.__diag) {
+        window.__diag("something on this device keeps hiding the game area; stopped re-opening it", true);
+      }
+    });
+  }
+
+  pin(player);
+  // EmulatorJS replaces the player's whole style attribute when it applies
+  // its theme color, which drops the pin; put it back straight away. It also
+  // swaps its inner container and adds the canvas only when the game starts,
+  // so pick up new elements as they appear. Mutation callbacks run before
+  // the next layout, so neither change is ever drawn.
+  new MutationObserver(function () {
+    if (player.style.getPropertyPriority("display") !== "important") pin(player);
+    repair();
+  }).observe(player, { childList: true, subtree: true, attributes: true, attributeFilter: ["style"] });
+  repair();
+}
+
 window.bootEmulator = function (onAllFailed) {
+  var player = document.querySelector(window.EJS_player);
+  if (player) guardLayout(player);
+
   // The original pages shipped with vsync disabled, a known black-screen
   // trigger in EmulatorJS on some GPUs. Pages with their own options keep them.
   var opts = window.EJS_defaultOptions || {};

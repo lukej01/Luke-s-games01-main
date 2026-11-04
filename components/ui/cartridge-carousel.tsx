@@ -2,15 +2,15 @@
 
 import React, { useState, useEffect, useLayoutEffect, useRef, useCallback } from "react";
 import gsap from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { TextScramble } from "@/components/ui/text-scramble";
-gsap.registerPlugin(ScrollTrigger);
 
 // ── Card dimensions ──────────────────────────────────────────────────────────
 const CW   = 152;
 const CH   = 224;
 const GAP  = 22;
 const UNIT = CW + GAP;
+// Room above the cards: the centred card lifts 26px and grows 10% from its
+// bottom edge, so its top rises about 49px above the row.
+const TRACK_TOP = 56;
 
 // ── Console dimensions ───────────────────────────────────────────────────────
 const CXW  = 480;
@@ -309,11 +309,9 @@ function Console({ insertedGame, onEject }: { insertedGame: CarouselGame | null;
 export function CartridgeCarousel({
   games,
   onPlay,
-  playingId,
 }: {
   games: CarouselGame[];
   onPlay: (game: CarouselGame) => void;
-  playingId: string | null;
 }) {
   const TOTAL      = games.length;
   const LOOP_W     = TOTAL * UNIT;          // width of one full copy
@@ -325,9 +323,6 @@ export function CartridgeCarousel({
   const targetX    = useRef(LOOP_W);
   const wrapRef    = useRef<HTMLDivElement>(null);
   const trackRef   = useRef<HTMLDivElement>(null);
-  const isHover    = useRef(false);
-  const engaged    = useRef(false);
-  const engageTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const frameRef   = useRef(0);
   const [activeIdx, setActiveIdx] = useState(0);
 
@@ -385,38 +380,16 @@ export function CartridgeCarousel({
     return () => cancelAnimationFrame(frameRef.current);
   }, [TOTAL, LOOP_W]);
 
-  // ── Wheel — engagement-gated so vertical scroll isn't blocked ─────────
+  // ── Wheel — the page never scrolls, so the wheel always drives the roller.
+  // Not passive: preventDefault also stops trackpad swipes navigating back.
   useEffect(() => {
-    const el = wrapRef.current;
-    if (!el) return;
-
     const onWheel = (e: WheelEvent) => {
-      if (!isHover.current) return;
-
-      const absY = Math.abs(e.deltaY);
-      const absX = Math.abs(e.deltaX);
-      const isVertical = absX < 2 && e.deltaY !== 0;
-
-      // Pure vertical scroll upward while not engaged → let page scroll
-      if (isVertical && e.deltaY < 0 && !engaged.current) return;
-
       e.preventDefault();
-      e.stopPropagation();
-
-      const delta = absX > absY ? e.deltaX : e.deltaY;
-      const d = Math.sign(delta) * Math.min(Math.abs(delta), 140) * 0.55;
-      targetX.current += d;
-
-      // Engage for 900ms so brief vertical scrolls are captured too
-      engaged.current = true;
-      if (engageTimer.current) clearTimeout(engageTimer.current);
-      engageTimer.current = setTimeout(() => { engaged.current = false; }, 900);
+      const delta = Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY;
+      targetX.current += Math.sign(delta) * Math.min(Math.abs(delta), 140) * 0.55;
     };
-
-    el.addEventListener("wheel", onWheel, { passive: false });
-    el.addEventListener("mouseenter", () => { isHover.current = true; });
-    el.addEventListener("mouseleave", () => { isHover.current = false; engaged.current = false; });
-    return () => el.removeEventListener("wheel", onWheel);
+    window.addEventListener("wheel", onWheel, { passive: false });
+    return () => window.removeEventListener("wheel", onWheel);
   }, []);
 
   // ── Touch ─────────────────────────────────────────────────────────────
@@ -433,56 +406,23 @@ export function CartridgeCarousel({
     return () => { window.removeEventListener("touchstart", ts); window.removeEventListener("touchmove", tm); };
   }, []);
 
-  // ── GSAP ScrollTrigger fly-in — hide first, animate in on scroll ─────
-  // useLayoutEffect ensures hidden state is set before first paint
+  // ── Entrance — cards fly in once on load. They are rendered transparent
+  // (see the card wrapper below), so the prerendered HTML never shows them in
+  // their final spot before this runs.
   useLayoutEffect(() => {
-    const refs = cardFlyRefs.current.filter(Boolean) as HTMLDivElement[];
-    if (refs.length > 0) gsap.set(refs, { opacity: 0, y: 220, scale: 0.45 });
-  }, []);
-
-  useEffect(() => {
-    const el = outerRef.current;
-    if (!el) return;
-
-    const getCards = () => cardFlyRefs.current.filter(Boolean) as HTMLDivElement[];
-
-    const animIn = () => {
-      const cards = getCards();
-      if (!cards.length) return;
-      gsap.killTweensOf(cards);
-      gsap.to(cards, {
-        opacity: 1, y: 0, scale: 1,
-        duration: 1.15,
-        stagger: { each: 0.078, from: "center" },
-        ease: "expo.out",
-      });
-    };
-
-    const animOut = (dirY: number, dirScale: number, fromEdge: "start" | "end") => {
-      const cards = getCards();
-      if (!cards.length) return;
-      gsap.killTweensOf(cards);
-      gsap.to(cards, {
-        opacity: 0, y: dirY, scale: dirScale,
-        duration: 0.5,
-        stagger: { each: 0.04, from: fromEdge },
-        ease: "power2.in",
-      });
-    };
-
-    const trigger = ScrollTrigger.create({
-      trigger: el,
-      start: "top 80%",
-      end: "bottom 20%",
-      onEnter:      () => animIn(),
-      onLeave:      () => animOut(-80, 0.88, "start"),
-      onEnterBack:  () => animIn(),
-      onLeaveBack:  () => animOut(220, 0.45, "end"),
+    const cards = cardFlyRefs.current.filter(Boolean) as HTMLDivElement[];
+    if (!cards.length) return;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      gsap.set(cards, { opacity: 1 });
+      return;
+    }
+    gsap.fromTo(cards, { opacity: 0, y: 220, scale: 0.45 }, {
+      opacity: 1, y: 0, scale: 1,
+      duration: 1.15,
+      stagger: { each: 0.078, from: "center" },
+      ease: "expo.out",
     });
-
-    ScrollTrigger.refresh();
-    return () => trigger.kill();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    return () => { gsap.killTweensOf(cards); };
   }, []);
 
   // ── Insert into console ───────────────────────────────────────────────
@@ -496,13 +436,16 @@ export function CartridgeCarousel({
     const wr = wrap.getBoundingClientRect();
     const cr = cartEl.getBoundingClientRect();
     const sr = conE.getBoundingClientRect();
+    // Rects are in screen pixels; the overlay is positioned in the roller's
+    // own pixels, which differ when the page scales the roller to fit.
+    const k = wrap.offsetWidth / wr.width || 1;
     setInFlight(game.id);
     setFlyCart({
       game,
-      sx: cr.left - wr.left + cr.width  / 2 - CW / 2,
-      sy: cr.top  - wr.top  + cr.height / 2 - CH / 2,
-      dx: (sr.left - wr.left + sr.width  / 2 - CW / 2) - (cr.left - wr.left + cr.width  / 2 - CW / 2),
-      dy: (sr.top  - wr.top  + sr.height / 2 - CH / 2 - 34) - (cr.top - wr.top + cr.height / 2 - CH / 2),
+      sx: (cr.left - wr.left + cr.width  / 2) * k - CW / 2,
+      sy: (cr.top  - wr.top  + cr.height / 2) * k - CH / 2,
+      dx: (sr.left + sr.width  / 2 - (cr.left + cr.width  / 2)) * k,
+      dy: (sr.top  + sr.height / 2 - (cr.top  + cr.height / 2)) * k - 34,
     });
     setTimeout(() => {
       setInsertedGame(game);
@@ -523,24 +466,32 @@ export function CartridgeCarousel({
     const wr = wrap.getBoundingClientRect();
     const sr = conE.getBoundingClientRect();
     const tr = tEl?.getBoundingClientRect() ?? sr;
+    const k  = wrap.offsetWidth / wr.width || 1;
+    const sy = (sr.top - wr.top) * k - 90;
     setEjectCart({
       game: insertedGame,
-      sx: sr.left - wr.left + sr.width  / 2 - CW / 2,
-      sy: sr.top  - wr.top  - 90,
-      ex: (tr.left - wr.left + tr.width  / 2 - CW / 2) - (sr.left - wr.left + sr.width  / 2 - CW / 2),
-      ey: (tr.top  - wr.top  + tr.height / 2 - CH / 2) - (sr.top  - wr.top  - 90),
+      sx: (sr.left - wr.left + sr.width / 2) * k - CW / 2,
+      sy,
+      ex: (tr.left + tr.width / 2 - (sr.left + sr.width / 2)) * k,
+      ey: (tr.top - wr.top + tr.height / 2) * k - CH / 2 - sy,
     });
     setInsertedGame(null);
     setTimeout(() => setEjectCart(null), 750);
   }, [insertedGame, games]);
 
-  // Closing the player must release the cartridge, otherwise the card stays
-  // dimmed and handleCardClick refuses to re-insert the same game.
-  const wasPlaying = useRef(false);
+  // Playing navigates to the game page. Coming back with the browser's Back
+  // button can restore this page exactly as it was left, cartridge still in
+  // the console, and handleCardClick refuses to re-insert the same game.
+  // Release it so every game can be launched again.
   useEffect(() => {
-    if (wasPlaying.current && !playingId) handleEject();
-    wasPlaying.current = !!playingId;
-  }, [playingId, handleEject]);
+    const onShow = (e: PageTransitionEvent) => {
+      if (!e.persisted) return;
+      if (playTimer.current) { clearTimeout(playTimer.current); playTimer.current = null; }
+      setInsertedGame(null);
+    };
+    window.addEventListener("pageshow", onShow);
+    return () => window.removeEventListener("pageshow", onShow);
+  }, []);
 
   const handleCardClick = useCallback((triIdx: number) => {
     if (inFlight) return;
@@ -560,6 +511,20 @@ export function CartridgeCarousel({
     triggerInsert(gameIdx);
   }, [activeIdx, inFlight, insertedGame, games, triggerInsert, TOTAL, LOOP_W]);
 
+  // ── Keyboard — arrows step one card, Enter plays the centred one ──────
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "ArrowRight" || e.key === "ArrowLeft") {
+        e.preventDefault();
+        targetX.current = (Math.round(targetX.current / UNIT) + (e.key === "ArrowRight" ? 1 : -1)) * UNIT;
+      } else if (e.key === "Enter" && !inFlight && insertedGame?.id !== games[activeIdx]?.id) {
+        triggerInsert(activeIdx);
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [activeIdx, inFlight, insertedGame, games, triggerInsert]);
+
   return (
     <div ref={outerRef} style={{ position: "relative", width: "100%", display: "flex", flexDirection: "column", alignItems: "center" }}>
 
@@ -568,10 +533,9 @@ export function CartridgeCarousel({
         ref={wrapRef}
         style={{
           width: "100%",
-          height: CH + 100,
+          height: TRACK_TOP + CH + 20,
           position: "relative",
           overflow: "hidden",
-          cursor: "none",
         }}
       >
         {/* Fade edges */}
@@ -584,7 +548,7 @@ export function CartridgeCarousel({
             display: "flex",
             gap: GAP,
             position: "absolute",
-            top: 40,
+            top: TRACK_TOP,
             left: 0,
             willChange: "transform",
           }}
@@ -603,6 +567,7 @@ export function CartridgeCarousel({
               <div
                 key={`${triIdx}`}
                 ref={el => { cardFlyRefs.current[triIdx] = el; }}
+                style={{ opacity: 0 }}
               >
                 <div
                   ref={el => { if (isMid) cartEls.current[gameIdx] = el; }}
@@ -636,7 +601,9 @@ export function CartridgeCarousel({
         </div>
       </div>
       <div style={{ marginTop: 5, textAlign: "center", zIndex: 1 }}>
-        <TextScramble text="HOVER + SCROLL TO BROWSE  ·  CLICK TO PLAY" style={{ fontFamily: "Share Tech Mono", fontSize: 8, color: "oklch(0.88 0.22 195 / 0.30)", letterSpacing: "0.22em" }} />
+        <span style={{ fontFamily: "Share Tech Mono", fontSize: 9, color: "oklch(0.88 0.22 195 / 0.55)", letterSpacing: "0.22em" }}>
+          SCROLL OR ← → TO BROWSE  ·  CLICK OR ENTER TO PLAY
+        </span>
       </div>
 
       {/* ── Console ── */}
