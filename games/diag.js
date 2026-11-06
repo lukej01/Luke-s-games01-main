@@ -60,9 +60,12 @@
 
   window.addEventListener("unhandledrejection", function (e) {
     var r = e.reason;
-    // EmulatorJS asks to keep the screen awake; browsers and managed devices
-    // may refuse. The game runs either way, so this is not a failure.
-    if (r && r.name === "NotAllowedError" && /wake lock/i.test(r.message || "")) return;
+    // EmulatorJS asks to keep the screen awake. Browsers refuse when the tab
+    // is in the background ("...on 'WakeLock': The requesting page is not
+    // visible") and managed devices may refuse outright ("Wake Lock
+    // permission request denied"). The game runs either way, so this is not
+    // a failure.
+    if (r && /wake ?lock/i.test(String(r.message || r))) return;
     log("unhandled rejection: " + ((r && (r.message || r)) || "unknown"), true);
   });
 
@@ -170,14 +173,15 @@
         if (!good) log("size chain: " + sizeChain(c), true);
       }, 600);
     } else if (waited === 60) {
-      log("no emulator canvas after 60s — the emulator shows its game only once the core and ROM have fully downloaded, so a slow connection can still be loading; if its own status text shows an error, that is the cause", true);
+      // Not a failure: big multi-part games are routinely still downloading
+      // here. Kept as context in case something else does fail.
+      log("note: no emulator canvas after 60s; the game appears once the core and ROM have fully downloaded");
     }
   }, 1000);
-  setTimeout(function () {
-    clearInterval(poll);
-  }, 180000);
+  // No time limit on this watch. A large game can take minutes to download,
+  // and the panel can only hide itself once it sees the game start.
 
   // Version marker so a cached old page is instantly distinguishable from this one.
-  log("diag v10");
+  log("diag v11");
   reportWebGL();
 })();
