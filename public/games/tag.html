@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no">
+<title>Tag</title>
+<!--
+  Tag, a Construct 2 game. The page follows the Ultimate Game Stash file.
+  The engine (c2tag.js, plus jQuery in jtag.js) comes from jsDelivr. The
+  engine itself fetches the game data, images and sounds by absolute URL
+  from an editmysite.com file host, with cross-origin requests, so it does
+  not matter which site serves this page.
+
+  Left out on purpose:
+  - The Google Sites calls (gadgets.util, google.csi). They only exist there.
+  - The fixed 1262x710 canvas size. The engine sizes the canvas to the window.
+  - window.C2_RegisterSW. The export registers a service worker named sw.js,
+    which does not exist on this site, and a service worker once put the
+    whole site into a reload loop. Without the hook, the engine skips it.
+-->
+<style>
+  * { padding: 0; margin: 0; }
+  html, body {
+    width: 100%; height: 100%;
+    background: #000; color: #fff;
+    overflow: hidden;
+    touch-action: none; -ms-touch-action: none;
+  }
+  canvas { touch-action: none; -ms-touch-action: none; }
+  #back {
+    position: fixed; top: 10px; left: 10px; z-index: 9000;
+    font: 600 11px/1 ui-monospace, monospace; letter-spacing: .25em;
+    color: #7fe9e0; text-decoration: none; padding: 8px 12px;
+    background: rgba(0,0,0,.55); border: 1px solid rgba(127,233,224,.35);
+    border-radius: 4px; opacity: .75;
+  }
+  #back:hover, #back:focus-visible { opacity: 1; }
+</style>
+<script src="https://cdn.jsdelivr.net/gh/bubbls/ruffle@31ceb2935f9422effe7c04c3e981d45d94ddf8b3/offtag.js"></script>
+</head>
+<body>
+<a id="back" href="/Luke-s-games01-main/">← GAMESTASH</a>
+
+<!-- The engine looks for this div and canvas by id. -->
+<div id="c2canvasdiv">
+  <canvas id="c2canvas" width="1262" height="710">Your browser does not support HTML5 canvas. Try a current version of Chrome, Edge, Firefox or Safari.</canvas>
+</div>
+
+<script src="https://cdn.jsdelivr.net/gh/bubbls/ruffle@31ceb2935f9422effe7c04c3e981d45d94ddf8b3/jtag.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/bubbls/ruffle@31ceb2935f9422effe7c04c3e981d45d94ddf8b3/c2tag.js"></script>
+<script>
+  jQuery(document).ready(function () {
+    cr_createRuntime("c2canvas");
+  });
+
+  // Pause the game while its tab is in the background.
+  document.addEventListener("visibilitychange", function () {
+    cr_setSuspended(document.hidden);
+  });
+</script>
+</body>
+</html>
