@@ -41,16 +41,6 @@
 
   window.__diag = log;
 
-  // Tell the parent app this frame actually rendered. The player shows a
-  // launch-in-new-tab fallback when nothing arrives — content filters on
-  // managed devices can treat embedded frames differently from top-level
-  // pages, and a silently blocked iframe is indistinguishable from black.
-  try {
-    if (window.parent !== window) {
-      window.parent.postMessage({ type: "gamestash:page-alive" }, "*");
-    }
-  } catch (e) {}
-
   window.addEventListener("error", function (e) {
     // Benign: the layout guard in ejs-boot.js resizes elements from inside a
     // ResizeObserver callback, and the browser reports the follow-up frame.
@@ -182,6 +172,6 @@
   // and the panel can only hide itself once it sees the game start.
 
   // Version marker so a cached old page is instantly distinguishable from this one.
-  log("diag v11");
+  log("diag v12");
   reportWebGL();
 })();

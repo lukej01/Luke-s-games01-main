@@ -14,12 +14,10 @@
 // So the engine is switched only when it fails to load, a signal that cannot
 // fire on a working game. There are no pixel checks, no timers and no reloads.
 
-// Game pages are now visited top-level (the landing page navigates here
-// instead of iframing — content filters on managed devices black out the
-// embedded route). Give the player a way back that isn't the browser chrome.
-// Skipped when embedded: the overlay has its own header.
+// Game pages are opened as their own page (content filters on managed
+// devices black out embedded frames). Give the player a way back that isn't
+// the browser chrome.
 (function () {
-  if (window.parent !== window) return;
   function mount() {
     var a = document.createElement("a");
     a.textContent = "← GAMESTASH";

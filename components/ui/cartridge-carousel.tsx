@@ -20,6 +20,9 @@ const CXSW = 140;
 
 const gc  = (h: number) => `oklch(0.88 0.22 ${h})`;
 const gcd = (h: number) => `oklch(0.55 0.18 ${h})`;
+// gc() with transparency. Appending hex alpha to an oklch() string ("…)66")
+// is invalid CSS: the browser drops the whole declaration.
+const ga  = (h: number, a: number) => `oklch(0.88 0.22 ${h} / ${a})`;
 
 export interface CarouselGame {
   id: string;
@@ -76,12 +79,12 @@ function Card3D({ game, isActive }: { game: CarouselGame; isActive: boolean }) {
       <div ref={cardRef} style={{
         width: CW, height: CH,
         background: "oklch(0.072 0.018 195)",
-        border: `1px solid ${isActive ? c + "66" : "oklch(0.22 0.07 195)"}`,
+        border: `1px solid ${isActive ? ga(game.hue, 0.4) : "oklch(0.22 0.07 195)"}`,
         borderRadius: 6,
         display: "flex", flexDirection: "column",
         overflow: "hidden",
         boxShadow: isActive
-          ? `0 0 0 1.5px ${c}55, 0 0 0 4px ${c}18, 0 28px 80px rgba(0,0,0,0.95), 0 0 90px ${c}35`
+          ? `0 0 0 1.5px ${ga(game.hue, 0.33)}, 0 0 0 4px ${ga(game.hue, 0.09)}, 0 28px 80px rgba(0,0,0,0.95), 0 0 90px ${ga(game.hue, 0.21)}`
           : "0 8px 32px rgba(0,0,0,0.75), 0 0 0 1px oklch(0.16 0.05 195)",
         transition: "border-color 0.3s, box-shadow 0.3s",
         position: "relative",
@@ -106,9 +109,6 @@ function Card3D({ game, isActive }: { game: CarouselGame; isActive: boolean }) {
           transform: "translateZ(0)", // Force hardware accel layer
         }}>
           <div style={{ position: "absolute", inset: 0, pointerEvents: "none",
-            backgroundImage: `linear-gradient(${c}07 1px, transparent 1px), linear-gradient(90deg, ${c}07 1px, transparent 1px)`,
-            backgroundSize: "14px 14px" }} />
-          <div style={{ position: "absolute", inset: 0, pointerEvents: "none",
             backgroundImage: "repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(0,0,0,0.10) 3px, rgba(0,0,0,0.10) 4px)" }} />
           <div style={{ position: "absolute", inset: 0, pointerEvents: "none",
             background: "radial-gradient(ellipse at center, transparent 25%, rgba(0,0,0,0.65) 100%)" }} />
@@ -124,22 +124,16 @@ function Card3D({ game, isActive }: { game: CarouselGame; isActive: boolean }) {
             }}>{game.title.toUpperCase()}</div>
           )}
           <div style={{ position: "absolute", top: 6, left: 6, fontFamily: "Share Tech Mono", fontSize: 7,
-            color: c, letterSpacing: "0.14em", background: `${c}18`, border: `1px solid ${c}44`,
+            color: c, letterSpacing: "0.14em", background: ga(game.hue, 0.09), border: `1px solid ${ga(game.hue, 0.27)}`,
             padding: "2px 6px", borderRadius: 2 }}>{game.platform}</div>
           <div style={{ position: "absolute", top: 6, right: 6, fontFamily: "Share Tech Mono",
             fontSize: 7, color: cd, letterSpacing: "0.1em" }}>{game.year}</div>
-          {isActive && <>
-            <div style={{ position: "absolute", top: 4, left: 4, width: 8, height: 8, border: `1.5px solid ${c}99`, borderRight: "none", borderBottom: "none" }} />
-            <div style={{ position: "absolute", top: 4, right: 4, width: 8, height: 8, border: `1.5px solid ${c}99`, borderLeft: "none", borderBottom: "none" }} />
-            <div style={{ position: "absolute", bottom: 4, left: 4, width: 8, height: 8, border: `1.5px solid ${c}99`, borderRight: "none", borderTop: "none" }} />
-            <div style={{ position: "absolute", bottom: 4, right: 4, width: 8, height: 8, border: `1.5px solid ${c}99`, borderLeft: "none", borderTop: "none" }} />
-          </>}
         </div>
 
         {/* Info strip */}
         <div style={{
           padding: "7px 10px 8px",
-          borderTop: `1px solid ${isActive ? c + "33" : "oklch(0.16 0.05 195)"}`,
+          borderTop: `1px solid ${isActive ? ga(game.hue, 0.2) : "oklch(0.16 0.05 195)"}`,
           background: "oklch(0.058 0.014 195)",
           transition: "border-color 0.3s",
         }}>
@@ -166,14 +160,6 @@ function Card3D({ game, isActive }: { game: CarouselGame; isActive: boolean }) {
           </div>
         </div>
 
-        {isActive && (
-          <div style={{
-            position: "absolute", left: 0, right: 0, height: 2, pointerEvents: "none",
-            background: `linear-gradient(90deg, transparent, ${c}99, transparent)`,
-            animation: "scanline-drop 2s linear infinite", opacity: 0.7,
-            zIndex: 11,
-          }} />
-        )}
       </div>
     </div>
   );
@@ -182,7 +168,8 @@ function Card3D({ game, isActive }: { game: CarouselGame; isActive: boolean }) {
 // ── Console ──────────────────────────────────────────────────────────────────
 function Console({ insertedGame, onEject }: { insertedGame: CarouselGame | null; onEject: () => void }) {
   const [screenTxt, setScreenTxt] = useState("INSERT GAME");
-  const c   = insertedGame ? gc(insertedGame.hue) : "oklch(0.88 0.22 195)";
+  const hue = insertedGame?.hue ?? 195;
+  const c   = gc(hue);
   const isOn = !!insertedGame;
 
   useEffect(() => {
@@ -206,9 +193,9 @@ function Console({ insertedGame, onEject }: { insertedGame: CarouselGame | null;
         <div style={{
           width: CXSW, height: 13,
           background: "oklch(0.018 0.008 195)",
-          border: `1px solid ${isOn ? c + "77" : "rgba(255,255,255,0.12)"}`,
+          border: `1px solid ${isOn ? ga(hue, 0.47) : "rgba(255,255,255,0.12)"}`,
           borderRadius: 2,
-          boxShadow: isOn ? `inset 0 0 8px ${c}22, 0 0 8px ${c}33` : "inset 0 2px 5px rgba(0,0,0,0.9)",
+          boxShadow: isOn ? `inset 0 0 8px ${ga(hue, 0.13)}, 0 0 8px ${ga(hue, 0.2)}` : "inset 0 2px 5px rgba(0,0,0,0.9)",
           transition: "all 0.4s", position: "relative",
         }}>
           {insertedGame && (
@@ -219,10 +206,10 @@ function Console({ insertedGame, onEject }: { insertedGame: CarouselGame | null;
               transform: "translateX(-50%)",
               width: 90, height: 26,
               background: `linear-gradient(160deg, oklch(0.22 0.10 ${insertedGame.hue}), oklch(0.14 0.06 ${insertedGame.hue}))`,
-              border: `1px solid ${c}99`,
+              border: `1px solid ${ga(hue, 0.6)}`,
               borderRadius: "2px 2px 0 0",
               display: "flex", alignItems: "center", justifyContent: "center",
-              boxShadow: `0 0 18px ${c}66`,
+              boxShadow: `0 0 18px ${ga(hue, 0.4)}`,
               transition: "all 0.6s cubic-bezier(0.34, 1.56, 0.64, 1)",
               zIndex: 2,
             }}>
@@ -237,12 +224,12 @@ function Console({ insertedGame, onEject }: { insertedGame: CarouselGame | null;
             position: "absolute", top: "50%", transform: "translateY(-50%)",
             right: `calc(50% - ${CXSW / 2 + 26}px)`,
             width: 26, height: 26, borderRadius: 4,
-            background: `${c}18`, border: `1px solid ${c}66`,
+            background: ga(hue, 0.09), border: `1px solid ${ga(hue, 0.4)}`,
             display: "flex", alignItems: "center", justifyContent: "center",
             cursor: "pointer", transition: "all 0.2s",
           }}
-          onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = `${c}30`; (e.currentTarget as HTMLElement).style.boxShadow = `0 0 14px ${c}66`; }}
-          onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = `${c}18`; (e.currentTarget as HTMLElement).style.boxShadow = "none"; }}>
+          onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = ga(hue, 0.19); (e.currentTarget as HTMLElement).style.boxShadow = `0 0 14px ${ga(hue, 0.4)}`; }}
+          onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = ga(hue, 0.09); (e.currentTarget as HTMLElement).style.boxShadow = "none"; }}>
             <svg width="11" height="11" viewBox="0 0 10 10" fill={c}>
               <path d="M5 8L2 4.5H4V1H6V4.5H8L5 8Z" transform="scale(1,-1) translate(0,-9)" />
               <rect x="1.5" y="8" width="7" height="1.5" rx="0.5" />
@@ -260,12 +247,12 @@ function Console({ insertedGame, onEject }: { insertedGame: CarouselGame | null;
         boxShadow: [
           "0 10px 0 oklch(0.03 0.005 195)",
           "0 20px 60px rgba(0,0,0,0.95)",
-          `0 0 100px ${isOn ? c + "38" : "oklch(0.88 0.22 195 / 0.08)"}`,
+          `0 0 100px ${isOn ? ga(hue, 0.22) : "oklch(0.88 0.22 195 / 0.08)"}`,
           "inset 0 1px 0 rgba(255,255,255,0.06)",
         ].join(","),
         display: "flex", alignItems: "center", transition: "box-shadow 0.6s", zIndex: 2,
       }}>
-        <div style={{ position: "absolute", top: 0, left: 60, right: 60, height: 1, background: `linear-gradient(90deg, transparent, ${c}77, transparent)`, opacity: isOn ? 0.8 : 0.28, transition: "opacity 0.6s" }} />
+        <div style={{ position: "absolute", top: 0, left: 60, right: 60, height: 1, background: `linear-gradient(90deg, transparent, ${ga(hue, 0.47)}, transparent)`, opacity: isOn ? 0.8 : 0.28, transition: "opacity 0.6s" }} />
         <span style={{ marginLeft: 26, fontFamily: "'Press Start 2P'", fontSize: 7.5, color: `oklch(0.88 0.22 195 / ${isOn ? "0.32" : "0.16"})`, letterSpacing: "0.16em", transition: "color 0.6s", textShadow: isOn ? `0 0 14px oklch(0.88 0.22 195 / 0.35)` : "none" }}>GAMESTASH</span>
 
         {/* Screen */}
@@ -273,10 +260,10 @@ function Console({ insertedGame, onEject }: { insertedGame: CarouselGame | null;
           position: "absolute", left: "50%", transform: "translateX(-50%)",
           width: 160, height: 52,
           background: isOn ? `oklch(0.048 0.030 ${insertedGame?.hue ?? 195})` : "oklch(0.018 0.005 195)",
-          border: `1px solid ${isOn ? c + "aa" : "rgba(255,255,255,0.08)"}`,
+          border: `1px solid ${isOn ? ga(hue, 0.67) : "rgba(255,255,255,0.08)"}`,
           borderRadius: 5, overflow: "hidden",
           display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 5,
-          boxShadow: isOn ? `0 0 24px ${c}44, inset 0 0 18px ${c}22` : "inset 0 3px 8px rgba(0,0,0,0.7)",
+          boxShadow: isOn ? `0 0 24px ${ga(hue, 0.27)}, inset 0 0 18px ${ga(hue, 0.13)}` : "inset 0 3px 8px rgba(0,0,0,0.7)",
           transition: "all 0.45s",
         }}>
           <div style={{ position: "absolute", inset: 0, pointerEvents: "none", backgroundImage: "repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(0,0,0,0.10) 3px, rgba(0,0,0,0.10) 4px)" }} />
@@ -296,7 +283,7 @@ function Console({ insertedGame, onEject }: { insertedGame: CarouselGame | null;
         </div>
         {/* LED */}
         <div style={{ position: "absolute", right: 24, top: "50%", transform: "translateY(-50%)", display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
-          <div style={{ width: 11, height: 11, borderRadius: "50%", background: isOn ? c : "oklch(0.07 0.02 195)", boxShadow: isOn ? `0 0 14px ${c}, 0 0 32px ${c}99` : "none", transition: "all 0.6s", animation: isOn ? "neon-pulse 1.5s ease-in-out infinite" : "none" }} />
+          <div style={{ width: 11, height: 11, borderRadius: "50%", background: isOn ? c : "oklch(0.07 0.02 195)", boxShadow: isOn ? `0 0 14px ${c}, 0 0 32px ${ga(hue, 0.6)}` : "none", transition: "all 0.6s", animation: isOn ? "neon-pulse 1.5s ease-in-out infinite" : "none" }} />
           <span style={{ fontFamily: "Share Tech Mono", fontSize: 6, letterSpacing: "0.1em", color: isOn ? c : "oklch(0.30 0.04 195)", transition: "color 0.6s" }}>{isOn ? "ON" : "OFF"}</span>
         </div>
         {/* 3D sides */}
