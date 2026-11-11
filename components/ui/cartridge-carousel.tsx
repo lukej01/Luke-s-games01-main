@@ -117,7 +117,7 @@ function Card3D({ game, isActive }: { game: CarouselGame; isActive: boolean }) {
               position: "absolute", inset: 0,
               display: "flex", alignItems: "center", justifyContent: "center",
               fontFamily: "'Press Start 2P'", fontSize: 11,
-              color: `${c}18`, letterSpacing: "0.08em", userSelect: "none",
+              color: `oklch(0.88 0.22 ${game.hue} / 0.1)`, letterSpacing: "0.08em", userSelect: "none",
             }}>{game.platform}</div>
           )}
           <div style={{ position: "absolute", top: 6, left: 6, fontFamily: "Share Tech Mono", fontSize: 7,

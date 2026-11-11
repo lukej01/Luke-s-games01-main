@@ -110,6 +110,14 @@ const GAMES: CarouselGame[] = [
     hue: 50,
     coverImage: "https://upload.wikimedia.org/wikipedia/en/thumb/5/56/Lego_Star_Wars-The_Complete_Saga.jpg/250px-Lego_Star_Wars-The_Complete_Saga.jpg",
   },
+  {
+    // A browser game, not a ROM: no box art. A cover can be set in the admin panel.
+    id: "tag",
+    title: "Tag",
+    platform: "PC",
+    year: "",
+    hue: 140,
+  },
 ];
 
 // Games open as their own page: content filters on managed devices black out
