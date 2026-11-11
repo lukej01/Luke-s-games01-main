@@ -112,13 +112,16 @@ function Card3D({ game, isActive }: { game: CarouselGame; isActive: boolean }) {
             backgroundImage: "repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(0,0,0,0.10) 3px, rgba(0,0,0,0.10) 4px)" }} />
           <div style={{ position: "absolute", inset: 0, pointerEvents: "none",
             background: "radial-gradient(ellipse at center, transparent 25%, rgba(0,0,0,0.65) 100%)" }} />
+          {/* No box art (browser games): the title is the cover. */}
           {!game.coverImage && (
             <div style={{
-              position: "absolute", inset: 0,
+              position: "absolute", inset: 0, padding: "0 12px",
               display: "flex", alignItems: "center", justifyContent: "center",
-              fontFamily: "'Press Start 2P'", fontSize: 11,
-              color: `oklch(0.88 0.22 ${game.hue} / 0.1)`, letterSpacing: "0.08em", userSelect: "none",
-            }}>{game.platform}</div>
+              fontFamily: "'Press Start 2P'", fontSize: game.title.length <= 6 ? 26 : 13,
+              lineHeight: 1.5, textAlign: "center", wordBreak: "break-word",
+              color: c, textShadow: `0 0 14px oklch(0.88 0.22 ${game.hue} / 0.6)`,
+              letterSpacing: "0.06em", userSelect: "none",
+            }}>{game.title.toUpperCase()}</div>
           )}
           <div style={{ position: "absolute", top: 6, left: 6, fontFamily: "Share Tech Mono", fontSize: 7,
             color: c, letterSpacing: "0.14em", background: `${c}18`, border: `1px solid ${c}44`,
