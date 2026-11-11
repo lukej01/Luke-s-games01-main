@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Minecraft 1.8.8</title>
+<!--
+  Minecraft 1.8.8 via EaglercraftX 1.8 u45, based on the Ultimate Game Stash
+  loader (clminecraft1-8-8.html). The full offline HTML is about 25 MB; this
+  page loads the same parts from jsDelivr instead, pinned to one commit of
+  bubbls/loltheygotbannedfromjsdelivr:
+    classes.min.js  the game engine (19.8 MB)
+    assets.epk      textures, sounds, models (7.6 MB)
+    lang/           extra language files
+  The browser caches them after the first visit. Worlds are saved in this
+  browser (IndexedDB).
+
+  Left out of the loader on purpose:
+  - fix-webm-duration.js. At that commit it is an HTML page saved under a .js
+    name, so loading it only throws an error. It is an optional helper for
+    screen recordings.
+  - localesURI "lang/". It is relative, so it pointed at this site, which has
+    no lang folder. It now points at the folder next to the engine.
+-->
+<style>
+  html, body { margin: 0; padding: 0; height: 100%; overflow: hidden; background: #000; }
+  #game_frame { width: 100%; height: 100%; }
+  /* Back to the site. Minecraft uses all four corners (version text, CREDITS,
+     Import/Export, copyright), so this is a small tab on the middle of the
+     left edge, which the menus and the in-game HUD leave empty. Its label
+     shows on hover or keyboard focus. */
+  #back {
+    position: fixed; left: 0; top: 50%; z-index: 9000;
+    transform: translateY(-50%);
+    font: 600 13px/1 ui-monospace, monospace;
+    color: #7fe9e0; text-decoration: none; padding: 10px 9px 10px 7px;
+    background: rgba(0,0,0,.6); border: 1px solid rgba(127,233,224,.35);
+    border-left: none; border-radius: 0 6px 6px 0; opacity: .75;
+  }
+  #back .label {
+    position: absolute; left: 100%; top: 50%; margin-left: 6px;
+    padding: 7px 10px; border-radius: 4px; white-space: nowrap;
+    font-size: 11px; letter-spacing: .25em; background: rgba(0,0,0,.75);
+    opacity: 0; transform: translate(-6px, -50%); pointer-events: none;
+    transition: opacity .2s, transform .2s;
+  }
+  #back:hover, #back:focus-visible { opacity: 1; }
+  #back:hover .label, #back:focus-visible .label { opacity: 1; transform: translate(0, -50%); }
+  @media (prefers-reduced-motion: reduce) { #back .label { transition: none; } }
+</style>
+<script src="https://cdn.jsdelivr.net/gh/bubbls/loltheygotbannedfromjsdelivr@38f40924ae70b843f3d4d0a5dc3d6ba13ca3a461/classes.min.js"></script>
+<script>
+  var EAGLER = "https://cdn.jsdelivr.net/gh/bubbls/loltheygotbannedfromjsdelivr@38f40924ae70b843f3d4d0a5dc3d6ba13ca3a461/";
+
+  window.addEventListener("load", function () {
+    // The game reads keys from the focused window; take focus back on click.
+    window.focus();
+    document.body.addEventListener("click", function () { window.focus(); });
+
+    window.eaglercraftXOpts = {
+      container: "game_frame",
+      assetsURI: EAGLER + "assets.epk",
+      localesURI: EAGLER + "lang/",
+      servers: [
+        { addr: "wss://mc.arch.lol/", name: "ArchMC" },
+        { addr: "wss://sus.shhnowisnottheti.me", name: "Ayunboom" },
+        { addr: "wss://aeon-network.net/1.8", name: "Aeon" },
+        { addr: "wss://zentic.org/", name: "Zentic" },
+      ],
+    };
+    main();
+  });
+</script>
+</head>
+<body>
+<a id="back" href="/Luke-s-games01-main/" aria-label="Back to GameStash"><span aria-hidden="true">←</span><span class="label" aria-hidden="true">GAMESTASH</span></a>
+<div id="game_frame"></div>
+</body>
+</html>

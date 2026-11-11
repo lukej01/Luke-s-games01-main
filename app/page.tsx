@@ -118,6 +118,14 @@ const GAMES: CarouselGame[] = [
     year: "",
     hue: 140,
   },
+  {
+    // EaglercraftX 1.8 u45, a browser port of Minecraft 1.8.8. No box art either.
+    id: "minecraft",
+    title: "Minecraft 1.8.8",
+    platform: "PC",
+    year: "2014",
+    hue: 110,
+  },
 ];
 
 // Games open as their own page: content filters on managed devices black out
