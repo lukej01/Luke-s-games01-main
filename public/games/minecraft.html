@@ -52,6 +52,54 @@
 <script>
   var EAGLER = "https://cdn.jsdelivr.net/gh/bubbls/loltheygotbannedfromjsdelivr@38f40924ae70b843f3d4d0a5dc3d6ba13ca3a461/";
 
+  // Lighter video settings for low-end Chromebooks, applied once per browser.
+  // The game saves its options.txt gzipped and base64-encoded under
+  // _eaglercraftX.g. Only these keys are changed; any other setting, and
+  // anything the player changes later in Options, is left alone. Values follow
+  // vanilla 1.8: particles 2 = Minimal, renderClouds false = Off.
+  var SETTINGS_KEY = "_eaglercraftX.g";
+  var TUNED_KEY = "gamestash.minecraft.tuned";
+  var FAST = {
+    renderDistance: "3",     // default 4: fewer chunks to build and simulate
+    particles: "2",          // default 0 (All)
+    mipmapLevels: "0",       // default 4
+    entityShadows: "false",  // default true
+    renderClouds: "false",   // default fast
+  };
+
+  function pipeBytes(bytes, transform) {
+    return new Response(new Blob([bytes]).stream().pipeThrough(transform)).arrayBuffer();
+  }
+
+  function applyFastSettings() {
+    var store;
+    try { store = window.localStorage; } catch (e) { return Promise.resolve(); }
+    if (!store || store.getItem(TUNED_KEY) || typeof CompressionStream !== "function") return Promise.resolve();
+    var saved = store.getItem(SETTINGS_KEY);
+    var read = saved
+      ? pipeBytes(Uint8Array.from(atob(saved), function (ch) { return ch.charCodeAt(0); }), new DecompressionStream("gzip"))
+          .then(function (buf) { return new TextDecoder().decode(buf); })
+      : Promise.resolve("");
+    return read.then(function (text) {
+      var done = {};
+      var lines = text.split("\n").filter(Boolean).map(function (line) {
+        var key = line.slice(0, line.indexOf(":"));
+        if (!(key in FAST)) return line;
+        done[key] = true;
+        return key + ":" + FAST[key];
+      });
+      for (var key in FAST) if (!done[key]) lines.push(key + ":" + FAST[key]);
+      return pipeBytes(new TextEncoder().encode(lines.join("\n") + "\n"), new CompressionStream("gzip"));
+    }).then(function (gz) {
+      var bin = "";
+      new Uint8Array(gz).forEach(function (b) { bin += String.fromCharCode(b); });
+      store.setItem(SETTINGS_KEY, btoa(bin));
+      store.setItem(TUNED_KEY, "1");
+    }).catch(function () {
+      // Unreadable settings: start the game with what it has.
+    });
+  }
+
   window.addEventListener("load", function () {
     // The game reads keys from the focused window; take focus back on click.
     window.focus();
@@ -68,7 +116,7 @@
         { addr: "wss://zentic.org/", name: "Zentic" },
       ],
     };
-    main();
+    applyFastSettings().then(function () { main(); });
   });
 </script>
 </head>

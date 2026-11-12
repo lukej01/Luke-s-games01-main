@@ -1,6 +1,9 @@
 # dependencies
 /node_modules
 
+# local Node.js downloads (once committed by accident: 140 MB of a macOS build)
+/.tmp_node/
+
 # next.js build cache (never commit)
 /.next/
 
