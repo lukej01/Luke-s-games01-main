@@ -119,6 +119,40 @@ function guardLayout(player) {
   repair();
 }
 
+// Quick save (key 1 in the owner's controls) writes "/<slot>-quick.state" to
+// the emulator's in-memory root, which is gone once the page closes, so
+// quick load (key 2) found nothing on the next visit. Keep quick saves in
+// /data/saves instead: EmulatorJS mounts it as IDBFS with autoPersist, so
+// files written there are saved to IndexedDB, as cartridge saves already
+// are. That folder is shared by every game, so each file is named after the
+// page. Also write cartridge saves the moment the tab is hidden, which
+// happens before it closes, instead of relying on the write at page unload.
+function keepSavesAcrossVisits(emu) {
+  var gm = emu && emu.gameManager;
+  if (!gm || !gm.FS || typeof gm.getState !== "function" || !gm.functions) return;
+  // The page's own name (e.g. "super-mario-3"): unique on this site and
+  // stable across visits, unlike ROM file names, which can be generic.
+  var game = location.pathname.split("/").pop().replace(/\.html$/, "");
+  function quickPath(slot) {
+    return "/data/saves/" + game + ".quick" + (slot || 1) + ".state";
+  }
+  gm.quickSave = function (slot) {
+    try {
+      gm.FS.writeFile(quickPath(slot), gm.getState());
+      return true;
+    } catch (e) {
+      return false;
+    }
+  };
+  gm.quickLoad = function (slot) {
+    if (typeof gm.clearEJSResetTimer === "function") gm.clearEJSResetTimer();
+    gm.functions.loadState(quickPath(slot), 0);
+  };
+  document.addEventListener("visibilitychange", function () {
+    if (document.visibilityState === "hidden") gm.saveSaveFiles();
+  });
+}
+
 window.bootEmulator = function (onAllFailed) {
   var player = document.querySelector(window.EJS_player);
   if (player) guardLayout(player);
@@ -127,7 +161,22 @@ window.bootEmulator = function (onAllFailed) {
   // trigger in EmulatorJS on some GPUs. Pages with their own options keep them.
   var opts = window.EJS_defaultOptions || {};
   if (!("vsync" in opts)) opts.vsync = "disabled";
+  // Saving, part 1. EmulatorJS's Save State button downloads a .state file
+  // by default, and Load State then asks for that file. Keep states in the
+  // browser instead. Its cartridge saves (SRAM) are written every 5 minutes
+  // by default; every 30 seconds loses far less when a tab is closed.
+  // These are defaults only: a choice made in the emulator's settings wins.
+  if (!("save-state-location" in opts)) opts["save-state-location"] = "browser";
+  if (!("save-save-interval" in opts)) opts["save-save-interval"] = "30";
   window.EJS_defaultOptions = opts;
+
+  // Saving, part 2, once the game is running. Wraps the page's own
+  // EJS_onGameStart, which loader.js registers for the "start" event.
+  var pageOnStart = window.EJS_onGameStart;
+  window.EJS_onGameStart = function () {
+    if (typeof pageOnStart === "function") pageOnStart.apply(this, arguments);
+    keepSavesAcrossVisits(window.EJS_emulator);
+  };
 
   // The owner's keyboard mapping, recovered from the original gaming hub
   // (042455c index.html) — WASD drives d-pad + left stick, arrows the right
